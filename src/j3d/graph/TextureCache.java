@@ -6,7 +6,7 @@ public class TextureCache {
 
     public static final String DEFAULT_TEXTURE = "res/models/default/default_texture.png";
 
-    private Map<String, Texture> textureMap;
+    private final Map<String, Texture> textureMap;
 
     public TextureCache() {
         textureMap = new HashMap<>();

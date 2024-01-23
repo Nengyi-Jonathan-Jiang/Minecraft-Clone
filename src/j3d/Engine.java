@@ -6,14 +6,14 @@ import j3d.scene.Scene;
 public class Engine {
     private final IAppLogic appLogic;
     private final Window window;
-    private Render render;
+    private final Render render;
     private boolean running;
-    private Scene scene;
+    private final Scene scene;
     private static final int targetFps = 60;
     private static final int targetUps = 60;
 
-    public Engine(String windowTitle, Window.WindowOptions opts, IAppLogic appLogic) {
-        window = new Window(windowTitle, opts, () -> {
+    public Engine(String windowTitle, IAppLogic appLogic) {
+        window = new Window(windowTitle, () -> {
             resize();
             return null;
         });

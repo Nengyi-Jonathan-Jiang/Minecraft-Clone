@@ -13,6 +13,8 @@ public class Render {
     public Render() {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CCW);
         sceneRender = new SceneRender();
     }
 

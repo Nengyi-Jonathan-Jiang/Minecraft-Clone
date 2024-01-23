@@ -1,0 +1,42 @@
+// Top face (+y)
+vertex  0 16  0 | 0 0
+vertex 16 16  0 | 1 0
+vertex  0 16 16 | 0 1
+vertex 16 16 16 | 1 1
+
+// Front face (+z)
+vertex  0 16 16 | 1 0
+vertex 16 16 16 | 2 0
+vertex  0  0 16 | 1 1
+vertex 16  0 16 | 2 1
+
+// Right face (+x)
+vertex 16 16 16 | 2 0
+vertex 16 16  0 | 3 0
+vertex 16  0 16 | 2 1
+vertex 16  0  0 | 3 1
+
+// Bottom face (-y)
+vertex 16  0 16 | 0 1
+vertex  0  0 16 | 1 1
+vertex 16  0  0 | 0 2
+vertex  0  0  0 | 1 2
+
+// Back face (-z)
+vertex 16  0  0 | 1 1
+vertex  0  0  0 | 2 1
+vertex 16 16  0 | 1 2
+vertex  0 16  0 | 2 2
+
+// Left face (-x)
+vertex  0  0  0 | 2 1
+vertex  0  0 16 | 3 1
+vertex  0 16  0 | 2 2
+vertex  0 16 16 | 3 2
+
+face top     1  2  3  3  2  4
+face front   5  6  7  7  6  8
+face right   9 10 11 11 10 12
+face bottom 13 14 15 15 14 16
+face back   17 18 19 19 18 20
+face left   21 22 23 23 22 24

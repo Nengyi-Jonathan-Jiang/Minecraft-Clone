@@ -9,8 +9,8 @@ import static org.lwjgl.opengl.GL20.*;
 
 public class UniformsMap {
 
-    private int programId;
-    private Map<String, Integer> uniforms;
+    private final int programId;
+    private final Map<String, Integer> uniforms;
 
     public UniformsMap(int programId) {
         this.programId = programId;

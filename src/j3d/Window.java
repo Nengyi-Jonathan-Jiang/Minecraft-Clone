@@ -17,7 +17,7 @@ public class Window {
     private final MouseInput mouseInput;
     private final Callable<Void> resizeFunc;
 
-    public Window(String title, WindowOptions opts, Callable<Void> resizeFunc) {
+    public Window(String title, Callable<Void> resizeFunc) {
         this.resizeFunc = resizeFunc;
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -33,14 +33,10 @@ public class Window {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-        if (opts.width > 0 && opts.height > 0) {
-            dimensions = new Dimension(opts.width, opts.height);
-        } else {
-            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-            GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-            assert vidMode != null;
-            dimensions = new Dimension(vidMode.width(), vidMode.height());
-        }
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        assert vidMode != null;
+        dimensions = new Dimension(vidMode.width(), vidMode.height());
 
         windowHandle = glfwCreateWindow(dimensions.width, dimensions.height, title, NULL, NULL);
         if (windowHandle == NULL) {
@@ -126,10 +122,5 @@ public class Window {
 
     public boolean windowShouldClose() {
         return glfwWindowShouldClose(windowHandle);
-    }
-
-    public static class WindowOptions {
-        public int width;
-        public int height;
     }
 }
