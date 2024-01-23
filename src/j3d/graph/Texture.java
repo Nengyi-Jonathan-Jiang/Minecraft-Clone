@@ -11,10 +11,21 @@ public class Texture {
 
     private int textureId;
     private final String texturePath;
+    private final int width, height;
 
     public Texture(int width, int height, ByteBuffer buf) {
         this.texturePath = "";
+        this.width = width;
+        this.height = height;
         generateTexture(width, height, buf);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public Texture(String texturePath) {
@@ -29,8 +40,8 @@ public class Texture {
                 throw new RuntimeException("Image file [" + texturePath + "] not loaded: " + stbi_failure_reason());
             }
 
-            int width = w.get();
-            int height = h.get();
+            this.width = w.get();
+            this.height = h.get();
 
             generateTexture(width, height, buf);
 
