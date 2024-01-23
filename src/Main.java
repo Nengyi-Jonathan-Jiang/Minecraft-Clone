@@ -77,6 +77,7 @@ public class Main implements IAppLogic {
                 // V19: V2 repeated
                 0.5f, -0.5f, 0.5f,
         };
+
         float[] textCoords = new float[]{
                 0.0f, 0.0f,
                 0.0f, 0.5f,
@@ -108,6 +109,7 @@ public class Main implements IAppLogic {
                 0.5f, 0.5f,
                 1.0f, 0.5f,
         };
+
         int[] indices = new int[]{
                 // Front face
                 0, 1, 3, 3, 1, 2,
@@ -121,7 +123,9 @@ public class Main implements IAppLogic {
                 16, 18, 19, 17, 16, 19,
                 // Back face
                 4, 6, 7, 5, 4, 7,};
+
         Texture texture = scene.getTextureCache().createTexture("res/models/cube/cube.png");
+
         Material material = new Material();
         material.setTexturePath(texture.getTexturePath());
         List<Material> materialList = new ArrayList<>();
@@ -160,7 +164,7 @@ public class Main implements IAppLogic {
         MouseInput mouseInput = window.getMouseInput();
         if (mouseInput.isRightButtonPressed()) {
             Vector2f displVec = mouseInput.getDisplVec();
-            camera.addRotation((float) Math.toRadians(-displVec.x * MOUSE_SENSITIVITY),
+            camera.rotateBy((float) Math.toRadians(-displVec.x * MOUSE_SENSITIVITY),
                     (float) Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
     }

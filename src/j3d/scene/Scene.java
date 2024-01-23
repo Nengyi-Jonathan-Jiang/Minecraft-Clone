@@ -5,10 +5,10 @@ import j3d.graph.*;
 import java.util.*;
 
 public class Scene {
-    private Camera camera;
-    private Map<String, Model> modelMap;
-    private Projection projection;
-    private TextureCache textureCache;
+    private final Camera camera;
+    private final Map<String, Model> modelMap;
+    private final Projection projection;
+    private final TextureCache textureCache;
 
     public Scene(int width, int height) {
         modelMap = new HashMap<>();

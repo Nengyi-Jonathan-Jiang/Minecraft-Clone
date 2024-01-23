@@ -3,13 +3,12 @@ package j3d.scene;
 import org.joml.*;
 
 public class Camera {
-
-    private Vector3f direction;
-    private Vector3f position;
-    private Vector3f right;
-    private Vector2f rotation;
-    private Vector3f up;
-    private Matrix4f viewMatrix;
+    private final Vector3f direction;
+    private final Vector3f position;
+    private final Vector3f right;
+    private final Vector2f rotation;
+    private final Vector3f up;
+    private final Matrix4f viewMatrix;
 
     public Camera() {
         direction = new Vector3f();
@@ -20,7 +19,7 @@ public class Camera {
         rotation = new Vector2f();
     }
 
-    public void addRotation(float x, float y) {
+    public void rotateBy(float x, float y) {
         rotation.add(x, y);
         recalculate();
     }
