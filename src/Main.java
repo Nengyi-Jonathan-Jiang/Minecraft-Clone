@@ -1,7 +1,7 @@
 import org.joml.Vector2f;
-import engine.*;
-import engine.graph.*;
-import engine.scene.*;
+import j3d.*;
+import j3d.graph.*;
+import j3d.scene.*;
 
 import java.util.*;
 
@@ -138,8 +138,8 @@ public class Main implements IAppLogic {
     }
 
     @Override
-    public void input(Window window, Scene scene, long diffTimeMillis) {
-        float move = diffTimeMillis * MOVEMENT_SPEED;
+    public void input(Window window, Scene scene, long deltaTime) {
+        float move = deltaTime * MOVEMENT_SPEED;
         Camera camera = scene.getCamera();
         if (window.isKeyPressed(GLFW_KEY_W)) {
             camera.moveForward(move);
@@ -166,7 +166,7 @@ public class Main implements IAppLogic {
     }
 
     @Override
-    public void update(Window window, Scene scene, long diffTimeMillis) {
+    public void update(Window window, Scene scene, long deltaTime) {
         rotation += 1.5;
         if (rotation > 360) {
             rotation = 0;

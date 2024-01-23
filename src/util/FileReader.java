@@ -12,7 +12,9 @@ public final class FileReader {
      */
     public static String readAsString(String filename) {
         try (var stream = FileReader.class.getResourceAsStream("/" + filename)) {
-            assert stream != null;
+            if(stream == null) {
+                throw new RuntimeException("Could not read file \"" + filename + "\"");
+            }
             return new String(stream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
