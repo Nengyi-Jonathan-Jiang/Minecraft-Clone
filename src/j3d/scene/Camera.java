@@ -32,6 +32,11 @@ public class Camera {
         return viewMatrix;
     }
 
+    public void move(Vector3f movement) {
+        position.add(movement);
+        recalculate();
+    }
+
     public void moveBackwards(float inc) {
         viewMatrix.positiveZ(direction).negate().mul(inc);
         position.sub(direction);

@@ -16,6 +16,7 @@ public class BlockRegistry {
 
     public static void registerBlock(Block block) {
         blocks.put(block.getID(), block);
+        blockIDs.put(block.getName(), block.getID());
     }
 
     public static void registerModel(String name, BlockModel model) {
@@ -34,5 +35,5 @@ public class BlockRegistry {
         return getBlock(getBlockID(name));
     }
 
-    private static int getBlockID(String name) { return blockIDs.get(name); }
+    public static int getBlockID(String name) { return blockIDs.get(name); }
 }

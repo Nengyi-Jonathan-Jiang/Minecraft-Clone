@@ -18,9 +18,9 @@ public class TextureAtlas {
     }
 
     public static float scaleFactorX() {
-        return texture.getWidth() / 16f;
+        return 16f / texture.width();
     }
     public static float scaleFactorY() {
-        return texture.getHeight() / 16f;
+        return 16f / texture.height();
     }
 }

@@ -38,7 +38,13 @@ public class BlockModelLoader {
                     } catch (Exception e) {
                         throw new RuntimeException("Invalid input in line: \"%s\"".formatted(line), e);
                     }
-                    vertices.add(new PartialMeshVertex(x / 16f, y / 16f, z / 16f, tx / 3f, ty / 3f));
+                    vertices.add(new PartialMeshVertex(
+                        x / 16f,
+                        y / 16f,
+                        z / 16f,
+                        tx,
+                        ty
+                    ));
                     break;
                 case "//":
                     break;

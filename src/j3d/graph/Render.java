@@ -8,13 +8,13 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Render {
 
-    private SceneRender sceneRender;
+    private final SceneRender sceneRender;
 
     public Render() {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CCW);
+        glFrontFace(GL_CW);
         sceneRender = new SceneRender();
     }
 

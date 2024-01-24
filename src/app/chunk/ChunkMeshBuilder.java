@@ -18,7 +18,20 @@ public class ChunkMeshBuilder {
     private final List<Float> positions = new ArrayList<>(), uvs = new ArrayList<>();
     private final List<Integer> indices = new ArrayList<>();
 
-    public Mesh build(int[][][] data) {
+    private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
+        if (x >= Chunk.SIZE || y >= Chunk.HEIGHT || z >= Chunk.SIZE || x < 0 || y < 0 || z < 0) return true;
+
+        int otherID = data[x][y][z];
+
+        if(otherID == 0) return true;
+        if(otherID == id) return false;
+
+        Block block = BlockRegistry.getBlock(otherID);
+
+        return block.getTags().contains("transparent");
+    }
+
+    public Mesh build(Chunk chunk) {
         positions.clear();
         uvs.clear();
         indices.clear();
@@ -28,7 +41,7 @@ public class ChunkMeshBuilder {
         for(int x = 0; x < Chunk.SIZE; x++) {
             for(int y = 0; y < Chunk.HEIGHT; y++) {
                 for(int z = 0; z < Chunk.SIZE; z++) {
-                    int blockID = data[x][y][z];
+                    int blockID = chunk.data[x][y][z];
 
                     // Don't generate a mesh for air blocks
                     if(blockID == 0) continue;
@@ -40,12 +53,18 @@ public class ChunkMeshBuilder {
                     BlockModel blockModel = block.getModel();
                     Vector2i texOffset = block.getTexOffset();
 
-                    if(y > Chunk.HEIGHT - 1) currIndex += addFace(currIndex, texOffset, pos, blockModel.top());
-                    if(z < Chunk.SIZE - 1)   currIndex += addFace(currIndex, texOffset, pos, blockModel.front());
-                    if(x > Chunk.SIZE - 1)   currIndex += addFace(currIndex, texOffset, pos, blockModel.right());
-                    if(y > 0)                currIndex += addFace(currIndex, texOffset, pos, blockModel.bottom());
-                    if(z > 0)                currIndex += addFace(currIndex, texOffset, pos, blockModel.back());
-                    if(x > 0)                currIndex += addFace(currIndex, texOffset, pos, blockModel.left());
+                    boolean hasVisibleFace = false;
+
+                    if(shouldShowFace(x, y + 1, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.top()); }
+                    if(shouldShowFace(x, y, z + 1, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.front()); }
+                    if(shouldShowFace(x + 1, y, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.right()); }
+                    if(shouldShowFace(x, y - 1, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.bottom()); }
+                    if(shouldShowFace(x, y, z - 1, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.back()); }
+                    if(shouldShowFace(x - 1, y, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.left()); }
+
+                    if(hasVisibleFace) {
+                        currIndex += addFace(currIndex, texOffset, pos, blockModel.inner());
+                    }
                 }
             }
         }
@@ -54,6 +73,8 @@ public class ChunkMeshBuilder {
     }
 
     private Mesh toMesh() {
+        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
+
         return new Mesh(
             ArrayUtil.toFloatArray(positions),
             ArrayUtil.toFloatArray(uvs),

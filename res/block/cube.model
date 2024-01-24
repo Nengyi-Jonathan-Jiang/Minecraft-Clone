@@ -18,21 +18,21 @@ vertex 16  0  0      3 1
 
 // Bottom face (-y)
 vertex 16  0 16      0 1
-vertex  0  0 16      1 1
 vertex 16  0  0      0 2
+vertex  0  0 16      1 1
 vertex  0  0  0      1 2
 
 // Back face (-z)
-vertex 16  0  0      1 1
-vertex  0  0  0      2 1
-vertex 16 16  0      1 2
-vertex  0 16  0      2 2
+vertex 16  0  0      1 2
+vertex 16 16  0      1 1
+vertex  0  0  0      2 2
+vertex  0 16  0      2 1
 
 // Left face (-x)
-vertex  0  0  0      2 1
-vertex  0  0 16      3 1
-vertex  0 16  0      2 2
-vertex  0 16 16      3 2
+vertex  0  0  0      2 2
+vertex  0 16  0      2 1
+vertex  0  0 16      3 2
+vertex  0 16 16      3 1
 
 face top     1  2  3  3  2  4
 face front   5  6  7  7  6  8

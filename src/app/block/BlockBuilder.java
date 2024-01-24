@@ -1,50 +1,67 @@
 package app.block;
 
-import app.block.model.BlockModel;
 import org.joml.Vector2i;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
+
 public class BlockBuilder {
-    private String name = null;
-    private String displayName = null;
-    private BlockModel model;
-    private Vector2i texOffset;
-
-    private boolean hasBeenBuilt = false;
-
-
-    public BlockBuilder() {}
+    private final String name, displayName;
+    private final String model;
+    private final Vector2i texOffset;
+    private final List<String> tags;
+    
+    public BlockBuilder() {
+        this(null, null, null, null, Collections.emptyList());
+    }
+    
+    private BlockBuilder(String name, String displayName, String model, Vector2i texOffset, List<String> tags) {
+        this.name = name;
+        this.displayName = displayName;
+        this.model = model;
+        this.texOffset = texOffset;
+        this.tags = tags;
+    }
 
     public BlockBuilder name(String name) {
-        this.name = name;
-        return this;
+        return new BlockBuilder(name, displayName, model, texOffset, tags);
     }
+
+
+    public BlockBuilder name(String name, String displayName) {
+        return new BlockBuilder(name, displayName, model, texOffset, tags);
+    }
+
 
     public BlockBuilder displayName(String displayName) {
-        this.displayName = displayName;
-        return this;
+        return new BlockBuilder(name, displayName, model, texOffset, tags);
     }
 
-    public BlockBuilder model(BlockModel model) {
-        this.model = model;
-        return this;
+    public BlockBuilder model(String model) {
+        return new BlockBuilder(name, displayName, model, texOffset, tags);
     }
 
     public BlockBuilder texOffset(Vector2i texOffset) {
-        this.texOffset = texOffset;
-        return this;
+        return new BlockBuilder(name, displayName, model, texOffset, tags);
+    }
+
+    public BlockBuilder withTag(String tag) {
+        List<String> newTags = Stream.concat(tags.stream(), Stream.of(tag)).toList();
+        return new BlockBuilder(name, displayName, model, texOffset, newTags);
     }
 
     public Block getResult() {
-        if(hasBeenBuilt) {
-            throw new RuntimeException("BlockBuilder can only be used once.");
-        }
-
         if(name == null || texOffset == null || model == null) {
             throw new RuntimeException("Block must have name, model, and texOffset");
         }
 
-        var res = new Block(name, displayName == null ? name : displayName, model, texOffset);
-        hasBeenBuilt = true;
-        return res;
+        return new Block(
+            name,
+            displayName == null ? name : displayName,
+            BlockRegistry.getModel(model),
+            texOffset,
+            tags
+        );
     }
 }
