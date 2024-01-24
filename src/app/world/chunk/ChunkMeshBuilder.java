@@ -1,4 +1,4 @@
-package app.chunk;
+package app.world.chunk;
 
 import app.atlas.TextureAtlas;
 import app.block.Block;

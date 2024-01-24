@@ -2,7 +2,7 @@ package app.app;
 
 import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
-import app.chunk.Chunk;
+import app.world.chunk.Chunk;
 import j3d.IAppLogic;
 import j3d.MouseInput;
 import j3d.Window;
@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
 
 public class App implements IAppLogic {
     private static final float MOUSE_SENSITIVITY = 0.5f;
@@ -36,6 +35,7 @@ public class App implements IAppLogic {
         DefaultBlocksInitializer.run();
 
         Chunk chunk = new Chunk();
+
         for(int x = 0; x < Chunk.SIZE; x++) {
             for(int z = 0; z < Chunk.SIZE; z++) {
                 int h = (x - 8) * (z - 8) / 10 + 4;

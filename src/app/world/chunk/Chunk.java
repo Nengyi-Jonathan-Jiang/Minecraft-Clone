@@ -1,8 +1,6 @@
-package app.chunk;
+package app.world.chunk;
 
 import j3d.graph.Mesh;
-
-import java.util.Arrays;
 
 public class Chunk {
     public static int SIZE = 16, HEIGHT = 256;

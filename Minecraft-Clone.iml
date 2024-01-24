@@ -11,5 +11,6 @@
     <orderEntry type="library" name="joml-1.10.5" level="project" />
     <orderEntry type="library" name="lwjgl" level="project" />
     <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="library" name="fastnoiselite" level="project" />
   </component>
 </module>
