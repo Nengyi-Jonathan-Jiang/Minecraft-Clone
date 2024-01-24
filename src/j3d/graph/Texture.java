@@ -1,6 +1,7 @@
 package j3d.graph;
 
 import org.lwjgl.system.MemoryStack;
+import util.FileReader;
 
 import java.nio.*;
 
@@ -31,11 +32,13 @@ public class Texture {
     public Texture(String texturePath) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             this.texturePath = texturePath;
+            ByteBuffer buffer = FileReader.readAsByteBuffer(texturePath);
+
             IntBuffer w = stack.mallocInt(1);
             IntBuffer h = stack.mallocInt(1);
             IntBuffer channels = stack.mallocInt(1);
 
-            ByteBuffer buf = stbi_load(texturePath, w, h, channels, 4);
+            ByteBuffer buf = stbi_load_from_memory(buffer, w, h, channels, 4);
             if (buf == null) {
                 throw new RuntimeException("Image file [" + texturePath + "] not loaded: " + stbi_failure_reason());
             }

@@ -7,8 +7,8 @@ import java.util.*;
 public class Model {
 
     private final String id;
-    private List<Entity> entitiesList;
-    private List<Material> materialList;
+    private final List<Entity> entitiesList;
+    private final List<Material> materialList;
 
     public Model(String id, List<Material> materialList) {
         this.id = id;

@@ -1,5 +1,10 @@
 package app;
 
+import app.atlas.TextureAtlas;
+import app.block.BlockBuilder;
+import app.block.BlockRegistry;
+import app.block.model.BlockModelLoader;
+import app.chunk.Chunk;
 import j3d.Engine;
 import j3d.IAppLogic;
 import j3d.MouseInput;
@@ -9,6 +14,7 @@ import j3d.scene.Camera;
 import j3d.scene.Entity;
 import j3d.scene.Scene;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +23,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
 
 public class App implements IAppLogic {
-
     private static final float MOUSE_SENSITIVITY = 0.1f;
     private static final float MOVEMENT_SPEED = 0.005f;
     private Entity cubeEntity;
@@ -30,6 +35,19 @@ public class App implements IAppLogic {
 
     @Override
     public void init(Window window, Scene scene, Render render) {
+        TextureAtlas.setTexture(scene.getTextureCache().createTexture("atlas.png"));
+
+        BlockRegistry.registerModel("cube", BlockModelLoader.loadModel("block/model/cube.model"));
+        BlockRegistry.registerBlock(new BlockBuilder()
+                .name("grass")
+                .displayName("Grass")
+                .model(BlockRegistry.getModel("cube"))
+                .texOffset(new Vector2i(0, 0))
+                .getResult());
+
+        Chunk chunk = new Chunk();
+        Mesh m = chunk.getMesh();
+
         float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
@@ -127,7 +145,7 @@ public class App implements IAppLogic {
                 // Back face
                 4, 6, 7, 5, 4, 7,};
 
-        Texture texture = scene.getTextureCache().createTexture("res/models/cube/cube.png");
+        Texture texture = scene.getTextureCache().createTexture("atlas.png");
 
         Material material = new Material();
         material.setTexturePath(texture.getTexturePath());
@@ -174,7 +192,7 @@ public class App implements IAppLogic {
 
     @Override
     public void update(Window window, Scene scene, long deltaTime) {
-        rotation += 1.5;
+        rotation += 0.2;
         if (rotation > 360) {
             rotation = 0;
         }

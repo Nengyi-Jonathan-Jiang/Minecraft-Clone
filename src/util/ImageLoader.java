@@ -31,13 +31,11 @@ public final class ImageLoader {
      * @param filename The location of the image file
      */
     private static Image load(String filename) {
-        try (InputStream inputStream = ImageLoader.class.getResourceAsStream("/" + filename)) {
-            if (inputStream != null) {
-                Image image = ImageIO.read(inputStream);
-                images.put(filename, image);
-                System.out.println("Loaded image \"" + filename + "\"");
-                return image;
-            } else throw new IOException("Null input stream");
+        try (InputStream inputStream = FileReader.readAsStream(filename)) {
+            Image image = ImageIO.read(inputStream);
+            images.put(filename, image);
+            System.out.println("Loaded image \"" + filename + "\"");
+            return image;
         } catch (Exception e) {
             System.out.println("Could not load image \"" + filename + "\"");
             e.printStackTrace();

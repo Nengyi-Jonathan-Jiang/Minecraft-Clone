@@ -9,6 +9,7 @@ import app.block.model.PartialMeshVertex;
 import j3d.graph.Mesh;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
+import util.ArrayUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +29,14 @@ public class ChunkMeshBuilder {
             for(int y = 0; y < Chunk.HEIGHT; y++) {
                 for(int z = 0; z < Chunk.SIZE; z++) {
                     int blockID = data[x][y][z];
+
+                    // Don't generate a mesh for air blocks
+                    if(blockID == 0) continue;
+
                     Vector3i pos = new Vector3i(x, y, z);
 
                     Block block = BlockRegistry.getBlock(blockID);
+
                     BlockModel blockModel = block.getModel();
                     Vector2i texOffset = block.getTexOffset();
 
@@ -48,18 +54,15 @@ public class ChunkMeshBuilder {
     }
 
     private Mesh toMesh() {
-        float[] positions = new float[this.positions.size()], uvs = new float[this.uvs.size()];
-        int[] indices = new int[this.indices.size()];
-
-        for(int i = 0; i < positions.length; i++) positions[i] = this.positions.get(i);
-        for(int i = 0; i < uvs.length;       i++) uvs[i]       = this.uvs.get(i);
-        for(int i = 0; i < indices.length;   i++) indices[i]   = this.indices.get(i);
-
-        return new Mesh(positions, uvs, indices);
+        return new Mesh(
+            ArrayUtil.toFloatArray(positions),
+            ArrayUtil.toFloatArray(uvs),
+            ArrayUtil.toIntArray(indices)
+        );
     }
 
     private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, PartialMesh face) {
-        PartialMeshVertex[] vertices = face.getVertices();
+        PartialMeshVertex[] vertices = face.vertices();
 
         for(PartialMeshVertex vertex : vertices) {
             positions.addAll(List.of(
@@ -71,6 +74,10 @@ public class ChunkMeshBuilder {
                 (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
                 (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
             ));
+        }
+
+        for(int index : face.indices()) {
+            indices.add(index + currIndex);
         }
 
         return vertices.length;

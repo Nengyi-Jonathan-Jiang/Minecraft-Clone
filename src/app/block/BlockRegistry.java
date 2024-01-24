@@ -12,6 +12,7 @@ public class BlockRegistry {
 
     private static final Map<String, BlockModel> models = new HashMap<>();
     private static final Map<Integer, Block> blocks = new HashMap<>();
+    private static final Map<String, Integer> blockIDs = new HashMap<>();
 
     public static void registerBlock(Block block) {
         blocks.put(block.getID(), block);
@@ -28,4 +29,10 @@ public class BlockRegistry {
     public static Block getBlock(int id){
         return blocks.get(id);
     }
+
+    public static Block getBlock(String name){
+        return getBlock(getBlockID(name));
+    }
+
+    private static int getBlockID(String name) { return blockIDs.get(name); }
 }
