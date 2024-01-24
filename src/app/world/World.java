@@ -2,10 +2,7 @@ package app.world;
 
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
-import org.joml.SimplexNoise;
 import org.joml.Vector2i;
-import org.joml.Vector3i;
-import org.lwjgl.stb.STBPerlin;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,5 +30,7 @@ public class World {
         return loadedChunks.get(chunkPosition);
     }
 
-    public Collection<Chunk>
+    public Collection<Chunk> getVisibleChunks() {
+        return loadedChunks.values();
+    }
 }

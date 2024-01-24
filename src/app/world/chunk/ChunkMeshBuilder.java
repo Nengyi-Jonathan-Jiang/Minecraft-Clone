@@ -55,12 +55,24 @@ public class ChunkMeshBuilder {
 
                     boolean hasVisibleFace = false;
 
-                    if(shouldShowFace(x, y + 1, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.top()); }
-                    if(shouldShowFace(x, y, z + 1, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.front()); }
-                    if(shouldShowFace(x + 1, y, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.right()); }
-                    if(shouldShowFace(x, y - 1, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.bottom()); }
-                    if(shouldShowFace(x, y, z - 1, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.back()); }
-                    if(shouldShowFace(x - 1, y, z, blockID, chunk.data)) { hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.left()); }
+                    if(shouldShowFace(x, y + 1, z, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.top());
+                    }
+                    if(shouldShowFace(x, y, z + 1, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.front());
+                    }
+                    if(shouldShowFace(x + 1, y, z, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.right());
+                    }
+                    if(shouldShowFace(x, y - 1, z, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.bottom());
+                    }
+                    if(shouldShowFace(x, y, z - 1, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.back());
+                    }
+                    if(shouldShowFace(x - 1, y, z, blockID, chunk.data)) {
+                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.left());
+                    }
 
                     if(hasVisibleFace) {
                         currIndex += addFace(currIndex, texOffset, pos, blockModel.inner());
