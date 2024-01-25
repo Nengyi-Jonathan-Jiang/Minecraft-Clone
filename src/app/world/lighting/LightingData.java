@@ -80,10 +80,10 @@ public class LightingData {
                     if(!isTransparent) break;
 
                     //Set the light level of the block
-                    blockLight[x][y][z] = 255;
+                    blockLight[x][y][z] = 15;
                     lightingSource[x][y][z] = new Vector3i(x, y + 1, z);
                     //Add the update to the priority queue
-                    lightingUpdates.offer(new LightingUpdate(new Vector3i(x, y, z), 255));
+                    lightingUpdates.offer(new LightingUpdate(new Vector3i(x, y, z), 15));
                 }
             }
         }

@@ -7,15 +7,13 @@ import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
 import j3d.Window;
-import j3d.graph.*;
+import j3d.graph.ShaderProgram;
+import j3d.graph.TextureCache;
 import j3d.scene.Camera;
-import j3d.scene.Entity;
 import j3d.scene.Projection;
 import org.joml.*;
 
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -50,7 +48,6 @@ public class App implements IAppLogic {
         textureCache = new TextureCache();
 
         camera = new Camera();
-
 
         glClearColor(.7f, .93f, 1f, 1f);
 

@@ -1,5 +1,7 @@
 package app.world.chunk;
 
+import app.block.Block;
+import app.block.BlockRegistry;
 import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
 import org.joml.Vector2i;
@@ -40,6 +42,14 @@ public class Chunk {
     public void setBlockAt(int x, int y, int z, int id) {
         data[x][y][z] = id;
         shouldRebuildMesh = true;
+    }
+
+    public int getBlockIDAt(int x, int y, int z) {
+        return data[x][y][z];
+    }
+
+    public Block getBlockAt(int x, int y, int z) {
+        return BlockRegistry.getBlock(getBlockIDAt(x, y, z));
     }
 
     public Vector2i getChunkPosition() {

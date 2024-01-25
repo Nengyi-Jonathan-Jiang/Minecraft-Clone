@@ -1,8 +1,10 @@
 package app.world.worldgen;
 
+import app.block.Block;
 import app.block.BlockRegistry;
 import app.world.chunk.Chunk;
 import org.joml.SimplexNoise;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 
 public class WorldGenerator {
@@ -14,8 +16,27 @@ public class WorldGenerator {
 
         addBedrockLayer(result);
         addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
+        convertTopLayersToGrass(result);
 
         return result;
+    }
+
+    private void convertTopLayersToGrass(Chunk result) {
+        for(int x = 0; x < Chunk.SIZE; x++) {
+            for(int z = 0; z < Chunk.SIZE; z++) {
+                for(int y = 0; y < Chunk.HEIGHT; y++) {
+                    Block thisBlock = result.getBlockAt(x, y, z);
+
+                    if(thisBlock == null) continue;
+
+                    if(thisBlock.getName().equals("dirt")) {
+                        if(y == Chunk.HEIGHT - 1 || result.getBlockIDAt(x, y + 1, z) == 0) {
+                            result.setBlockAt(x, y, z, BlockRegistry.getBlockID("grass"));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void addTerrainLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
@@ -24,21 +45,31 @@ public class WorldGenerator {
                 int trueX = chunkOffsetX + x;
                 int trueZ = chunkOffsetZ + z;
 
-                float noise =
-                          .25f * SimplexNoise.noise(trueX / 5f, trueZ / 5f)
-                        +  .5f * SimplexNoise.noise(trueX / 10f, trueZ / 10f)
-                        +  1.f * SimplexNoise.noise(trueX / 20f, trueZ / 20f);
-                int height = Math.clamp((int)(noise * 4.5 + 16), 2, Chunk.HEIGHT - 1);
+                for(int y = 0; y < Chunk.HEIGHT; y++) {
 
-                for(int y = 1; y < height - 3; y++) {
-                    chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
+                    float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
+                    float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f, trueZ / 50f);
+                    float perturbZ = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f + 28.34f);
+
+                    float xx = trueX + perturbX * 10f;
+                    float yy = y + perturbY * 10f;
+                    float zz = trueZ + perturbZ * 10f;
+
+                    float noise =
+                            .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
+                                    +  .5f * SimplexNoise.noise(xx / 40f, zz / 40f)
+                                    +  1.f * SimplexNoise.noise(xx / 80f, zz / 80f)
+                                    +  2.f * SimplexNoise.noise(xx / 160f, zz / 160f);
+                    float height = noise * 5f + 40f;
+
+                    if(1 <= yy && yy < height - 3) {
+                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
+                    }
+
+                    if(height - 3 <= yy && yy < height) {
+                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
+                    }
                 }
-
-                for(int y = height - 3; y < height; y++) {
-                    chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
-                }
-
-                chunk.setBlockAt(x, height, z, BlockRegistry.getBlockID("grass"));
             }
         }
     }

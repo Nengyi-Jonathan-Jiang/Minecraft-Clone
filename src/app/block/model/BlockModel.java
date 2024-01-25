@@ -9,12 +9,12 @@ public record BlockModel(
 
     public enum FaceDirection {
         TOP(new Vector3i(0, 1, 0), 1),
-        FRONT(new Vector3i(0, 0, 1), .8f),
-        RIGHT(new Vector3i(1, 0, 0), .8f),
+        FRONT(new Vector3i(0, 0, 1), .7f),
+        RIGHT(new Vector3i(1, 0, 0), .7f),
         BOTTOM(new Vector3i(0, -1, 0), .5f),
-        BACK(new Vector3i(0, 0, -1), .8f),
-        LEFT(new Vector3i(-1, 0, 0), .8f),
-        INNER(new Vector3i(0, 0, 0), .9f);
+        BACK(new Vector3i(0, 0, -1), .7f),
+        LEFT(new Vector3i(-1, 0, 0), .7f),
+        INNER(new Vector3i(0, 0, 0), .6f);
 
         public static final FaceDirection[] OUTER_FACES = {TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT, INNER};
 
