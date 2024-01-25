@@ -10,9 +10,9 @@ public class WorldGenerator {
         int chunkOffsetX = chunkPosition.x * Chunk.SIZE;
         int chunkOffsetZ = chunkPosition.y * Chunk.SIZE;
 
-        Chunk result = new Chunk();
+        Chunk result = new Chunk(chunkPosition);
 
-        addBedrockLayer(chunkOffsetX, chunkOffsetZ, result);
+        addBedrockLayer(result);
         addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
 
         return result;
@@ -28,13 +28,13 @@ public class WorldGenerator {
                           .25f * SimplexNoise.noise(trueX / 5f, trueZ / 5f)
                         +  .5f * SimplexNoise.noise(trueX / 10f, trueZ / 10f)
                         +  1.f * SimplexNoise.noise(trueX / 20f, trueZ / 20f);
-                int height = (int)(noise * 5.5 + 10);
+                int height = Math.clamp((int)(noise * 4.5 + 16), 2, Chunk.HEIGHT - 1);
 
                 for(int y = 1; y < height - 3; y++) {
                     chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
                 }
 
-                for(int y = 1; y < height - 1; y++) {
+                for(int y = height - 3; y < height; y++) {
                     chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
                 }
 
@@ -43,10 +43,10 @@ public class WorldGenerator {
         }
     }
 
-    private void addBedrockLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
+    private void addBedrockLayer(Chunk chunk) {
         for(int x = 0; x < Chunk.SIZE; x++) {
             for(int z = 0; z < Chunk.SIZE; z++) {
-                chunk.setBlockAt(x + chunkOffsetX, 0, z + chunkOffsetZ, BlockRegistry.getBlockID("bedrock"));
+                chunk.setBlockAt(x, 0, z, BlockRegistry.getBlockID("bedrock"));
             }
         }
     }

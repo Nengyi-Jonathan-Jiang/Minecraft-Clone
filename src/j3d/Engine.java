@@ -1,14 +1,14 @@
 package j3d;
 
-import j3d.graph.Render;
-import j3d.scene.Scene;
+
+import org.lwjgl.opengl.GL;
+
+import static org.lwjgl.opengl.GL11.*;
 
 public class Engine {
     private final IAppLogic appLogic;
     private final Window window;
-    private final Render render;
     private boolean running;
-    private final Scene scene;
     private static final int targetFps = 60;
     private static final int targetUps = 60;
 
@@ -18,21 +18,23 @@ public class Engine {
             return null;
         });
         this.appLogic = appLogic;
-        render = new Render();
-        scene = new Scene(window.getWidth(), window.getHeight());
-        appLogic.init(window, scene, render);
+
+        GL.createCapabilities();
+        glEnable(GL_DEPTH_TEST);
+//        glEnable(GL_CULL_FACE);
+//        glFrontFace(GL_CW);
+
+        appLogic.init(window);
         running = true;
     }
 
     private void cleanup() {
         appLogic.cleanup();
-        render.cleanup();
-        scene.cleanup();
         window.cleanup();
     }
 
     private void resize() {
-        scene.resize(window.getWidth(), window.getHeight());
+        appLogic.resize(window.getWidth(), window.getHeight());
     }
 
     private void run() {
@@ -52,18 +54,18 @@ public class Engine {
 
             if (targetFps <= 0 || deltaFps >= 1) {
                 window.getMouseInput().input();
-                appLogic.input(window, scene, now - initialTime);
+                appLogic.input(window, now - initialTime);
             }
 
             if (deltaUpdate >= 1) {
                 long diffTimeMillis = now - updateTime;
-                appLogic.update(window, scene, diffTimeMillis);
+                appLogic.update(window, diffTimeMillis);
                 updateTime = now;
                 deltaUpdate--;
             }
 
             if (targetFps <= 0 || deltaFps >= 1) {
-                render.render(window, scene);
+                appLogic.draw(window);
                 deltaFps--;
                 window.update();
             }
@@ -81,5 +83,4 @@ public class Engine {
     public void stop() {
         running = false;
     }
-
 }

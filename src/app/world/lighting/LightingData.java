@@ -4,8 +4,10 @@ import app.block.Block;
 import app.block.BlockRegistry;
 import app.block.model.BlockModel;
 import app.world.chunk.Chunk;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.joml.Vector4f;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
@@ -35,22 +37,26 @@ public class LightingData {
             this.blockPosition = blockPosition;
         }
 
-        void getValueForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
-            Vector3i mask = new Vector3i(1).sub(faceDirection.direction.absolute(new Vector3i()));
+        public Vector4f getAOForPoint(BlockModel.FaceDirection faceDirection) {
+            // TODO: make actual AO
+            int baseBlockLight = getBlockLightAt(blockPosition.add(faceDirection.direction, new Vector3i()));
+            float lightMultiplier = faceDirection.lightMultiplier;
+            float light = baseBlockLight * lightMultiplier / 16f;
+            return new Vector4f(light, light, light, light);
+        }
 
-            point = point.mul(new Vector3f(mask));
-            /*
-             * 1 2 3
-             * 4 X 5
-             * 6 7 8
-             *
-             *
-             */
+        public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
+            // TODO: make interpolation logic
+            return new Vector2f(0, 0);
         }
 
         private int calculateWeightedAOValue(int current, int side1, int side2, int corner){
             return ((int)(current * .5 + side1 * .2 + side2 * .2 + corner * .1));
         }
+    }
+
+    public AOData getAOData(Vector3i pos){
+        return new AOData(pos);
     }
 
     public void update(int[][][] data) {
@@ -141,9 +147,9 @@ public class LightingData {
     // TODO: when migrate lighting to world, should store world in chunk and access light through borders
     // This shouldn't even be a thing, really
     public int getBlockLightAt(Vector3i pos) {
-        int x = Math.clamp(0, pos.x, Chunk.SIZE - 1);
-        int y = Math.clamp(0, pos.y, Chunk.HEIGHT - 1);
-        int z = Math.clamp(0, pos.z, Chunk.SIZE - 1);
+        int x = Math.clamp(pos.x, 0, Chunk.SIZE - 1);
+        int y = Math.clamp(pos.y, 0, Chunk.HEIGHT - 1);
+        int z = Math.clamp(pos.z, 0, Chunk.SIZE - 1);
 
         return blockLight[x][y][z];
     }

@@ -1,27 +1,38 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
-import app.block.BlockRegistry;
+import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
 import j3d.Window;
 import j3d.graph.*;
 import j3d.scene.Camera;
 import j3d.scene.Entity;
-import j3d.scene.Scene;
-import org.joml.Vector2f;
+import j3d.scene.Projection;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class App implements IAppLogic {
     private static final float MOUSE_SENSITIVITY = 0.5f;
     private static final float MOVEMENT_SPEED = 0.015f;
-    private Entity cubeEntity;
-    private float rotation;
+    private Camera camera;
+    private Projection projection;
+    private TextureCache textureCache;
+
+
+    private ShaderProgram worldShader;
+    private World world;
 
     @Override
     public void cleanup() {
@@ -29,47 +40,32 @@ public class App implements IAppLogic {
     }
 
     @Override
-    public void init(Window window, Scene scene, Render render) {
-        TextureAtlas.setTexture(scene.getTextureCache().createTexture("atlas.png"));
+    public void init(Window window) {
+        projection = new Projection(window.getWidth(), window.getHeight());
+
+        worldShader = ShaderProgram.createBasicShaderProgram(
+                "shaders/scene.vert",
+                "shaders/scene.frag"
+        );
+        textureCache = new TextureCache();
+
+        camera = new Camera();
+
+
+        glClearColor(.7f, .93f, 1f, 1f);
+
+        TextureAtlas.setTexture(textureCache.createTexture("atlas.png"));
 
         DefaultBlocksInitializer.run();
 
-        Chunk chunk = new Chunk();
+        world = new World(new WorldGenerator());
 
-        for(int x = 0; x < Chunk.SIZE; x++) {
-            for(int z = 0; z < Chunk.SIZE; z++) {
-                int h = (x - 8) * (z - 8) / 10 + 4;
-
-                for(int y = 1; y <= h && y < Chunk.HEIGHT; y++) {
-                    chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
-
-                    if(y == h) chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("grass"));
-                }
-
-                chunk.setBlockAt(x, 0, z, BlockRegistry.getBlockID("bedrock"));
-            }
-        }
-
-        Mesh mesh = chunk.getMesh();
-
-        Material material = new Material();
-        material.setTexturePath(TextureAtlas.get().getTexturePath());
-        List<Material> materialList = new ArrayList<>();
-        materialList.add(material);
-
-        material.getMeshList().add(mesh);
-        Model cubeModel = new Model("cube-model", materialList);
-        scene.addModel(cubeModel);
-
-        cubeEntity = new Entity("cube-entity", cubeModel.getId());
-        cubeEntity.setPosition(-.5f, -.5f, -4f);
-        scene.addEntity(cubeEntity);
+        for(int x = -50; x <= 50; x++) for(int z = -50; z <= 50; z++) world.loadChunkAtPosition(x, z);
     }
 
     @Override
-    public void input(Window window, Scene scene, long deltaTime) {
+    public void input(Window window, long deltaTime) {
         float move = deltaTime * MOVEMENT_SPEED;
-        Camera camera = scene.getCamera();
         if (window.isKeyPressed(GLFW_KEY_W)) {
             camera.moveForward(move);
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
@@ -96,12 +92,46 @@ public class App implements IAppLogic {
     }
 
     @Override
-    public void update(Window window, Scene scene, long deltaTime) {
-//        rotation += 0.7f;
-//        if (rotation > 360) {
-//            rotation = 0;
-//        }
-//        cubeEntity.setRotation(1, 1.5f, 1, (float) Math.toRadians(rotation));
-        cubeEntity.updateModelMatrix();
+    public void update(Window window, long deltaTime) {
+        // TODO
+    }
+
+    @Override
+    public void draw(Window window) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.getWidth(), window.getHeight());
+
+        worldShader.bind();
+
+        worldShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
+        worldShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
+
+        worldShader.uniforms().setUniform("txtSampler", 0);
+
+        // Render stuff
+
+        glActiveTexture(GL_TEXTURE0);
+        TextureAtlas.get().bind();
+
+        for(Chunk chunk : world.getVisibleChunks()) {
+            Vector2i chunkPosition = chunk.getChunkPosition();
+
+            Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
+                new Vector3f(chunkPosition.x * 16, 0, chunkPosition.y * 16),
+                new Quaternionf(), 1
+            );
+
+            worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
+            glBindVertexArray(chunk.getMesh().getVaoId());
+            glDrawElements(GL_TRIANGLES, chunk.getMesh().getNumVertices(), GL_UNSIGNED_INT, 0);
+        }
+
+        glBindVertexArray(0);
+        worldShader.unbind();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        projection.updateProjectionMatrix(width, height);
     }
 }

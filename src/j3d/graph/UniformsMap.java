@@ -17,21 +17,21 @@ public class UniformsMap {
         uniforms = new HashMap<>();
     }
 
-    public void createUniform(String uniformName) {
-        int uniformLocation = glGetUniformLocation(programId, uniformName);
-        if (uniformLocation < 0) {
-            throw new RuntimeException("Could not find uniform [" + uniformName + "] in shader program [" +
-                    programId + "]");
-        }
-        uniforms.put(uniformName, uniformLocation);
-    }
-
     private int getUniformLocation(String uniformName) {
+        if(!uniforms.containsKey(uniformName)) {
+            int uniformLocation = glGetUniformLocation(programId, uniformName);
+            if (uniformLocation < 0) {
+                throw new RuntimeException("Could not find uniform [" + uniformName + "] in shader program [" +
+                        programId + "]");
+            }
+            uniforms.put(uniformName, uniformLocation);
+        }
+
         Integer location = uniforms.get(uniformName);
         if (location == null) {
             throw new RuntimeException("Could not find uniform [" + uniformName + "]");
         }
-        return location.intValue();
+        return location;
     }
 
     public void setUniform(String uniformName, int value) {

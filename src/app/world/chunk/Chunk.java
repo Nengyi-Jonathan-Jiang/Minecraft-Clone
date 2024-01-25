@@ -2,6 +2,7 @@ package app.world.chunk;
 
 import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
+import org.joml.Vector2i;
 
 public class Chunk {
     public static int SIZE = 16, HEIGHT = 256;
@@ -11,8 +12,10 @@ public class Chunk {
     private boolean shouldRebuildMesh = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private Mesh mesh = new Mesh(new float[0], new float[0], new int[0]);
+    private final Vector2i chunkPosition;
 
-    public Chunk() {
+    public Chunk(Vector2i chunkPosition) {
+        this.chunkPosition = chunkPosition;
         data = new int[SIZE][HEIGHT][SIZE];
         lightingData = new LightingData();
     }
@@ -37,5 +40,9 @@ public class Chunk {
     public void setBlockAt(int x, int y, int z, int id) {
         data[x][y][z] = id;
         shouldRebuildMesh = true;
+    }
+
+    public Vector2i getChunkPosition() {
+        return chunkPosition;
     }
 }

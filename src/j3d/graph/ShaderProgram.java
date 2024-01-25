@@ -10,6 +10,14 @@ import static org.lwjgl.opengl.GL30.*;
 public class ShaderProgram {
 
     private final int programId;
+    private final UniformsMap uniforms;
+
+    public static ShaderProgram createBasicShaderProgram(String vertexShaderPath, String fragmentShaderPath) {
+        List<ShaderModuleData> shaderModuleDataList = new ArrayList<>();
+        shaderModuleDataList.add(new ShaderModuleData(vertexShaderPath, GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderModuleData(fragmentShaderPath, GL_FRAGMENT_SHADER));
+        return new ShaderProgram(shaderModuleDataList);
+    }
 
     public ShaderProgram(List<ShaderModuleData> shaderModuleDataList) {
         programId = glCreateProgram();
@@ -21,6 +29,8 @@ public class ShaderProgram {
         shaderModuleDataList.forEach(s -> shaderModules.add(createShader(FileReader.readAsString(s.shaderFile), s.shaderType)));
 
         link(shaderModules);
+
+        uniforms = new UniformsMap(programId);
     }
 
     public void bind() {
@@ -35,6 +45,7 @@ public class ShaderProgram {
     }
 
     protected int createShader(String shaderCode, int shaderType) {
+
         int shaderId = glCreateShader(shaderType);
         if (shaderId == 0) {
             throw new RuntimeException("Error creating shader. Type: " + shaderType);
@@ -44,7 +55,7 @@ public class ShaderProgram {
         glCompileShader(shaderId);
 
         if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
-            throw new RuntimeException("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 1024));
+            throw new RuntimeException("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 2048));
         }
 
         glAttachShader(programId, shaderId);
@@ -59,7 +70,7 @@ public class ShaderProgram {
     private void link(List<Integer> shaderModules) {
         glLinkProgram(programId);
         if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
-            throw new RuntimeException("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
+            throw new RuntimeException("Error linking Shader code: " + glGetProgramInfoLog(programId, 2048));
         }
 
         shaderModules.forEach(s -> glDetachShader(programId, s));
@@ -73,9 +84,13 @@ public class ShaderProgram {
     public void validate() {
         glValidateProgram(programId);
         if (glGetProgrami(programId, GL_VALIDATE_STATUS) == 0) {
-            throw new RuntimeException("Error validating Shader code: " + glGetProgramInfoLog(programId, 1024));
+            throw new RuntimeException("Error validating Shader code: " + glGetProgramInfoLog(programId, 2048));
         }
     }
 
     public record ShaderModuleData(String shaderFile, int shaderType) { }
+
+    public UniformsMap uniforms() {
+        return uniforms;
+    }
 }

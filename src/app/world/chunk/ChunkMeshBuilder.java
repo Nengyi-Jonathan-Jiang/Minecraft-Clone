@@ -4,11 +4,15 @@ import app.atlas.TextureAtlas;
 import app.block.Block;
 import app.block.BlockRegistry;
 import app.block.model.BlockModel;
+import app.block.model.BlockModel.FaceDirection;
 import app.block.model.PartialMesh;
 import app.block.model.PartialMeshVertex;
+import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
+import org.joml.Vector4f;
 import util.ArrayUtil;
 
 import java.util.ArrayList;
@@ -16,6 +20,10 @@ import java.util.List;
 
 public class ChunkMeshBuilder {
     private final List<Float> positions = new ArrayList<>(), uvs = new ArrayList<>();
+
+    // AO and lighting data should be passed as a vec4 (corner AO values) + 1 vec2 (for interpolation)
+    private final List<Float> cornerAO = new ArrayList<>(), aoInterpolation = new ArrayList<>();
+
     private final List<Integer> indices = new ArrayList<>();
 
     private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
@@ -55,27 +63,17 @@ public class ChunkMeshBuilder {
 
                     boolean hasVisibleFace = false;
 
-                    if(shouldShowFace(x, y + 1, z, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.top());
-                    }
-                    if(shouldShowFace(x, y, z + 1, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.front());
-                    }
-                    if(shouldShowFace(x + 1, y, z, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.right());
-                    }
-                    if(shouldShowFace(x, y - 1, z, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.bottom());
-                    }
-                    if(shouldShowFace(x, y, z - 1, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.back());
-                    }
-                    if(shouldShowFace(x - 1, y, z, blockID, chunk.data)) {
-                        hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel.left());
+                    LightingData.AOData aoData = chunk.lightingData.getAOData(pos);
+
+                    for(FaceDirection direction : FaceDirection.OUTER_FACES) {
+                        Vector3i newPos = pos.add(direction.direction, new Vector3i());
+                        if(shouldShowFace(newPos.x, newPos.y, newPos.z, blockID, chunk.data)) {
+                            hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
+                        }
                     }
 
                     if(hasVisibleFace) {
-                        currIndex += addFace(currIndex, texOffset, pos, blockModel.inner());
+                        currIndex += addFace(currIndex, texOffset, pos, blockModel, FaceDirection.INNER, aoData);
                     }
                 }
             }
@@ -90,12 +88,18 @@ public class ChunkMeshBuilder {
         return new Mesh(
             ArrayUtil.toFloatArray(positions),
             ArrayUtil.toFloatArray(uvs),
-            ArrayUtil.toIntArray(indices)
+            ArrayUtil.toIntArray(indices),
+            new Mesh.FloatAttributeData(4, ArrayUtil.toFloatArray(cornerAO)),
+            new Mesh.FloatAttributeData(2, ArrayUtil.toFloatArray(aoInterpolation))
         );
     }
 
-    private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, PartialMesh face) {
+    private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingData.AOData aoData) {
+        PartialMesh face = model.getFace(direction);
+
         PartialMeshVertex[] vertices = face.vertices();
+
+        Vector4f aoCorners = aoData.getAOForPoint(direction);
 
         for(PartialMeshVertex vertex : vertices) {
             positions.addAll(List.of(
@@ -107,6 +111,11 @@ public class ChunkMeshBuilder {
                 (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
                 (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
             ));
+
+            Vector2f aoInterpolator = aoData.getInterpolatorForPoint(vertex.pos(), direction);
+
+            cornerAO.addAll(List.of(aoCorners.x, aoCorners.y, aoCorners.z, aoCorners.w));
+            aoInterpolation.addAll(List.of(aoInterpolator.x, aoInterpolator.y));
         }
 
         for(int index : face.indices()) {

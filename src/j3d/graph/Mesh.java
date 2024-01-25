@@ -1,8 +1,8 @@
 package j3d.graph;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.system.*;
 
 import java.nio.*;
 import java.util.*;
@@ -39,10 +39,10 @@ public class Mesh {
         // Texture coordinates VBO
         vboId = glGenBuffers();
         vboIdList.add(vboId);
-        FloatBuffer textCoordsBuffer = BufferUtils.createFloatBuffer(textureCoordinates.length);
-        textCoordsBuffer.put(0, textureCoordinates);
+        FloatBuffer uvsBuffer = BufferUtils.createFloatBuffer(textureCoordinates.length);
+        uvsBuffer.put(0, textureCoordinates);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, textCoordsBuffer, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, uvsBuffer, GL_STATIC_DRAW);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 

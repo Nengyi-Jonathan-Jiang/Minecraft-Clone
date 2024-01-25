@@ -8,18 +8,22 @@ public record BlockModel(
         PartialMesh inner) {
 
     public enum FaceDirection {
-        TOP(new Vector3i(0, 1, 0)),
-        FRONT(new Vector3i(0, 0, 1)),
-        RIGHT(new Vector3i(1, 0, 0)),
-        BOTTOM(new Vector3i(0, -1, 0)),
-        BACK(new Vector3i(0, 0, -1)),
-        LEFT(new Vector3i(-1, 0, 0)),
-        INNER(new Vector3i(0, 0, 0));
+        TOP(new Vector3i(0, 1, 0), 1),
+        FRONT(new Vector3i(0, 0, 1), .8f),
+        RIGHT(new Vector3i(1, 0, 0), .8f),
+        BOTTOM(new Vector3i(0, -1, 0), .5f),
+        BACK(new Vector3i(0, 0, -1), .8f),
+        LEFT(new Vector3i(-1, 0, 0), .8f),
+        INNER(new Vector3i(0, 0, 0), .9f);
+
+        public static final FaceDirection[] OUTER_FACES = {TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT, INNER};
 
         public final Vector3i direction;
+        public final float lightMultiplier;
 
-        FaceDirection(Vector3i direction) {
+        FaceDirection(Vector3i direction, float lightMultiplier) {
             this.direction = direction;
+            this.lightMultiplier = lightMultiplier;
         }
     }
 
@@ -33,5 +37,17 @@ public record BlockModel(
                 PartialMesh.combine(a.left, b.left),
                 PartialMesh.combine(a.inner, b.inner)
         );
+    }
+
+    public PartialMesh getFace(FaceDirection direction) {
+        return switch (direction) {
+            case TOP -> top;
+            case FRONT -> front;
+            case RIGHT -> right;
+            case BOTTOM -> bottom;
+            case BACK -> back;
+            case LEFT -> left;
+            case INNER -> inner;
+        };
     }
 }

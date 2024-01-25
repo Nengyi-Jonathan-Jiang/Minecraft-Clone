@@ -1,14 +1,15 @@
 package j3d;
 
-import j3d.graph.Render;
-import j3d.scene.Scene;
-
 public interface IAppLogic {
     void cleanup();
 
-    void init(Window window, Scene scene, Render render);
+    void init(Window window);
 
-    void input(Window window, Scene scene, long deltaTime);
+    void input(Window window, long deltaTime);
 
-    void update(Window window, Scene scene, long deltaTime);
+    void update(Window window, long deltaTime);
+
+    void draw(Window window);
+
+    void resize(int width, int height);
 }
