@@ -7,10 +7,10 @@ import j3d.graph.Mesh;
 import org.joml.Vector2i;
 
 public class Chunk {
-    public static int SIZE = 16, HEIGHT = 256;
+    public static int SIZE = 16, HEIGHT = 64;
 
     final int[][][] data;
-    final LightingData lightingData;
+    private final LightingData lightingData;
     private boolean shouldRebuildMesh = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private Mesh mesh = new Mesh(new float[0], new float[0], new int[0]);
@@ -54,5 +54,9 @@ public class Chunk {
 
     public Vector2i getChunkPosition() {
         return chunkPosition;
+    }
+
+    public LightingData getLightingData() {
+        return lightingData;
     }
 }

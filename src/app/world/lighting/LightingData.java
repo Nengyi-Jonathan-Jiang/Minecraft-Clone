@@ -8,6 +8,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
+import util.MathUtil;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
@@ -70,7 +71,7 @@ public class LightingData {
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
                 //Set the light level of all blocks exposed to skylight to max
-                for (int y = Chunk.HEIGHT - 2; y >= 0; y--) {
+                for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
                     int blockID = data[x][y][z];
 
                     boolean isTransparent = blockID == 0 || BlockRegistry.getBlock(blockID).hasTag("transparent");
@@ -101,25 +102,20 @@ public class LightingData {
             if (lightLevel != blockLight[x][y][z]) continue;
 
             //For each adjacent block
-            for (Vector3i offset : new Vector3i[]{
-                new Vector3i( 1, 0, 0),
-                new Vector3i( 0, 1, 0),
-                new Vector3i( 0, 0, 1),
-                new Vector3i(-1, 0, 0),
-                new Vector3i( 0,-1, 0),
-                new Vector3i( 0, 0,-1),
-            }) {
+            for (Vector3i offset : Arrays.stream(BlockModel.FaceDirection.OUTER_FACES).map(i -> i.direction).toList()) {
                 //Get the position
-                var newPos = offset.add(pos);
+                Vector3i newPos = offset.add(pos, new Vector3i());
+
                 //Don't propagate lighting across chunk borders (yet - will implement later)
                 if (!this.isInRange(newPos)) continue;
                 int newBlockID = data[newPos.x][newPos.y][newPos.z];
-                if(newBlockID == 0) continue;
-                if(!BlockRegistry.getBlock(newBlockID).hasTag("transparent")) continue;
+
+                if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) continue;
                 // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
 
                 //This is the light value that will be propagated to the block
                 int newLightLevel = lightLevel - 1;
+
                 //Don't update the light level if it is lower than the current level
                 if (newLightLevel > this.getBlockLightAt(newPos)) {
                     //Set light level of the block
@@ -147,9 +143,11 @@ public class LightingData {
     // TODO: when migrate lighting to world, should store world in chunk and access light through borders
     // This shouldn't even be a thing, really
     public int getBlockLightAt(Vector3i pos) {
-        int x = Math.clamp(pos.x, 0, Chunk.SIZE - 1);
-        int y = Math.clamp(pos.y, 0, Chunk.HEIGHT - 1);
-        int z = Math.clamp(pos.z, 0, Chunk.SIZE - 1);
+        if(pos.y >= Chunk.HEIGHT) return 15;
+
+        int x = MathUtil.clamp(pos.x, 0, Chunk.SIZE - 1);
+        int y = MathUtil.clamp(pos.y, 0, Chunk.HEIGHT - 1);
+        int z = MathUtil.clamp(pos.z, 0, Chunk.SIZE - 1);
 
         return blockLight[x][y][z];
     }

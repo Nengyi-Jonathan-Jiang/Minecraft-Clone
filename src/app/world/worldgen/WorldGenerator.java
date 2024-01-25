@@ -51,9 +51,9 @@ public class WorldGenerator {
                     float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f, trueZ / 50f);
                     float perturbZ = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f + 28.34f);
 
-                    float xx = trueX + perturbX * 10f;
-                    float yy = y + perturbY * 10f;
-                    float zz = trueZ + perturbZ * 10f;
+                    float xx = trueX + perturbX * 40f;
+                    float yy = y + perturbY * 40f;
+                    float zz = trueZ + perturbZ * 40f;
 
                     float noise =
                             .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
