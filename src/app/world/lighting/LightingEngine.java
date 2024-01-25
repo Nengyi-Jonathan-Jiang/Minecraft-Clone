@@ -34,10 +34,14 @@ public class LightingEngine {
 
         public Vector4f getAOForPoint(BlockModel.FaceDirection faceDirection) {
             // TODO: make actual AO
-            int baseBlockLight = getBlockLightAt(blockPosition.add(faceDirection.direction, new Vector3i()));
+            Vector3i adjacentPos = blockPosition.add(faceDirection.direction, new Vector3i());
+
+            if(!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z)) return new Vector4f(.5f);
+
+            int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
             float light = baseBlockLight * lightMultiplier / 16f;
-            return new Vector4f(light, light, light, light);
+            return new Vector4f(light);
         }
 
         public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
@@ -59,17 +63,19 @@ public class LightingEngine {
 
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
-        for(Chunk c : chunksToUpdate) {
-            c.getLightingData().clear();
+        for(Chunk chunk : chunksToUpdate) {
+            chunk.getLightingData().clear();
+
+            if(true) continue;
 
             for (int x = 0; x < Chunk.SIZE; x++) {
                 for (int z = 0; z < Chunk.SIZE; z++) {
                     //Set the light level of all blocks exposed to skylight to max
                     for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
-                        int trueX = x + c.getChunkPosition().x * Chunk.SIZE;
+                        int trueX = x + chunk.getChunkPosition().x * Chunk.SIZE;
                         //noinspection UnnecessaryLocalVariable
                         int trueY = y;
-                        int trueZ = z + c.getChunkPosition().y * Chunk.SIZE;
+                        int trueZ = z + chunk.getChunkPosition().y * Chunk.SIZE;
 
                         int blockID = world.getBlockIDAt(trueX, trueY, trueZ);
 
@@ -80,14 +86,16 @@ public class LightingEngine {
                         if(!isTransparent) break;
 
                         //Set the light level of the block
-                        c.getLightingData().setBlockLightAt(new Vector3i(x, y, z), 15);
-                        c.getLightingData().setBlockLightSourceAt(new Vector3i(x, y, z), new Vector3i(x, y + 1, z));
+                        chunk.getLightingData().setBlockLightAt(new Vector3i(x, y, z), 15);
+                        chunk.getLightingData().setBlockLightSourceAt(new Vector3i(x, y, z), new Vector3i(x, y + 1, z));
                         //Add the update to the priority queue
                         lightingUpdates.offer(new LightingUpdate(new Vector3i(trueX, trueY, trueZ), 15));
                     }
                 }
             }
         }
+
+        lightingUpdates.clear();
 
         //While update queue is not empty
         int lightingStep;
@@ -96,6 +104,8 @@ public class LightingEngine {
             var update = lightingUpdates.poll();
             Vector3i pos = update.pos;
             int x = pos.x, y = pos.y, z = pos.z, lightLevel = update.lightLevel;
+
+            if(isOutOfRange(new Vector3i(x, y, z), chunksToUpdate)) continue;
 
             //If this lighting update is outdated, skip it
             if (lightLevel != world.getBlockLightAt(x, y, z)) continue;
@@ -106,7 +116,7 @@ public class LightingEngine {
                 Vector3i newPos = offset.add(pos, new Vector3i());
 
                 // TODO: confine light to updating chunks
-                if (!this.isInRange(newPos, chunksToUpdate)) continue;
+                if (this.isOutOfRange(newPos, chunksToUpdate)) continue;
                 int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
 
                 if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) continue;
@@ -116,9 +126,9 @@ public class LightingEngine {
                 int newLightLevel = lightLevel - 1;
 
                 //Don't update the light level if it is lower than the current level
-                if (newLightLevel > this.getBlockLightAt(newPos)) {
+                if (newLightLevel > this.getBlockLightAt(newPos, chunksToUpdate)) {
                     //Set light level of the block
-                    this.setBlockLightAt(newPos, newLightLevel);
+                    this.setBlockLightAt(newPos, newLightLevel, chunksToUpdate);
                     //Set where the light comes from
                     this.setLightingSourceAt(newPos, pos);
                     //Add this update to the priority queue
@@ -134,30 +144,27 @@ public class LightingEngine {
     }
 
     private void setLightingSourceAt(Vector3i newPos, Vector3i pos) {
-        lightingSource[newPos.x][newPos.y][newPos.z] = pos;
+        //lightingSource[newPos.x][newPos.y][newPos.z] = pos;
+        // TODO
     }
 
-    private boolean isInRange(Vector3i pos, Collection<Chunk> chunksToUpdate) {
-
+    private boolean isOutOfRange(Vector3i pos, Collection<Chunk> chunksToUpdate) {
+        // TODO: make more efficient
+        if(!world.isBlockLoaded(pos.x, pos.y, pos.z)) return true;
+        Chunk containingChunk = world.getChunkForPosition(pos.x, pos.z);
+        if(!chunksToUpdate.contains(containingChunk)) return true;
+        return !containingChunk.isInRange(0, pos.y, 0);
     }
 
-    public int[][][] getBlockLight() {
-        return blockLight;
+    public int getBlockLightAt(Vector3i pos, Collection<Chunk> chunks) {
+        if(isOutOfRange(pos, chunks)) return 15;
+
+        return world.getBlockLightAt(pos.x, pos.y, pos.z);
     }
 
-    // TODO: when migrate lighting to world, should store world in chunk and access light through borders
-    // This shouldn't even be a thing, really
-    public int getBlockLightAt(Vector3i pos) {
-        if(pos.y >= Chunk.HEIGHT) return 15;
+    private void setBlockLightAt(Vector3i pos, int level, Collection<Chunk> chunks) {
+        if(isOutOfRange(pos, chunks)) return;
 
-        int x = MathUtil.clamp(pos.x, 0, Chunk.SIZE - 1);
-        int y = MathUtil.clamp(pos.y, 0, Chunk.HEIGHT - 1);
-        int z = MathUtil.clamp(pos.z, 0, Chunk.SIZE - 1);
-
-        return blockLight[x][y][z];
-    }
-
-    private void setBlockLightAt(Vector3i pos, int level) {
-        blockLight[pos.x][pos.y][pos.z] = level;
+        world.setBlockLightAt(pos.x, pos.y, pos.z, level);
     }
 }

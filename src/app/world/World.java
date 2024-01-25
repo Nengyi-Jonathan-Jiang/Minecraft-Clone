@@ -1,6 +1,7 @@
 package app.world;
 
 import app.world.chunk.Chunk;
+import app.world.lighting.LightingEngine;
 import app.world.worldgen.WorldGenerator;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -13,39 +14,40 @@ import java.util.Map;
 public class World {
     private final Map<Vector2i, Chunk> loadedChunks = new HashMap<>();
     private final WorldGenerator worldGenerator;
+    private final LightingEngine lightingEngine;
 
     public World(WorldGenerator worldGenerator) {
         this.worldGenerator = worldGenerator;
+        lightingEngine = new LightingEngine(this);
     }
 
     public Chunk getChunkForPosition(int x, int z) {
-        int chunkX = x / Chunk.SIZE, chunkZ = z / Chunk.SIZE;
-        return getChunk(chunkX, chunkZ);
+        Vector2i chunkPos = getChunkPosition(x, z);
+        return getChunk(chunkPos.x, chunkPos.y);
     }
     
     public void loadChunkAtPosition(int x, int z) {
-        int chunkX = x / Chunk.SIZE, chunkZ = z / Chunk.SIZE;
-        loadChunk(new Vector2i(chunkX, chunkZ));
+        loadChunk(getChunkPosition(x, z));
     }
 
     private Chunk getChunk(int chunkX, int chunkZ) {
-        Vector2i chunkPosition = getChunkPosition(chunkX, chunkZ);
+        Vector2i chunkPosition = new Vector2i(chunkX, chunkZ);
         loadChunk(chunkPosition);
         return loadedChunks.get(chunkPosition);
     }
 
-    private static Vector2i getChunkPosition(int chunkX, int chunkZ) {
-        return new Vector2i(chunkX, chunkZ);
+    private static Vector2i getChunkPosition(int x, int z) {
+        return new Vector2i(x / Chunk.SIZE, z / Chunk.SIZE);
     }
 
     private void loadChunk(Vector2i chunkPosition) {
         if(!loadedChunks.containsKey(chunkPosition)) {
-            loadedChunks.put(chunkPosition, worldGenerator.generateChunk(chunkPosition));
+            loadedChunks.put(chunkPosition, worldGenerator.generateChunk(chunkPosition, this));
         }
     }
     
     public Collection<Chunk> getVisibleChunks() {
-        return loadedChunks.values();
+        return loadedChunks.values().stream().toList();
     }
 
     public boolean isBlockLoaded(int x, int y, int z) {
@@ -59,6 +61,16 @@ public class World {
     public int getBlockLightAt(int x, int y, int z) {
         return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new Vector3i(
                 MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE)
-        );
+        ));
+    }
+
+    public void setBlockLightAt(int x, int y, int z, int level) {
+        getChunkForPosition(x, z).getLightingData().setBlockLightAt(new Vector3i(
+                MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE)
+        ), level);
+    }
+
+    public LightingEngine getLightingEngine() {
+        return lightingEngine;
     }
 }

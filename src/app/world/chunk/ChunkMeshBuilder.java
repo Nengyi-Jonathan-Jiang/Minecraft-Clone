@@ -7,7 +7,9 @@ import app.block.model.BlockModel;
 import app.block.model.BlockModel.FaceDirection;
 import app.block.model.PartialMesh;
 import app.block.model.PartialMeshVertex;
+import app.world.World;
 import app.world.lighting.LightingData;
+import app.world.lighting.LightingEngine;
 import j3d.graph.Mesh;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
@@ -39,7 +41,7 @@ public class ChunkMeshBuilder {
         return block.getTags().contains("transparent");
     }
 
-    public Mesh build(Chunk chunk) {
+    public Mesh build(World world, Chunk chunk) {
         positions.clear();
         uvs.clear();
         indices.clear();
@@ -63,12 +65,19 @@ public class ChunkMeshBuilder {
 
                     boolean hasVisibleFace = false;
 
-                    LightingData.AOData aoData = chunk.lightingData.getAOData(pos);
+                    LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
+                        pos.add(new Vector3i(
+                            chunk.getChunkPosition().x * Chunk.SIZE,
+                            0,
+                            chunk.getChunkPosition().y * Chunk.SIZE
+                        ), new Vector3i())
+                    );
 
                     for(FaceDirection direction : FaceDirection.OUTER_FACES) {
                         Vector3i newPos = pos.add(direction.direction, new Vector3i());
                         if(shouldShowFace(newPos.x, newPos.y, newPos.z, blockID, chunk.data)) {
-                            hasVisibleFace = true; currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
+                            hasVisibleFace = true;
+                            currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
                         }
                     }
 
@@ -85,16 +94,22 @@ public class ChunkMeshBuilder {
     private Mesh toMesh() {
         System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
 
-        return new Mesh(
+        Mesh mesh = new Mesh(
             ArrayUtil.toFloatArray(positions),
             ArrayUtil.toFloatArray(uvs),
             ArrayUtil.toIntArray(indices),
             new Mesh.FloatAttributeData(4, ArrayUtil.toFloatArray(cornerAO)),
             new Mesh.FloatAttributeData(2, ArrayUtil.toFloatArray(aoInterpolation))
         );
+        positions.clear();
+        uvs.clear();
+        cornerAO.clear();
+        aoInterpolation.clear();
+        indices.clear();
+        return mesh;
     }
 
-    private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingData.AOData aoData) {
+    private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
         PartialMesh face = model.getFace(direction);
 
         PartialMeshVertex[] vertices = face.vertices();

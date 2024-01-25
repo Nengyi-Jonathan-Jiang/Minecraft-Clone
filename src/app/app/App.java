@@ -57,7 +57,9 @@ public class App implements IAppLogic {
 
         world = new World(new WorldGenerator());
 
-        for(int x = -50; x <= 50; x++) for(int z = -50; z <= 50; z++) world.loadChunkAtPosition(x, z);
+        int loadRange = 64;
+        for(int x = -loadRange; x <= loadRange; x++) for(int z = -loadRange; z <= loadRange; z++) world.loadChunkAtPosition(x, z);
+//        world.loadChunkAtPosition(0, 0);
     }
 
     @Override
@@ -114,7 +116,7 @@ public class App implements IAppLogic {
             Vector2i chunkPosition = chunk.getChunkPosition();
 
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
-                new Vector3f(chunkPosition.x * 16, 0, chunkPosition.y * 16),
+                new Vector3f(chunkPosition.x * Chunk.SIZE, 0, chunkPosition.y * Chunk.SIZE),
                 new Quaternionf(), 1
             );
 

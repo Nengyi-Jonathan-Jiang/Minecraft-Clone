@@ -2,17 +2,17 @@ package app.world.worldgen;
 
 import app.block.Block;
 import app.block.BlockRegistry;
+import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.SimplexNoise;
-import org.joml.Vector2f;
 import org.joml.Vector2i;
 
 public class WorldGenerator {
-    public Chunk generateChunk(Vector2i chunkPosition) {
+    public Chunk generateChunk(Vector2i chunkPosition, World world) {
         int chunkOffsetX = chunkPosition.x * Chunk.SIZE;
         int chunkOffsetZ = chunkPosition.y * Chunk.SIZE;
 
-        Chunk result = new Chunk(chunkPosition);
+        Chunk result = new Chunk(chunkPosition, world);
 
         addBedrockLayer(result);
         addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);

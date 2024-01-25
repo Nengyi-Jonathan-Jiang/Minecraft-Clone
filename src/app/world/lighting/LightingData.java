@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 public class LightingData {
     private final int[][][] blockLight;
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private final Vector3i[][][] lightingSource;
 
     public LightingData() {
@@ -17,7 +16,7 @@ public class LightingData {
     }
 
     public void clear() {
-        for(int[][] i : blockLight) for(int[] j : i) Arrays.fill(j, 0);
+        for(int[][] i : blockLight) for(int[] j : i) Arrays.fill(j, 15);
         for(Vector3i[][] i : lightingSource) for(Vector3i[] j : i) Arrays.fill(j, null);
     }
 
