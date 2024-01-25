@@ -10,4 +10,8 @@ public class MathUtil {
     public static int mod(int x, int m) {
         return (x % m + m) % m;
     }
+
+    public static int floorDiv(int x, int m) {
+        return Math.floorDiv(x, m);
+    }
 }

@@ -66,8 +66,6 @@ public class LightingEngine {
         for(Chunk chunk : chunksToUpdate) {
             chunk.getLightingData().clear();
 
-            if(true) continue;
-
             for (int x = 0; x < Chunk.SIZE; x++) {
                 for (int z = 0; z < Chunk.SIZE; z++) {
                     //Set the light level of all blocks exposed to skylight to max
@@ -94,8 +92,6 @@ public class LightingEngine {
                 }
             }
         }
-
-        lightingUpdates.clear();
 
         //While update queue is not empty
         int lightingStep;

@@ -7,14 +7,13 @@ import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
 import org.joml.Vector2i;
 
-import java.util.List;
-
 public class Chunk {
-    public static int SIZE = 4, HEIGHT = 3;
+    public static int SIZE = 16, HEIGHT = 256;
 
     final int[][][] data;
     private final LightingData lightingData;
     private boolean shouldRebuildMesh = true;
+    private boolean shouldRecalculateLighting = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private Mesh mesh = new Mesh(new float[0], new float[0], new int[0]);
     private final Vector2i chunkPosition;
@@ -34,19 +33,19 @@ public class Chunk {
 
     public Mesh getMesh() {
         if(shouldRebuildMesh) {
-            recalculateLighting();
             rebuildMesh();
         }
         return mesh;
     }
 
-    private void recalculateLighting() {
-        world.getLightingEngine().recalculateLighting(List.of(this));
+    public boolean shouldRecalculateLighting() {
+        return shouldRecalculateLighting;
     }
 
     public void setBlockAt(int x, int y, int z, int id) {
         data[x][y][z] = id;
         shouldRebuildMesh = true;
+        shouldRecalculateLighting = true;
     }
 
     public int getBlockIDAt(int x, int y, int z) {

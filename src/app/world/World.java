@@ -37,13 +37,17 @@ public class World {
     }
 
     private static Vector2i getChunkPosition(int x, int z) {
-        return new Vector2i(x / Chunk.SIZE, z / Chunk.SIZE);
+        return new Vector2i(MathUtil.floorDiv(x, Chunk.SIZE), MathUtil.floorDiv(z, Chunk.SIZE));
     }
 
     private void loadChunk(Vector2i chunkPosition) {
         if(!loadedChunks.containsKey(chunkPosition)) {
             loadedChunks.put(chunkPosition, worldGenerator.generateChunk(chunkPosition, this));
         }
+    }
+
+    public void recalculateLightingForAllVisibleChunks() {
+        lightingEngine.recalculateLighting(getVisibleChunks());
     }
     
     public Collection<Chunk> getVisibleChunks() {

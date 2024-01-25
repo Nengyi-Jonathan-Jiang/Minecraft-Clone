@@ -59,7 +59,7 @@ public class App implements IAppLogic {
 
         int loadRange = 64;
         for(int x = -loadRange; x <= loadRange; x++) for(int z = -loadRange; z <= loadRange; z++) world.loadChunkAtPosition(x, z);
-//        world.loadChunkAtPosition(0, 0);
+        world.recalculateLightingForAllVisibleChunks();
     }
 
     @Override
