@@ -3,6 +3,8 @@ package app.world;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
 import org.joml.Vector2i;
+import org.joml.Vector3i;
+import util.MathUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,9 +29,13 @@ public class World {
     }
 
     private Chunk getChunk(int chunkX, int chunkZ) {
-        Vector2i chunkPosition = new Vector2i(chunkX, chunkZ);
+        Vector2i chunkPosition = getChunkPosition(chunkX, chunkZ);
         loadChunk(chunkPosition);
         return loadedChunks.get(chunkPosition);
+    }
+
+    private static Vector2i getChunkPosition(int chunkX, int chunkZ) {
+        return new Vector2i(chunkX, chunkZ);
     }
 
     private void loadChunk(Vector2i chunkPosition) {
@@ -40,5 +46,19 @@ public class World {
     
     public Collection<Chunk> getVisibleChunks() {
         return loadedChunks.values();
+    }
+
+    public boolean isBlockLoaded(int x, int y, int z) {
+        return loadedChunks.containsKey(getChunkPosition(x, z));
+    }
+
+    public int getBlockIDAt(int x, int y, int z) {
+        return getChunkForPosition(x, z).getBlockIDAt(MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE));
+    }
+
+    public int getBlockLightAt(int x, int y, int z) {
+        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new Vector3i(
+                MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE)
+        );
     }
 }

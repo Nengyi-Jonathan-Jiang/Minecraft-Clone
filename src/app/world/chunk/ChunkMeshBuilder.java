@@ -63,7 +63,7 @@ public class ChunkMeshBuilder {
 
                     boolean hasVisibleFace = false;
 
-                    LightingData.AOData aoData = chunk.getLightingData().getAOData(pos);
+                    LightingData.AOData aoData = chunk.lightingData.getAOData(pos);
 
                     for(FaceDirection direction : FaceDirection.OUTER_FACES) {
                         Vector3i newPos = pos.add(direction.direction, new Vector3i());
