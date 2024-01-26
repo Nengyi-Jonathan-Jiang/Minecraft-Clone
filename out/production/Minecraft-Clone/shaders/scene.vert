@@ -1,9 +1,9 @@
 #version 330
 
-layout (location=0) in vec3 position;
-layout (location=1) in vec2 uv;
-layout (location=2) in vec4 lightLevels;                // Convention: (light(0,0), light(0,1), light(1,0), light(1,1))
-layout (location=3) in vec2 lightLevelInterpolator;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 uv;
+layout (location = 2) in vec4 lightLevels;                // Convention: (light(0,0), light(0,1), light(1,0), light(1,1))
+layout (location = 3) in vec2 lightLevelInterpolator;
 
 out vec2 outUV;
 out vec4 outLightLevels;
