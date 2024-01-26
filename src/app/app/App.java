@@ -28,7 +28,6 @@ public class App implements IAppLogic {
     private Projection projection;
     private TextureCache textureCache;
 
-
     private ShaderProgram worldShader;
     private World world;
 
@@ -56,6 +55,8 @@ public class App implements IAppLogic {
         DefaultBlocksInitializer.run();
 
         world = new World(new WorldGenerator());
+
+        // Figure out player position
 
         int loadRange = 50;
         for(int x = -loadRange; x <= loadRange; x++) for(int z = -loadRange; z <= loadRange; z++) world.loadChunkAtPosition(x, z);

@@ -14,7 +14,7 @@ public class WorldGenerator {
 
         Chunk result = new Chunk(chunkPosition, world);
 
-        addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
+        createTerrainBaseLayer(chunkOffsetX, chunkOffsetZ, result);
         convertTopLayersToGrass(result);
         addBedrockLayer(result);
 
@@ -39,7 +39,7 @@ public class WorldGenerator {
         }
     }
 
-    private void addTerrainLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
+    private void createTerrainBaseLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
         for(int x = 0; x < Chunk.SIZE; x++) {
             for(int z = 0; z < Chunk.SIZE; z++) {
                 int trueX = chunkOffsetX + x;
