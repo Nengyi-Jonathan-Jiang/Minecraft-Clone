@@ -55,7 +55,7 @@ public class World {
     }
 
     public boolean isBlockLoaded(int x, int y, int z) {
-        return loadedChunks.containsKey(getChunkPosition(x, z));
+        return loadedChunks.containsKey(getChunkPosition(x, z)) && y >= 0 && y < Chunk.HEIGHT;
     }
 
     public int getBlockIDAt(int x, int y, int z) {

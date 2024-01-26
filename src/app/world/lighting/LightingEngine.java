@@ -5,7 +5,6 @@ import app.block.model.BlockModel;
 import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.*;
-import util.MathUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,20 +37,45 @@ public class LightingEngine {
             // TODO: make actual AO
             Vector3i adjacentPos = blockPosition.add(faceDirection.direction, new Vector3i());
 
-            if(!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z)) return new Vector4f(.5f);
+            if(!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z))
+                return new Vector4f(0);
 
-            int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+            int baseBlockLight =
+                    world.getBlockIDAt(adjacentPos.x, adjacentPos.y, adjacentPos.z) == 0 ? 15 : 0;
+//                    world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
 
-            float faceLight = baseBlockLight * lightMultiplier / 16f;
+//            Function<Vector3i, Integer> getLightAt = (p) -> world.isBlockLoaded(p.x, p.y, p.z)
+//                    ? world.getBlockLightAt(p.x, p.y, p.z)
+//                    : baseBlockLight;
 
-            Function<Vector3i, Float> getLightAt = (x) -> {
-                return 0f;
-            };
+            Function<Vector3i, Integer> getLightAt = (p) ->
+                    world.isBlockLoaded(p.x, p.y, p.z) && world.getBlockIDAt(p.x, p.y, p.z) == 0
+                            ? 15 : 0;
 
-            float lv00 =
+            int lv00 = getLightAt.apply(adjacentPos.add(faceDirection.v00, new Vector3i()));
+            int lv01 = getLightAt.apply(adjacentPos.add(faceDirection.v01, new Vector3i()));
+            int lv10 = getLightAt.apply(adjacentPos.add(faceDirection.v10, new Vector3i()));
+            int lv11 = getLightAt.apply(adjacentPos.add(faceDirection.v11, new Vector3i()));
+            int le0010 = getLightAt.apply(adjacentPos.add(faceDirection.e0010, new Vector3i()));
+            int le1011 = getLightAt.apply(adjacentPos.add(faceDirection.e1011, new Vector3i()));
+            int le1101 = getLightAt.apply(adjacentPos.add(faceDirection.e1101, new Vector3i()));
+            int le0100 = getLightAt.apply(adjacentPos.add(faceDirection.e0100, new Vector3i()));
 
-            return new Vector4f(faceLight, 1, 1, 0);
+            return new Vector4f(
+                calculateWeightedAOValue(
+                    baseBlockLight, le0010, le0100, lv00
+                ),
+                calculateWeightedAOValue(
+                    baseBlockLight, le1011, le0010, lv10
+                ),
+                calculateWeightedAOValue(
+                    baseBlockLight, le0100, le1101, lv01
+                ),
+                calculateWeightedAOValue(
+                    baseBlockLight, le1101, le1011, lv11
+                )
+            ).mul(1 / 16f);
         }
 
         private float distanceToSegment(Vector3f a, Vector3f b, Vector3f v){
@@ -79,8 +103,9 @@ public class LightingEngine {
             return new Vector2f(x, y);
         }
 
-        private int calculateWeightedAOValue(int current, int side1, int side2, int corner){
-            return ((int)(current * .5 + side1 * .2 + side2 * .2 + corner * .1));
+        private float calculateWeightedAOValue(int current, int side1, int side2, int corner){
+            return
+                    (current * .25f + side1 * .25f + side2 * .25f + corner * .25f);
         }
     }
 
@@ -150,7 +175,7 @@ public class LightingEngine {
                 // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
 
                 //This is the light value that will be propagated to the block
-                int newLightLevel = lightLevel - 1;
+                int newLightLevel = lightLevel;
 
                 //Don't update the light level if it is lower than the current level
                 if (newLightLevel > this.getBlockLightAt(newPos, chunksToUpdate)) {
