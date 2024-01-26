@@ -35,8 +35,9 @@ public class LightingEngine {
             this.blockPosition = blockPosition;
         }
 
+        // TODO (low priority): refactor for readability.
         public Vector4f getAOForPoint(BlockModel.FaceDirection faceDirection) {
-            // TODO: make actual AO
+            // The block adjacent to this face.
             Vector3i adjacentPos = blockPosition.add(faceDirection.direction, new Vector3i());
 
             if(!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z))
@@ -45,15 +46,19 @@ public class LightingEngine {
             int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
 
+            // Using this to avoid passing a lot of parameters. This is bad code style
+            // and needs to be fixed
             Function<Vector3i, Integer> getLightAt = (p) -> world.isBlockLoaded(p.x, p.y, p.z)
                     ? world.getBlockLightAt(p.x, p.y, p.z)
                     : baseBlockLight;
 
+            // Light levels for corners
             int l_xy = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.t2));
             int l_Xy = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.t2));
             int l_xY = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.T2));
             int l_XY = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.T2));
 
+            // Light levels for edges
             int l_x = getLightAt.apply(sum(adjacentPos, faceDirection.t1));
             int l_y = getLightAt.apply(sum(adjacentPos, faceDirection.t2));
             int l_X = getLightAt.apply(sum(adjacentPos, faceDirection.T1));
@@ -76,8 +81,6 @@ public class LightingEngine {
         }
 
         public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
-            // TODO: make interpolation logic
-
             // Get rid of the component in the direction of the face normal
             var mask = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
             var flattenedPoint = mask.mul(point);

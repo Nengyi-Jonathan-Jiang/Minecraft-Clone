@@ -14,9 +14,9 @@ public class WorldGenerator {
 
         Chunk result = new Chunk(chunkPosition, world);
 
-        addBedrockLayer(result);
         addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
         convertTopLayersToGrass(result);
+        addBedrockLayer(result);
 
         return result;
     }
