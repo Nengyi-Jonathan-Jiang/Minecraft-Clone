@@ -10,7 +10,7 @@ uniform sampler2D txtSampler;
 
 
 float lerp(float a, float b, float t) {
-    return a + (b - a) * t;
+    return (a + b) / 2 + (b - a) * t;
 }
 
 
@@ -22,6 +22,5 @@ void main()
         outLightLevelInterpolator.y
     );
 
-//    fragColor = texture(txtSampler, outUV) * (lightLevel * 0.8 + 0.2);
-    fragColor = vec4(lightLevel) + texture(txtSampler, outUV) * 0.0001;
+    fragColor = texture(txtSampler, outUV) * (lightLevel * 0.8 + 0.2);
 }

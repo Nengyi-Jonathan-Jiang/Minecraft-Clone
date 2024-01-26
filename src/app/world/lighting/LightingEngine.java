@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.function.Function;
 
+import static util.MathUtil.sum;
+
 public class LightingEngine {
     private final World world;
 
@@ -40,46 +42,37 @@ public class LightingEngine {
             if(!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z))
                 return new Vector4f(0);
 
-            int baseBlockLight =
-                    world.getBlockIDAt(adjacentPos.x, adjacentPos.y, adjacentPos.z) == 0 ? 15 : 0;
-//                    world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+            int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
 
-//            Function<Vector3i, Integer> getLightAt = (p) -> world.isBlockLoaded(p.x, p.y, p.z)
-//                    ? world.getBlockLightAt(p.x, p.y, p.z)
-//                    : baseBlockLight;
+            Function<Vector3i, Integer> getLightAt = (p) -> world.isBlockLoaded(p.x, p.y, p.z)
+                    ? world.getBlockLightAt(p.x, p.y, p.z)
+                    : baseBlockLight;
 
-            Function<Vector3i, Integer> getLightAt = (p) ->
-                    world.isBlockLoaded(p.x, p.y, p.z) && world.getBlockIDAt(p.x, p.y, p.z) == 0
-                            ? 15 : 0;
+            int l_xy = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.t2));
+            int l_Xy = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.t2));
+            int l_xY = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.T2));
+            int l_XY = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.T2));
 
-            int lv00 = getLightAt.apply(adjacentPos.add(faceDirection.v00, new Vector3i()));
-            int lv01 = getLightAt.apply(adjacentPos.add(faceDirection.v01, new Vector3i()));
-            int lv10 = getLightAt.apply(adjacentPos.add(faceDirection.v10, new Vector3i()));
-            int lv11 = getLightAt.apply(adjacentPos.add(faceDirection.v11, new Vector3i()));
-            int le0010 = getLightAt.apply(adjacentPos.add(faceDirection.e0010, new Vector3i()));
-            int le1011 = getLightAt.apply(adjacentPos.add(faceDirection.e1011, new Vector3i()));
-            int le1101 = getLightAt.apply(adjacentPos.add(faceDirection.e1101, new Vector3i()));
-            int le0100 = getLightAt.apply(adjacentPos.add(faceDirection.e0100, new Vector3i()));
+            int l_x = getLightAt.apply(sum(adjacentPos, faceDirection.t1));
+            int l_y = getLightAt.apply(sum(adjacentPos, faceDirection.t2));
+            int l_X = getLightAt.apply(sum(adjacentPos, faceDirection.T1));
+            int l_Y = getLightAt.apply(sum(adjacentPos, faceDirection.T2));
 
             return new Vector4f(
                 calculateWeightedAOValue(
-                    baseBlockLight, le0010, le0100, lv00
+                    baseBlockLight, l_x, l_y, l_xy
                 ),
                 calculateWeightedAOValue(
-                    baseBlockLight, le1011, le0010, lv10
+                    baseBlockLight, l_X, l_y, l_Xy
                 ),
                 calculateWeightedAOValue(
-                    baseBlockLight, le0100, le1101, lv01
+                    baseBlockLight, l_x, l_Y, l_xY
                 ),
                 calculateWeightedAOValue(
-                    baseBlockLight, le1101, le1011, lv11
+                    baseBlockLight, l_X, l_Y, l_XY
                 )
-            ).mul(1 / 16f);
-        }
-
-        private float distanceToSegment(Vector3f a, Vector3f b, Vector3f v){
-            return (b.sub(a, new Vector3f()).cross(v.sub(a, new Vector3f()))).length() / 2;
+            ).mul(lightMultiplier / 15f);
         }
 
         public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
@@ -89,23 +82,14 @@ public class LightingEngine {
             var mask = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
             var flattenedPoint = mask.mul(point);
 
-            float x = distanceToSegment(
-                new Vector3f(faceDirection.v00),
-                new Vector3f(faceDirection.v01),
-                flattenedPoint
-            );
-            float y = distanceToSegment(
-                    new Vector3f(faceDirection.v00),
-                    new Vector3f(faceDirection.v10),
-                    flattenedPoint
-            );
+            float x = flattenedPoint.dot(new Vector3f(faceDirection.T1));
+            float y = flattenedPoint.dot(new Vector3f(faceDirection.T2));
 
             return new Vector2f(x, y);
         }
 
         private float calculateWeightedAOValue(int current, int side1, int side2, int corner){
-            return
-                    (current * .25f + side1 * .25f + side2 * .25f + corner * .25f);
+            return (current + side1 + side2 + corner) / 4f;
         }
     }
 
@@ -175,7 +159,7 @@ public class LightingEngine {
                 // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
 
                 //This is the light value that will be propagated to the block
-                int newLightLevel = lightLevel;
+                int newLightLevel = lightLevel - 1;
 
                 //Don't update the light level if it is lower than the current level
                 if (newLightLevel > this.getBlockLightAt(newPos, chunksToUpdate)) {

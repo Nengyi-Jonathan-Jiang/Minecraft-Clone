@@ -89,4 +89,8 @@ public class Camera {
         rotation.set(x, y);
         recalculate();
     }
+
+    public Vector2f getRotation() {
+        return rotation;
+    }
 }

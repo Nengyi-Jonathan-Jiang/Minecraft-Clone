@@ -46,33 +46,28 @@ public class WorldGenerator {
                 int trueZ = chunkOffsetZ + z;
 
                 for(int y = 0; y < Chunk.HEIGHT; y++) {
+                    float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
+                    float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
+                    float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 43.3f, trueZ / 50f + 28.34f);
 
-                    if(40 * y < trueX * trueX + trueZ * trueZ)
-                        chunk.setBlockAt(x, y, z, 1);
+                    float xx = trueX + perturbX * 40f;
+                    float yy = y + perturbY * 40f;
+                    float zz = trueZ + perturbZ * 40f;
 
-//
-//                    float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
-//                    float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f, trueZ / 50f);
-//                    float perturbZ = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f + 28.34f);
-//
-//                    float xx = trueX + perturbX * 40f;
-//                    float yy = y + perturbY * 40f;
-//                    float zz = trueZ + perturbZ * 40f;
-//
-//                    float noise =
-//                            .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
-//                          +  .5f * SimplexNoise.noise(xx / 40f, zz / 40f)
-//                          +  1.f * SimplexNoise.noise(xx / 80f, zz / 80f)
-//                          +  2.f * SimplexNoise.noise(xx / 160f, zz / 160f);
-//                    float height = noise * 5f + 40f;
-//
-//                    if(1 <= yy && yy < height - 3) {
-//                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
-//                    }
-//
-//                    if(height - 3 <= yy && yy < height) {
-//                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
-//                    }
+                    float noise =
+                            .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
+                          +  .5f * SimplexNoise.noise(xx / 40f, zz / 40f)
+                          +  1.f * SimplexNoise.noise(xx / 80f, zz / 80f)
+                          +  2.f * SimplexNoise.noise(xx / 160f, zz / 160f);
+                    float height = noise * 5f + 64f;
+
+                    if(1 <= yy && yy < height - 3) {
+                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
+                    }
+
+                    if(height - 3 <= yy && yy < height) {
+                        chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("dirt"));
+                    }
                 }
             }
         }

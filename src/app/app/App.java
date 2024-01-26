@@ -57,7 +57,7 @@ public class App implements IAppLogic {
 
         world = new World(new WorldGenerator());
 
-        int loadRange = 8;
+        int loadRange = 50;
         for(int x = -loadRange; x <= loadRange; x++) for(int z = -loadRange; z <= loadRange; z++) world.loadChunkAtPosition(x, z);
         world.recalculateLightingForAllVisibleChunks();
     }
@@ -66,19 +66,22 @@ public class App implements IAppLogic {
     public void input(Window window, long deltaTime) {
         float move = deltaTime * MOVEMENT_SPEED;
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            camera.moveForward(move);
-        } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            camera.moveBackwards(move);
+            camera.move(new Vector3f(0, 0, -1).rotateY(-camera.getRotation().y).mul(move));
+        }
+        if (window.isKeyPressed(GLFW_KEY_S)) {
+            camera.move(new Vector3f(0, 0, 1).rotateY(-camera.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            camera.moveLeft(move);
-        } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            camera.moveRight(move);
+            camera.move(new Vector3f(-1, 0, 0).rotateY(-camera.getRotation().y).mul(move));
+        }
+        if (window.isKeyPressed(GLFW_KEY_D)) {
+            camera.move(new Vector3f(1, 0, 0).rotateY(-camera.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_SPACE)) {
-            camera.moveUp(move);
-        } else if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-            camera.moveDown(move);
+            camera.move(new Vector3f(0, 1, 0).mul(move));
+        }
+        if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            camera.move(new Vector3f(0, -1, 0).mul(move));
         }
 
         MouseInput mouseInput = window.getMouseInput();

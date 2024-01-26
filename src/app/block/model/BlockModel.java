@@ -20,32 +20,20 @@ public record BlockModel(
 
         public final Vector3i direction;
         public final float lightMultiplier;
-        public final Vector3i v00, v01, v10, v11, e0010, e1011, e1101, e0100;
-
-        private static Vector3i cross(Vector3i a, Vector3i b) {
-            return new Vector3i(
-                a.y * b.z - a.z * b.y,
-                a.z * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x
-            );
-        }
-
-        private static Vector3i avg(Vector3i a, Vector3i b){
-            return new Vector3i().add(a).add(b).div(2);
-        }
+        public final Vector3i T1, T2, t1, t2;
 
         FaceDirection(Vector3i direction, float lightMultiplier) {
             this.direction = direction;
             this.lightMultiplier = lightMultiplier;
 
-            v00 = cross(this.direction, new Vector3i(1));
-            v01 = cross(this.direction, v00);
-            v11 = cross(this.direction, v01);
-            v10 = cross(this.direction, v11);
-            e0010 = avg(v00, v10);
-            e1011 = avg(v10, v11);
-            e1101 = avg(v11, v01);
-            e0100 = avg(v01, v00);
+            // Intellij doesn't like it when I permute the arguments.
+
+            //noinspection SuspiciousNameCombination
+            T1 = new Vector3i(direction.y, direction.z, direction.x);
+            t1 = T1.mul(-1, new Vector3i());
+            //noinspection SuspiciousNameCombination
+            T2 = new Vector3i(direction.z, direction.x, direction.y);
+            t2 = T2.mul(-1, new Vector3i());
         }
     }
 
