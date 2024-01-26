@@ -21,8 +21,8 @@ public class Engine {
 
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_CULL_FACE);
-//        glFrontFace(GL_CW);
+        glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CW);
 
         appLogic.init(window);
         running = true;

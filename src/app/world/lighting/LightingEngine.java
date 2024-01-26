@@ -10,6 +10,7 @@ import util.MathUtil;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.PriorityQueue;
+import java.util.function.Function;
 
 public class LightingEngine {
     private final World world;
@@ -41,18 +42,41 @@ public class LightingEngine {
 
             int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
-            float light = baseBlockLight * lightMultiplier / 16f;
-            return new Vector4f(light);
+
+            float faceLight = baseBlockLight * lightMultiplier / 16f;
+
+            Function<Vector3i, Float> getLightAt = (x) -> {
+                return 0f;
+            };
+
+            float lv00 =
+
+            return new Vector4f(faceLight, 1, 1, 0);
+        }
+
+        private float distanceToSegment(Vector3f a, Vector3f b, Vector3f v){
+            return (b.sub(a, new Vector3f()).cross(v.sub(a, new Vector3f()))).length() / 2;
         }
 
         public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
             // TODO: make interpolation logic
 
             // Get rid of the component in the direction of the face normal
-            var flattenedPoint = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
+            var mask = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
+            var flattenedPoint = mask.mul(point);
 
+            float x = distanceToSegment(
+                new Vector3f(faceDirection.v00),
+                new Vector3f(faceDirection.v01),
+                flattenedPoint
+            );
+            float y = distanceToSegment(
+                    new Vector3f(faceDirection.v00),
+                    new Vector3f(faceDirection.v10),
+                    flattenedPoint
+            );
 
-            return new Vector2f(0, 0);
+            return new Vector2f(x, y);
         }
 
         private int calculateWeightedAOValue(int current, int side1, int side2, int corner){
