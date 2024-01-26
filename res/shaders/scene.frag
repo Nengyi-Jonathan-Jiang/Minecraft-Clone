@@ -22,5 +22,5 @@ void main()
         outLightLevelInterpolator.y
     );
 
-    fragColor = texture(txtSampler, outUV) * (lightLevel * 0.9 + 0.1);
+    fragColor = texture(txtSampler, outUV) * (lightLevel * 0.5 + 0.5);
 }

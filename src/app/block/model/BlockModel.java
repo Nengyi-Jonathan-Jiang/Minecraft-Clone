@@ -1,5 +1,6 @@
 package app.block.model;
 
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 public record BlockModel(
@@ -20,10 +21,32 @@ public record BlockModel(
 
         public final Vector3i direction;
         public final float lightMultiplier;
+        public final Vector3i v00, v01, v10, v11, e1, e2, e3, e4;
+
+        private static Vector3i cross(Vector3i a, Vector3i b) {
+            return new Vector3i(
+                a.y * b.z - a.z * b.y,
+                a.z * b.x - a.x * b.z,
+                a.x * b.y - a.y * b.x
+            );
+        }
+
+        private static Vector3i avg(Vector3i a, Vector3i b){
+            return new Vector3i().add(a).add(b).div(2);
+        }
 
         FaceDirection(Vector3i direction, float lightMultiplier) {
             this.direction = direction;
             this.lightMultiplier = lightMultiplier;
+            // TODO:
+            v00 = cross(this.direction, new Vector3i(1));
+            v01 = cross(this.direction, v00);
+            v11 = cross(this.direction, v01);
+            v10 = cross(this.direction, v11);
+            e1 = avg(v00, v01);
+            e2 = avg(v01, v11);
+            e3 = avg(v11, v10);
+            e4 = avg(v10, v00);
         }
     }
 

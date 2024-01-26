@@ -57,7 +57,7 @@ public class App implements IAppLogic {
 
         world = new World(new WorldGenerator());
 
-        int loadRange = 64;
+        int loadRange = 20;
         for(int x = -loadRange; x <= loadRange; x++) for(int z = -loadRange; z <= loadRange; z++) world.loadChunkAtPosition(x, z);
         world.recalculateLightingForAllVisibleChunks();
     }

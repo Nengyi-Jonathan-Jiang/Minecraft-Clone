@@ -25,6 +25,7 @@ public class LightingEngine {
         }
     }
 
+
     public class AOData {
         private final Vector3i blockPosition;
 
@@ -46,6 +47,11 @@ public class LightingEngine {
 
         public Vector2f getInterpolatorForPoint(Vector3f point, BlockModel.FaceDirection faceDirection) {
             // TODO: make interpolation logic
+
+            // Get rid of the component in the direction of the face normal
+            var flattenedPoint = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
+
+
             return new Vector2f(0, 0);
         }
 
@@ -59,6 +65,7 @@ public class LightingEngine {
     }
 
     public void recalculateLighting(Collection<Chunk> chunksToUpdate) {
+        System.out.println("Recalculating lighting for " + chunksToUpdate.size() + " chunks");
         // Propagate light to any neighboring chunks if needed
 
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
