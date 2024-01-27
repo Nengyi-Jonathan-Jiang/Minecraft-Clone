@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="apache_commons_math">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/lib/apache_commons_math" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/apache_commons_math" recursive="false" />
+  </library>
+</component>

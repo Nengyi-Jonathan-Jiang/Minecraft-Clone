@@ -3,10 +3,8 @@ package app.block.model;
 import util.ArrayUtil;
 import util.FileReader;
 
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class BlockModelLoader {
     public static BlockModel loadModel(String filePath) {
@@ -69,14 +67,38 @@ public class BlockModelLoader {
 
         PartialMeshVertex[] verticesArr = vertices.toArray(PartialMeshVertex[]::new);
 
-        PartialMesh top    = new PartialMesh(verticesArr, ArrayUtil.toIntArray(topIndices));
-        PartialMesh front  = new PartialMesh(verticesArr, ArrayUtil.toIntArray(frontIndices));
-        PartialMesh right  = new PartialMesh(verticesArr, ArrayUtil.toIntArray(rightIndices));
-        PartialMesh bottom = new PartialMesh(verticesArr, ArrayUtil.toIntArray(bottomIndices));
-        PartialMesh back   = new PartialMesh(verticesArr, ArrayUtil.toIntArray(backIndices));
-        PartialMesh left   = new PartialMesh(verticesArr, ArrayUtil.toIntArray(leftIndices));
-        PartialMesh inner  = new PartialMesh(verticesArr, ArrayUtil.toIntArray(innerIndices));
+        PartialMesh top    = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(topIndices));
+        PartialMesh front  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(frontIndices));
+        PartialMesh right  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(rightIndices));
+        PartialMesh bottom = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(bottomIndices));
+        PartialMesh back   = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(backIndices));
+        PartialMesh left   = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(leftIndices));
+        PartialMesh inner  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(innerIndices));
 
         return new BlockModel(top, front, right, bottom, back, left, inner);
+    }
+    
+    private static PartialMesh createOptimizedPartialMesh(PartialMeshVertex[] vertices, int[] indices){
+        Set<Integer> usedIndices = Arrays.stream(indices).boxed().collect(Collectors.toSet());
+
+        Map<Integer, Integer> indexMap = new HashMap<>();
+        PartialMeshVertex[] optimizedVertices = new PartialMeshVertex[usedIndices.size()];
+
+        {
+            int i = 0;
+            for(int index : usedIndices) {
+                indexMap.put(index, i);
+                optimizedVertices[i] = vertices[index];
+                i++;
+            }
+        }
+
+        int[] optimizedIndices = new int[indices.length];
+
+        for(int i = 0; i < indices.length; i++) {
+            optimizedIndices[i] = indexMap.get(indices[i]);
+        }
+
+        return new PartialMesh(optimizedVertices, optimizedIndices);
     }
 }

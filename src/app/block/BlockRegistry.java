@@ -3,6 +3,7 @@ package app.block;
 import app.block.model.BlockModel;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
+import util.DenseIntMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ public class BlockRegistry {
     private BlockRegistry() {}
 
     private static final Map<String, BlockModel> models = new HashMap<>();
-    private static final Map<Integer, Block> blocks = new HashMap<>();
+    private static final DenseIntMap<Block> blocks = new DenseIntMap<>();
     private static final Map<String, Integer> blockIDs = new HashMap<>();
 
     public static void registerBlock(Block block) {

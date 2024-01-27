@@ -2,6 +2,7 @@ package app.world;
 
 import app.world.chunk.Chunk;
 import app.world.lighting.LightingEngine;
+import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -9,6 +10,7 @@ import util.MathUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class World {
@@ -37,7 +39,7 @@ public class World {
     }
 
     private static Vector2i getChunkPosition(int x, int z) {
-        return new Vector2i(MathUtil.floorDiv(x, Chunk.SIZE), MathUtil.floorDiv(z, Chunk.SIZE));
+        return new Vector2i(x >> 4, z >> 4);
     }
 
     private void loadChunk(Vector2i chunkPosition) {
@@ -47,7 +49,7 @@ public class World {
     }
 
     public void recalculateLightingForAllVisibleChunks() {
-        lightingEngine.recalculateLighting(getVisibleChunks());
+        lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
     }
     
     public Collection<Chunk> getVisibleChunks() {
@@ -59,19 +61,15 @@ public class World {
     }
 
     public int getBlockIDAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getBlockIDAt(MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE));
+        return getChunkForPosition(x, z).getBlockIDAt(x & 15, y, z & 15);
     }
 
     public int getBlockLightAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new Vector3i(
-                MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE)
-        ));
+        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new Vector3i(x & 15, y, z & 15));
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
-        getChunkForPosition(x, z).getLightingData().setBlockLightAt(new Vector3i(
-                MathUtil.mod(x, Chunk.SIZE), y, MathUtil.mod(z, Chunk.SIZE)
-        ), level);
+        getChunkForPosition(x, z).getLightingData().setBlockLightAt(new Vector3i(x & 15, y, z & 15), level);
     }
 
     public LightingEngine getLightingEngine() {

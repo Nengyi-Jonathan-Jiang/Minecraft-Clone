@@ -7,7 +7,6 @@ import app.world.chunk.Chunk;
 import org.joml.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.function.Function;
 
@@ -100,13 +99,13 @@ public class LightingEngine {
         return new AOData(pos);
     }
 
-    public void recalculateLighting(Collection<Chunk> chunksToUpdate) {
-        System.out.println("Recalculating lighting for " + chunksToUpdate.size() + " chunks");
+    public void recalculateLighting(LightingEngineUpdateParameters parameters) {
+        System.out.println("Recalculating lighting for " + parameters.chunksToUpdate.size() + " chunks");
         // Propagate light to any neighboring chunks if needed
 
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
-        for(Chunk chunk : chunksToUpdate) {
+        for(Chunk chunk : parameters.chunksToUpdate) {
             chunk.getLightingData().clear();
 
             for (int x = 0; x < Chunk.SIZE; x++) {
@@ -138,13 +137,13 @@ public class LightingEngine {
 
         //While update queue is not empty
         int lightingStep;
-        int maxLightingUpdates = 64 * chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
+        int maxLightingUpdates = 64 * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             var update = lightingUpdates.poll();
             Vector3i pos = update.pos;
             int x = pos.x, y = pos.y, z = pos.z, lightLevel = update.lightLevel;
 
-            if(isOutOfRange(new Vector3i(x, y, z), chunksToUpdate)) continue;
+            if(isOutOfRange(new Vector3i(x, y, z), parameters)) continue;
 
             //If this lighting update is outdated, skip it
             if (lightLevel != world.getBlockLightAt(x, y, z)) continue;
@@ -155,7 +154,7 @@ public class LightingEngine {
                 Vector3i newPos = offset.add(pos, new Vector3i());
 
                 // TODO: confine light to updating chunks
-                if (this.isOutOfRange(newPos, chunksToUpdate)) continue;
+                if (this.isOutOfRange(newPos, parameters)) continue;
                 int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
 
                 if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) continue;
@@ -165,9 +164,9 @@ public class LightingEngine {
                 int newLightLevel = lightLevel - 1;
 
                 //Don't update the light level if it is lower than the current level
-                if (newLightLevel > this.getBlockLightAt(newPos, chunksToUpdate)) {
+                if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
                     //Set light level of the block
-                    this.setBlockLightAt(newPos, newLightLevel, chunksToUpdate);
+                    this.setBlockLightAt(newPos, newLightLevel, parameters);
                     //Set where the light comes from
                     this.setLightingSourceAt(newPos, pos);
                     //Add this update to the priority queue
@@ -187,21 +186,18 @@ public class LightingEngine {
         // TODO
     }
 
-    private boolean isOutOfRange(Vector3i pos, Collection<Chunk> chunksToUpdate) {
-        // TODO: make more efficient
-        if(!world.isBlockLoaded(pos.x, pos.y, pos.z)) return true;
-        Chunk containingChunk = world.getChunkForPosition(pos.x, pos.z);
-        if(!chunksToUpdate.contains(containingChunk)) return true;
-        return !containingChunk.isInRange(0, pos.y, 0);
+    private boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
+        if(!parameters.isOutOfRange(pos)) return true;
+        return Chunk.isInRange(0, pos.y, 0);
     }
 
-    public int getBlockLightAt(Vector3i pos, Collection<Chunk> chunks) {
+    public int getBlockLightAt(Vector3i pos, LightingEngineUpdateParameters chunks) {
         if(isOutOfRange(pos, chunks)) return 15;
 
         return world.getBlockLightAt(pos.x, pos.y, pos.z);
     }
 
-    private void setBlockLightAt(Vector3i pos, int level, Collection<Chunk> chunks) {
+    private void setBlockLightAt(Vector3i pos, int level, LightingEngineUpdateParameters chunks) {
         if(isOutOfRange(pos, chunks)) return;
 
         world.setBlockLightAt(pos.x, pos.y, pos.z, level);

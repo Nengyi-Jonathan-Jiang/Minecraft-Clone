@@ -64,7 +64,7 @@ public class Chunk {
         return lightingData;
     }
 
-    public boolean isInRange(int x, int y, int z) {
+    public static boolean isInRange(int x, int y, int z) {
         return x >= 0 && y >= 0 && z >= 0 && x < SIZE && y < HEIGHT && z < SIZE;
     }
 }
