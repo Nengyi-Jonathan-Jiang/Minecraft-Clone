@@ -26,7 +26,6 @@ public class App implements IAppLogic {
     private static final float MOVEMENT_SPEED = 0.015f;
     private Camera camera;
     private Projection projection;
-    private TextureCache textureCache;
 
 
     private ShaderProgram worldShader;
@@ -45,7 +44,7 @@ public class App implements IAppLogic {
                 "shaders/scene.vert",
                 "shaders/scene.frag"
         );
-        textureCache = new TextureCache();
+        TextureCache textureCache = new TextureCache();
 
         camera = new Camera();
 
@@ -57,13 +56,17 @@ public class App implements IAppLogic {
 
         world = new World(new WorldGenerator());
 
-        int loadRange = 50;
+        System.out.println("Generating world...");
+        int loadRange = 100;
         for(int x = -loadRange; x <= loadRange; x++) {
             for(int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
             }
         }
         world.recalculateLightingForAllVisibleChunks();
+        System.out.println("Preloading meshes");
+        world.getVisibleChunks().forEach(Chunk::getMesh);
+        System.out.println("Running...");
     }
 
     @Override

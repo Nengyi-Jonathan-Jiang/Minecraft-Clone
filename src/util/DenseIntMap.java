@@ -17,6 +17,7 @@ public class DenseIntMap<T> {
     }
 
     public void put(int key, T value) {
+        allocateSpace(key);
         items[key] = value;
     }
 
@@ -31,5 +32,4 @@ public class DenseIntMap<T> {
             capacity = targetCapacity;
         }
     }
-
 }

@@ -26,6 +26,7 @@ public class LightingEngine {
         }
     }
 
+    
 
     public class AOData {
         private final Vector3i blockPosition;
@@ -34,6 +35,12 @@ public class LightingEngine {
             this.blockPosition = blockPosition;
         }
 
+        private int getLightAtIfLoadedOrDefault(Vector3i p, int defaultValue) {
+            return world.isBlockLoaded(p.x, p.y, p.z)
+                    ? world.getBlockLightAt(p.x, p.y, p.z)
+                    : defaultValue;
+        }
+        
         // TODO (low priority): refactor for readability.
         public Vector4f getAOForPoint(BlockModel.FaceDirection faceDirection) {
             // The block adjacent to this face.
@@ -47,21 +54,18 @@ public class LightingEngine {
 
             // Using this to avoid passing a lot of parameters. This is bad code style
             // and needs to be fixed
-            Function<Vector3i, Integer> getLightAt = (p) -> world.isBlockLoaded(p.x, p.y, p.z)
-                    ? world.getBlockLightAt(p.x, p.y, p.z)
-                    : baseBlockLight;
-
+            
             // Light levels for corners
-            int l_xy = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.t2));
-            int l_Xy = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.t2));
-            int l_xY = getLightAt.apply(sum(adjacentPos, faceDirection.t1, faceDirection.T2));
-            int l_XY = getLightAt.apply(sum(adjacentPos, faceDirection.T1, faceDirection.T2));
+            int l_xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1, faceDirection.t2), baseBlockLight);
+            int l_Xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1, faceDirection.t2), baseBlockLight);
+            int l_xY = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1, faceDirection.T2), baseBlockLight);
+            int l_XY = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1, faceDirection.T2), baseBlockLight);
 
             // Light levels for edges
-            int l_x = getLightAt.apply(sum(adjacentPos, faceDirection.t1));
-            int l_y = getLightAt.apply(sum(adjacentPos, faceDirection.t2));
-            int l_X = getLightAt.apply(sum(adjacentPos, faceDirection.T1));
-            int l_Y = getLightAt.apply(sum(adjacentPos, faceDirection.T2));
+            int l_x = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1), baseBlockLight);
+            int l_y = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t2), baseBlockLight);
+            int l_X = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1), baseBlockLight);
+            int l_Y = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T2), baseBlockLight);
 
             return new Vector4f(
                 calculateWeightedAOValue(
@@ -136,8 +140,8 @@ public class LightingEngine {
         }
 
         //While update queue is not empty
-        int lightingStep;
-        int maxLightingUpdates = 64 * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
+        long lightingStep;
+        long maxLightingUpdates = 64 * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             var update = lightingUpdates.poll();
             Vector3i pos = update.pos;

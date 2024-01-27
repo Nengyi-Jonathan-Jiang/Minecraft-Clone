@@ -15,18 +15,20 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
+import util.ArrayConcatenator;
 import util.ArrayUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkMeshBuilder {
-    private final List<Float> positions = new ArrayList<>(), uvs = new ArrayList<>();
+    private final ArrayConcatenator<Float> positions = new ArrayConcatenator<>(), uvs = new ArrayConcatenator<>();
 
     // AO and lighting data should be passed as a vec4 (corner AO values) + 1 vec2 (for interpolation)
-    private final List<Float> cornerAO = new ArrayList<>(), aoInterpolation = new ArrayList<>();
+    private final ArrayConcatenator<Float> cornerAO = new ArrayConcatenator<>(),
+                                           aoInterpolation = new ArrayConcatenator<>();
 
-    private final List<Integer> indices = new ArrayList<>();
+    private final ArrayConcatenator<Integer> indices = new ArrayConcatenator<>();
 
     private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
         if (x >= Chunk.SIZE || y >= Chunk.HEIGHT || z >= Chunk.SIZE || x < 0 || y < 0 || z < 0) return true;
@@ -44,6 +46,8 @@ public class ChunkMeshBuilder {
     public Mesh build(World world, Chunk chunk) {
         positions.clear();
         uvs.clear();
+        cornerAO.clear();
+        aoInterpolation.clear();
         indices.clear();
 
         int currIndex = 0;
@@ -92,21 +96,21 @@ public class ChunkMeshBuilder {
     }
 
     private Mesh toMesh() {
-        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
+//        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
 
-        Mesh mesh = new Mesh(
-            ArrayUtil.toFloatArray(positions),
-            ArrayUtil.toFloatArray(uvs),
-            ArrayUtil.toIntArray(indices),
-            new Mesh.FloatAttributeData(4, ArrayUtil.toFloatArray(cornerAO)),
-            new Mesh.FloatAttributeData(2, ArrayUtil.toFloatArray(aoInterpolation))
-        );
+        float[] positionData = ArrayUtil.unbox(positions.get(Float[]::new));
+        float[] uvData = ArrayUtil.unbox(uvs.get(Float[]::new));
+        int[] indexData = ArrayUtil.unbox(this.indices.get(Integer[]::new));
+        Mesh.FloatAttributeData cornerAOData = new Mesh.FloatAttributeData(4, ArrayUtil.unbox(cornerAO.get(Float[]::new)));
+        Mesh.FloatAttributeData aoInterpolationData = new Mesh.FloatAttributeData(2, ArrayUtil.unbox(aoInterpolation.get(Float[]::new)));
+
         positions.clear();
         uvs.clear();
         cornerAO.clear();
         aoInterpolation.clear();
         indices.clear();
-        return mesh;
+
+        return new Mesh(positionData, uvData, indexData, cornerAOData, aoInterpolationData);
     }
 
     private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
@@ -117,24 +121,24 @@ public class ChunkMeshBuilder {
         Vector4f aoCorners = aoData.getAOForPoint(direction);
 
         for(PartialMeshVertex vertex : vertices) {
-            positions.addAll(List.of(
+            positions.addAll(
                 vertex.x() + chunkPosition.x,
                 vertex.y() + chunkPosition.y,
                 vertex.z() + chunkPosition.z
-            ));
-            uvs.addAll(List.of(
+            );
+            uvs.addAll(
                 (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
                 (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
-            ));
+            );
 
             Vector2f aoInterpolator = aoData.getInterpolatorForPoint(vertex.pos(), direction);
 
-            cornerAO.addAll(List.of(aoCorners.x, aoCorners.y, aoCorners.z, aoCorners.w));
-            aoInterpolation.addAll(List.of(aoInterpolator.x, aoInterpolator.y));
+            cornerAO.addAll(aoCorners.x, aoCorners.y, aoCorners.z, aoCorners.w);
+            aoInterpolation.addAll(aoInterpolator.x, aoInterpolator.y);
         }
 
         for(int index : face.indices()) {
-            indices.add(index + currIndex);
+            indices.addAll(index + currIndex);
         }
 
         return vertices.length;

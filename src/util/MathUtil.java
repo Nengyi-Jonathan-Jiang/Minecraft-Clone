@@ -13,6 +13,8 @@ public class MathUtil {
     }
 
     public static Vector3i sum(Vector3i... vectors) {
-        return Arrays.stream(vectors).reduce(new Vector3i(), (a, b) -> a.add(b, new Vector3i()));
+        Vector3i res = new Vector3i();
+        for(var vec : vectors) res.add(vec);
+        return res;
     }
 }

@@ -48,7 +48,7 @@ public class WorldGenerator {
                 for(int y = 0; y < Chunk.HEIGHT; y++) {
                     float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
                     float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
-                    float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 43.3f, trueZ / 50f + 28.34f);
+                    float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 4.37f, trueZ / 50f + 9.84f);
 
                     float xx = trueX + perturbX * 40f;
                     float yy = y + perturbY * 40f;
