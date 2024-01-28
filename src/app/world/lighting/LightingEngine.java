@@ -8,7 +8,6 @@ import org.joml.*;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
-import java.util.function.Function;
 
 import static util.MathUtil.sum;
 
@@ -112,10 +111,10 @@ public class LightingEngine {
         for(Chunk chunk : parameters.chunksToUpdate) {
             chunk.getLightingData().clear();
 
-            for (int x = 0; x < Chunk.SIZE; x++) {
-                for (int z = 0; z < Chunk.SIZE; z++) {
+            for (int x = 0; x < World.CHUNK_SIZE; x++) {
+                for (int z = 0; z < World.CHUNK_SIZE; z++) {
                     //Set the light level of all blocks exposed to skylight to max
-                    for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
+                    for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
                         int trueX = x + chunk.getChunkPosition().x;
                         //noinspection UnnecessaryLocalVariable
                         int trueY = y;
@@ -141,7 +140,7 @@ public class LightingEngine {
 
         //While update queue is not empty
         long lightingStep;
-        long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
+        long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             var update = lightingUpdates.poll();
             Vector3i pos = update.pos;

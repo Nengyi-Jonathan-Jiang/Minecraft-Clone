@@ -18,6 +18,36 @@ public class Mesh {
     public record FloatAttributeData (int elementSize, float[] data) implements MeshAttributeData {}
     public record IntAttributeData  (int elementSize, int[] data) implements MeshAttributeData {}
 
+    public Mesh(float[] positions, int[] indices) {
+        numVertices = indices.length;
+        vboIdList = new ArrayList<>();
+
+        vaoId = glGenVertexArrays();
+        glBindVertexArray(vaoId);
+
+        // Positions VBO
+        int vboId = glGenBuffers();
+        vboIdList.add(vboId);
+
+        FloatBuffer positionsBuffer = BufferUtils.createFloatBuffer(positions.length);
+        positionsBuffer.put(0, positions);
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, positionsBuffer, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        // Index VBO
+        vboId = glGenBuffers();
+        vboIdList.add(vboId);
+        IntBuffer indicesBuffer = BufferUtils.createIntBuffer(indices.length);
+        indicesBuffer.put(0, indices);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
     public Mesh(float[] positions, float[] textureCoordinates, int[] indices, MeshAttributeData... data) {
         numVertices = indices.length;
         vboIdList = new ArrayList<>();

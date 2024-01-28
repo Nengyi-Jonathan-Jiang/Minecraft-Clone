@@ -8,7 +8,6 @@ import app.block.model.BlockModel.FaceDirection;
 import app.block.model.PartialMesh;
 import app.block.model.PartialMeshVertex;
 import app.world.World;
-import app.world.lighting.LightingData;
 import app.world.lighting.LightingEngine;
 import j3d.graph.Mesh;
 import org.joml.Vector2f;
@@ -17,9 +16,6 @@ import org.joml.Vector3i;
 import org.joml.Vector4f;
 import util.ArrayConcatenator;
 import util.ArrayUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ChunkMeshBuilder {
     private final ArrayConcatenator<Float> positions = new ArrayConcatenator<>(), uvs = new ArrayConcatenator<>();
@@ -31,7 +27,7 @@ public class ChunkMeshBuilder {
     private final ArrayConcatenator<Integer> indices = new ArrayConcatenator<>();
 
     private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
-        if (x >= Chunk.SIZE || y >= Chunk.HEIGHT || z >= Chunk.SIZE || x < 0 || y < 0 || z < 0) return true;
+        if (x >= World.CHUNK_SIZE || y >= World.CHUNK_HEIGHT || z >= World.CHUNK_SIZE || x < 0 || y < 0 || z < 0) return true;
 
         int otherID = data[x][y][z];
 
@@ -52,9 +48,9 @@ public class ChunkMeshBuilder {
 
         int currIndex = 0;
 
-        for(int x = 0; x < Chunk.SIZE; x++) {
-            for(int y = 0; y < Chunk.HEIGHT; y++) {
-                for(int z = 0; z < Chunk.SIZE; z++) {
+        for(int x = 0; x < World.CHUNK_SIZE; x++) {
+            for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
+                for(int z = 0; z < World.CHUNK_SIZE; z++) {
                     int blockID = chunk.data[x][y][z];
 
                     // Don't generate a mesh for air blocks

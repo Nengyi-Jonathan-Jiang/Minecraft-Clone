@@ -35,12 +35,16 @@ public class UniformsMap {
     }
 
     public void setUniform(String uniformName, int value) {
-        glUniform1i(getUniformLocation(uniformName), value);
+        try {
+            glUniform1i(getUniformLocation(uniformName), value);
+        }
+        catch (Exception ignored) {}
     }
 
     public void setUniform(String uniformName, Matrix4f value) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             glUniformMatrix4fv(getUniformLocation(uniformName), false, value.get(stack.mallocFloat(16)));
         }
+        catch (Exception ignored) {}
     }
 }

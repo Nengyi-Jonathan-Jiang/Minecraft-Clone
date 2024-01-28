@@ -22,15 +22,15 @@ public class WorldGenerator {
     }
 
     private void convertTopLayersToGrass(Chunk result) {
-        for(int x = 0; x < Chunk.SIZE; x++) {
-            for(int z = 0; z < Chunk.SIZE; z++) {
-                for(int y = 0; y < Chunk.HEIGHT; y++) {
+        for(int x = 0; x < World.CHUNK_SIZE; x++) {
+            for(int z = 0; z < World.CHUNK_SIZE; z++) {
+                for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
                     Block thisBlock = result.getBlockAt(x, y, z);
 
                     if(thisBlock == null) continue;
 
                     if(thisBlock.getName().equals("dirt")) {
-                        if(y == Chunk.HEIGHT - 1 || result.getBlockIDAt(x, y + 1, z) == 0) {
+                        if(y == World.CHUNK_HEIGHT - 1 || result.getBlockIDAt(x, y + 1, z) == 0) {
                             result.setBlockAt(x, y, z, BlockRegistry.getBlockID("grass"));
                         }
                     }
@@ -40,12 +40,12 @@ public class WorldGenerator {
     }
 
     private void addTerrainLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
-        for(int x = 0; x < Chunk.SIZE; x++) {
-            for(int z = 0; z < Chunk.SIZE; z++) {
+        for(int x = 0; x < World.CHUNK_SIZE; x++) {
+            for(int z = 0; z < World.CHUNK_SIZE; z++) {
                 int trueX = chunkOffsetX + x;
                 int trueZ = chunkOffsetZ + z;
 
-                for(int y = 0; y < Chunk.HEIGHT; y++) {
+                for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
                     float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
                     float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
                     float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 4.37f, trueZ / 50f + 9.84f);
@@ -74,8 +74,8 @@ public class WorldGenerator {
     }
 
     private void addBedrockLayer(Chunk chunk) {
-        for(int x = 0; x < Chunk.SIZE; x++) {
-            for(int z = 0; z < Chunk.SIZE; z++) {
+        for(int x = 0; x < World.CHUNK_SIZE; x++) {
+            for(int z = 0; z < World.CHUNK_SIZE; z++) {
                 chunk.setBlockAt(x, 0, z, BlockRegistry.getBlockID("bedrock"));
             }
         }

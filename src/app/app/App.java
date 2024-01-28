@@ -1,12 +1,14 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
+import app.world.BlockyRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
 import j3d.Window;
+import j3d.graph.Mesh;
 import j3d.graph.ShaderProgram;
 import j3d.graph.TextureCache;
 import j3d.scene.Camera;
@@ -27,8 +29,11 @@ public class App implements IAppLogic {
     private Camera camera;
     private Projection projection;
 
+    private Mesh blockOutlineMesh;
+
 
     private ShaderProgram worldShader;
+    private ShaderProgram outlineShader;
     private World world;
 
     @Override
@@ -40,10 +45,36 @@ public class App implements IAppLogic {
     public void init(Window window) {
         projection = new Projection(window.getWidth(), window.getHeight());
 
-        worldShader = ShaderProgram.createBasicShaderProgram(
-                "shaders/scene.vert",
-                "shaders/scene.frag"
+        blockOutlineMesh = new Mesh(
+            new float[]{
+                -.51f, -.51f, -.51f,
+                 .51f, -.51f, -.51f,
+                -.51f,  .51f, -.51f,
+                 .51f,  .51f, -.51f,
+                -.51f, -.51f,  .51f,
+                 .51f, -.51f,  .51f,
+                -.51f,  .51f,  .51f,
+                 .51f,  .51f,  .51f,
+            },
+            new int[]  {
+                0, 1, 2, 1, 2, 3,
+                4, 5, 6, 5, 6, 7,
+                0, 2, 4, 2, 4, 6,
+                1, 3, 5, 3, 5, 6,
+                0, 1, 4, 1, 4, 5,
+                2, 3, 6, 3, 6, 7
+            }
         );
+
+        worldShader = ShaderProgram.createBasicShaderProgram(
+                "shaders/chunk/chunk.vert",
+                "shaders/chunk/chunk.frag"
+        );
+        outlineShader = ShaderProgram.createBasicShaderProgram(
+                "shaders/block-outline/outline.vert",
+                "shaders/block-outline/outline.frag"
+        );
+
         TextureCache textureCache = new TextureCache();
 
         camera = new Camera();
@@ -57,7 +88,7 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 150;
+        int loadRange = 1;
         for(int x = -loadRange; x <= loadRange; x++) {
             for(int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
@@ -108,8 +139,52 @@ public class App implements IAppLogic {
 
     @Override
     public void draw(Window window) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, window.getWidth(), window.getHeight());
+        startRender(window);
+
+        drawChunks();
+        drawSelectedPosition();
+    }
+
+    private void drawSelectedPosition() {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDisable(GL_CULL_FACE);
+
+        outlineShader.bind();
+
+        outlineShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
+        outlineShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
+
+        outlineShader.uniforms().setUniform("txtSampler", 0);
+
+        // Render stuff
+
+        Vector3f pos = null;
+
+        {
+            var cast = new BlockyRaycaster().cast(camera.getPosition(), camera.getRotation());
+            for(int i = 0; i < 50; i++) {
+                var castPos = cast.next();
+                pos = new Vector3f(castPos);
+                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
+                    break;
+                }
+            }
+        }
+
+        if(pos != null) {
+            Matrix4f modelMatrix = new Matrix4f().translationRotateScale(pos, new Quaternionf(), 1);
+            worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
+            glBindVertexArray(blockOutlineMesh.getVaoId());
+            glDrawElements(GL_TRIANGLES, blockOutlineMesh.getNumVertices(), GL_UNSIGNED_INT, 0);
+        }
+
+        glBindVertexArray(0);
+        outlineShader.unbind();
+    }
+
+    private void drawChunks() {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_CULL_FACE);
 
         worldShader.bind();
 
@@ -138,6 +213,11 @@ public class App implements IAppLogic {
 
         glBindVertexArray(0);
         worldShader.unbind();
+    }
+
+    private static void startRender(Window window) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.getWidth(), window.getHeight());
     }
 
     @Override

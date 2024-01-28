@@ -6,14 +6,14 @@ import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
-import util.MathUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 public class World {
+    public static int CHUNK_HEIGHT = 256;
+    public static int CHUNK_SIZE = 16;
     private final Map<Vector2i, Chunk> loadedChunks = new HashMap<>();
     private final WorldGenerator worldGenerator;
     private final LightingEngine lightingEngine;
@@ -57,7 +57,7 @@ public class World {
     }
 
     public boolean isBlockLoaded(int x, int y, int z) {
-        return loadedChunks.containsKey(getChunkPosition(x, z)) && y >= 0 && y < Chunk.HEIGHT;
+        return loadedChunks.containsKey(getChunkPosition(x, z)) && y >= 0 && y < CHUNK_HEIGHT;
     }
 
     public int getBlockIDAt(int x, int y, int z) {

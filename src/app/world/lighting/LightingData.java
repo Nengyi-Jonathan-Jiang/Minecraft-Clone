@@ -1,6 +1,6 @@
 package app.world.lighting;
 
-import app.world.chunk.Chunk;
+import app.world.World;
 import org.joml.Vector3i;
 import util.MathUtil;
 
@@ -11,8 +11,8 @@ public class LightingData {
     private final Vector3i[][][] lightingSource;
 
     public LightingData() {
-        blockLight = new int[Chunk.SIZE][Chunk.HEIGHT][Chunk.SIZE];
-        lightingSource = new Vector3i[Chunk.SIZE][Chunk.HEIGHT][Chunk.SIZE];
+        blockLight = new int[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
+        lightingSource = new Vector3i[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
     }
 
     public void clear() {
@@ -21,11 +21,11 @@ public class LightingData {
     }
 
     public int getBlockLightAt(Vector3i pos) {
-        if(pos.y >= Chunk.HEIGHT) return 15;
+        if(pos.y >= World.CHUNK_HEIGHT) return 15;
 
-        int x = MathUtil.clamp(pos.x, 0, Chunk.SIZE - 1);
-        int y = MathUtil.clamp(pos.y, 0, Chunk.HEIGHT - 1);
-        int z = MathUtil.clamp(pos.z, 0, Chunk.SIZE - 1);
+        int x = MathUtil.clamp(pos.x, 0, World.CHUNK_SIZE - 1);
+        int y = MathUtil.clamp(pos.y, 0, World.CHUNK_HEIGHT - 1);
+        int z = MathUtil.clamp(pos.z, 0, World.CHUNK_SIZE - 1);
 
         return blockLight[x][y][z];
     }
