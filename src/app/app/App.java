@@ -57,12 +57,13 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 100;
+        int loadRange = 150;
         for(int x = -loadRange; x <= loadRange; x++) {
             for(int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
             }
         }
+        System.out.println("Generated " + world.getVisibleChunks().size() + " chunks");
         world.recalculateLightingForAllVisibleChunks();
         System.out.println("Preloading meshes");
         world.getVisibleChunks().forEach(Chunk::getMesh);
@@ -126,7 +127,7 @@ public class App implements IAppLogic {
             Vector2i chunkPosition = chunk.getChunkPosition();
 
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
-                new Vector3f(chunkPosition.x * Chunk.SIZE, 0, chunkPosition.y * Chunk.SIZE),
+                new Vector3f(chunkPosition.x, 0, chunkPosition.y),
                 new Quaternionf(), 1
             );
 

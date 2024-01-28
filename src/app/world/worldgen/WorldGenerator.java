@@ -9,8 +9,8 @@ import org.joml.Vector2i;
 
 public class WorldGenerator {
     public Chunk generateChunk(Vector2i chunkPosition, World world) {
-        int chunkOffsetX = chunkPosition.x * Chunk.SIZE;
-        int chunkOffsetZ = chunkPosition.y * Chunk.SIZE;
+        int chunkOffsetX = chunkPosition.x;
+        int chunkOffsetZ = chunkPosition.y;
 
         Chunk result = new Chunk(chunkPosition, world);
 
@@ -50,9 +50,9 @@ public class WorldGenerator {
                     float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
                     float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 4.37f, trueZ / 50f + 9.84f);
 
-                    float xx = trueX + perturbX * 40f;
-                    float yy = y + perturbY * 40f;
-                    float zz = trueZ + perturbZ * 40f;
+                    float xx = trueX + perturbX * 30f;
+                    float yy = y + perturbY * 30f;
+                    float zz = trueZ + perturbZ * 30f;
 
                     float noise =
                             .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
@@ -61,7 +61,7 @@ public class WorldGenerator {
                           +  2.f * SimplexNoise.noise(xx / 160f, zz / 160f);
                     float height = noise * 5f + 64f;
 
-                    if(1 <= yy && yy < height - 3) {
+                    if(yy < height - 3) {
                         chunk.setBlockAt(x, y, z, BlockRegistry.getBlockID("stone"));
                     }
 

@@ -14,6 +14,7 @@ import static util.MathUtil.sum;
 
 public class LightingEngine {
     private final World world;
+    private static final boolean useAO = true;
 
     public LightingEngine(World world) {
         this.world = world;
@@ -52,9 +53,8 @@ public class LightingEngine {
             int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
             float lightMultiplier = faceDirection.lightMultiplier;
 
-            // Using this to avoid passing a lot of parameters. This is bad code style
-            // and needs to be fixed
-            
+            if(!useAO) return new Vector4f(baseBlockLight * lightMultiplier / 15f);
+
             // Light levels for corners
             int l_xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1, faceDirection.t2), baseBlockLight);
             int l_Xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1, faceDirection.t2), baseBlockLight);
@@ -116,10 +116,10 @@ public class LightingEngine {
                 for (int z = 0; z < Chunk.SIZE; z++) {
                     //Set the light level of all blocks exposed to skylight to max
                     for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
-                        int trueX = x + chunk.getChunkPosition().x * Chunk.SIZE;
+                        int trueX = x + chunk.getChunkPosition().x;
                         //noinspection UnnecessaryLocalVariable
                         int trueY = y;
-                        int trueZ = z + chunk.getChunkPosition().y * Chunk.SIZE;
+                        int trueZ = z + chunk.getChunkPosition().y;
 
                         int blockID = world.getBlockIDAt(trueX, trueY, trueZ);
 
@@ -141,13 +141,17 @@ public class LightingEngine {
 
         //While update queue is not empty
         long lightingStep;
-        long maxLightingUpdates = 64 * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
+        long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * Chunk.SIZE * Chunk.SIZE * Chunk.HEIGHT;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             var update = lightingUpdates.poll();
             Vector3i pos = update.pos;
             int x = pos.x, y = pos.y, z = pos.z, lightLevel = update.lightLevel;
 
-            if(isOutOfRange(new Vector3i(x, y, z), parameters)) continue;
+            // Why is this bad?
+            if(isOutOfRange(pos, parameters)) {
+//                System.out.println("Skipped lighting update at " + pos + ": position out of range");
+                continue;
+            }
 
             //If this lighting update is outdated, skip it
             if (lightLevel != world.getBlockLightAt(x, y, z)) continue;
@@ -157,15 +161,21 @@ public class LightingEngine {
                 //Get the position
                 Vector3i newPos = offset.add(pos, new Vector3i());
 
-                // TODO: confine light to updating chunks
-                if (this.isOutOfRange(newPos, parameters)) continue;
+                if (this.isOutOfRange(newPos, parameters)) {
+                    continue;
+                }
                 int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
 
-                if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) continue;
+                if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) {
+                    continue;
+                }
                 // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
 
                 //This is the light value that will be propagated to the block
                 int newLightLevel = lightLevel - 1;
+
+                // Don't propagate darkness below 0
+                if(newLightLevel <= 0) continue;
 
                 //Don't update the light level if it is lower than the current level
                 if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
@@ -191,8 +201,8 @@ public class LightingEngine {
     }
 
     private boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
-        if(!parameters.isOutOfRange(pos)) return true;
-        return Chunk.isInRange(0, pos.y, 0);
+        if(parameters.isOutOfRange(pos)) return true;
+        return !Chunk.isInRange(0, pos.y, 0);
     }
 
     public int getBlockLightAt(Vector3i pos, LightingEngineUpdateParameters chunks) {

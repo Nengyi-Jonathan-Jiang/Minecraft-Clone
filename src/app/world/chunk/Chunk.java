@@ -17,7 +17,7 @@ public class Chunk {
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private Mesh mesh = new Mesh(new float[0], new float[0], new int[0]);
     private final Vector2i chunkPosition;
-    private final World world;
+    public final World world;
 
     public Chunk(Vector2i chunkPosition, World world) {
         this.chunkPosition = chunkPosition;

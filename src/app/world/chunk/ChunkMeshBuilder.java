@@ -71,9 +71,9 @@ public class ChunkMeshBuilder {
 
                     LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
                         pos.add(new Vector3i(
-                            chunk.getChunkPosition().x * Chunk.SIZE,
+                            chunk.getChunkPosition().x,
                             0,
-                            chunk.getChunkPosition().y * Chunk.SIZE
+                            chunk.getChunkPosition().y
                         ), new Vector3i())
                     );
 

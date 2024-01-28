@@ -1,5 +1,6 @@
 package app.world.lighting;
 
+import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -19,6 +20,6 @@ public class LightingEngineUpdateParameters {
     }
 
     public boolean isOutOfRange(Vector3i pos) {
-        return !updateChunkPositions.contains(new Vector2i(pos.x >> 4, pos.y >> 4));
+        return !updateChunkPositions.contains(World.getChunkPosition(pos.x, pos.z));
     }
 }

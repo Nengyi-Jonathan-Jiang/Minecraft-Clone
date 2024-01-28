@@ -38,8 +38,8 @@ public class World {
         return loadedChunks.get(chunkPosition);
     }
 
-    private static Vector2i getChunkPosition(int x, int z) {
-        return new Vector2i(x >> 4, z >> 4);
+    public static Vector2i getChunkPosition(int x, int z) {
+        return new Vector2i(x & ~15, z & ~15);
     }
 
     private void loadChunk(Vector2i chunkPosition) {
