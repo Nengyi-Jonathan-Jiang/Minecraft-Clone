@@ -33,18 +33,22 @@ public class LightingEngine {
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
         dirtyPositions.forEach(pos -> dirtyChunks.addAll(List.of(
-                    world.getChunkForPosition(pos.x - 16, pos.y - 16),
-                    world.getChunkForPosition(pos.x - 16, pos.y +  0),
-                    world.getChunkForPosition(pos.x - 16, pos.y + 16),
-                    world.getChunkForPosition(pos.x +  0, pos.y - 16),
-                    world.getChunkForPosition(pos.x +  0, pos.y +  0),
-                    world.getChunkForPosition(pos.x +  0, pos.y + 16),
-                    world.getChunkForPosition(pos.x + 16, pos.y - 16),
-                    world.getChunkForPosition(pos.x + 16, pos.y +  0),
-                    world.getChunkForPosition(pos.x + 16, pos.y + 16)
+                    world.getChunkForPosition(pos.x - 16, pos.z - 16),
+                    world.getChunkForPosition(pos.x - 16, pos.z +  0),
+                    world.getChunkForPosition(pos.x - 16, pos.z + 16),
+                    world.getChunkForPosition(pos.x +  0, pos.z - 16),
+                    world.getChunkForPosition(pos.x +  0, pos.z +  0),
+                    world.getChunkForPosition(pos.x +  0, pos.z + 16),
+                    world.getChunkForPosition(pos.x + 16, pos.z - 16),
+                    world.getChunkForPosition(pos.x + 16, pos.z +  0),
+                    world.getChunkForPosition(pos.x + 16, pos.z + 16)
             )));
 
+        System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
+
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
+
+        System.out.print(parameters.updateChunkPositions);
 
         // Figure out which blocks need to be re-propagated
         Set<Vector3i> repropagatingBlocks = new HashSet<>();
@@ -54,8 +58,10 @@ public class LightingEngine {
             for(FaceDirection face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
                 Vector3i newPos = offset.add(pos, new Vector3i());
-                if(parameters.isOutOfRange(newPos)) continue;
-                if(dirtyPositions.contains(newPos)) continue;
+                if(isOutOfRange(newPos, parameters)) {
+                    System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
+                    continue;
+                }
                 repropagatingBlocks.add(newPos);
             }
         }
@@ -63,9 +69,9 @@ public class LightingEngine {
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
         // Add re-propagating blocks to update queue
-        repropagatingBlocks.stream().map(p -> {
-            return new LightingUpdate(p, world.getBlockLightAt(p.x, p.y, p.z));
-        }).forEach(lightingUpdates::add);
+        repropagatingBlocks.stream().map(p -> new LightingUpdate(p, world.getBlockLightAt(p.x, p.y, p.z))).forEach(lightingUpdates::add);
+
+        System.out.println("Enqueued " + lightingUpdates.size() + " lighting updates");
 
         //While update queue is not empty
         long lightingStep;
@@ -77,7 +83,6 @@ public class LightingEngine {
 
             // Why is this bad?
             if(isOutOfRange(pos, parameters)) {
-//                System.out.println("Skipped lighting update at " + pos + ": position out of range");
                 continue;
             }
 

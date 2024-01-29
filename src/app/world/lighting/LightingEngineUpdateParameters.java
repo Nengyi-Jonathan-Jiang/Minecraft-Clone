@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class LightingEngineUpdateParameters {
     public final Set<Chunk> chunksToUpdate;
-    private final Set<Vector2i> updateChunkPositions;
+    public final Set<Vector2i> updateChunkPositions;
 
     public LightingEngineUpdateParameters(Collection<Chunk> chunksToUpdate) {
         this.chunksToUpdate = new HashSet<>(chunksToUpdate);
