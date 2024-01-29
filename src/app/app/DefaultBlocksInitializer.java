@@ -37,7 +37,7 @@ public class DefaultBlocksInitializer {
                 .texOffset(new Vector2i(0, 8))
                 .getResult());
         BlockRegistry.registerBlock(oreBlockBuilder
-                .name("iron_ore", "Coal Ore")
+                .name("iron_ore", "Iron Ore")
                 .texOffset(new Vector2i(0, 10))
                 .getResult());
         BlockRegistry.registerBlock(oreBlockBuilder

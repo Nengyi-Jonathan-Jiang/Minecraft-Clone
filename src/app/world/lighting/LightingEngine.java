@@ -32,23 +32,25 @@ public class LightingEngine {
     public void updateLighting() {
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
-        dirtyPositions.forEach(pos -> dirtyChunks.addAll(List.of(
-                    world.getChunkForPosition(pos.x - 16, pos.z - 16),
-                    world.getChunkForPosition(pos.x - 16, pos.z +  0),
-                    world.getChunkForPosition(pos.x - 16, pos.z + 16),
-                    world.getChunkForPosition(pos.x +  0, pos.z - 16),
-                    world.getChunkForPosition(pos.x +  0, pos.z +  0),
-                    world.getChunkForPosition(pos.x +  0, pos.z + 16),
-                    world.getChunkForPosition(pos.x + 16, pos.z - 16),
-                    world.getChunkForPosition(pos.x + 16, pos.z +  0),
-                    world.getChunkForPosition(pos.x + 16, pos.z + 16)
-            )));
+        dirtyPositions.forEach(pos -> {
+            dirtyChunks.addAll(List.of(
+                        world.getChunkForPosition(pos.x - 16, pos.z - 16),
+                        world.getChunkForPosition(pos.x - 16, pos.z + 0),
+                        world.getChunkForPosition(pos.x - 16, pos.z + 16),
+                        world.getChunkForPosition(pos.x + 0, pos.z - 16),
+                        world.getChunkForPosition(pos.x + 0, pos.z + 0),
+                        world.getChunkForPosition(pos.x + 0, pos.z + 16),
+                        world.getChunkForPosition(pos.x + 16, pos.z - 16),
+                        world.getChunkForPosition(pos.x + 16, pos.z + 0),
+                        world.getChunkForPosition(pos.x + 16, pos.z + 16)
+                ));
+        });
+
+        dirtyChunks.forEach(Chunk::setDirty);
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
-
-        System.out.print(parameters.updateChunkPositions);
 
         // Figure out which blocks need to be re-propagated
         Set<Vector3i> repropagatingBlocks = new HashSet<>();
@@ -83,11 +85,9 @@ public class LightingEngine {
 
             // Why is this bad?
             if(isOutOfRange(pos, parameters)) {
+                System.out.println(pos.x + ", " + pos.y + ", " + pos.z + " is out of range");
                 continue;
             }
-
-            //If this lighting update is outdated, skip it
-            if (lightLevel != world.getBlockLightAt(x, y, z)) continue;
 
             //For each adjacent block
             for (FaceDirection face : FaceDirection.OUTER_FACES) {
@@ -96,6 +96,7 @@ public class LightingEngine {
                 Vector3i newPos = offset.add(pos, new Vector3i());
 
                 if (this.isOutOfRange(newPos, parameters)) {
+                    System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
                     continue;
                 }
                 int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
@@ -151,7 +152,7 @@ public class LightingEngine {
                     : defaultValue;
         }
         
-        // TODO (low priority): refactor for readability.
+        // TODO (medium priority): refactor for readability.
         public Vector4f getAOForPoint(FaceDirection faceDirection) {
             // The block adjacent to this face.
             Vector3i adjacentPos = blockPosition.add(faceDirection.direction, new Vector3i());
@@ -258,12 +259,8 @@ public class LightingEngine {
 
             // Why is this bad?
             if(isOutOfRange(pos, parameters)) {
-//                System.out.println("Skipped lighting update at " + pos + ": position out of range");
                 continue;
             }
-
-            //If this lighting update is outdated, skip it
-            if (lightLevel != world.getBlockLightAt(x, y, z)) continue;
 
             //For each adjacent block
             for (Vector3i offset : Arrays.stream(FaceDirection.OUTER_FACES).map(i -> i.direction).toList()) {

@@ -1,6 +1,8 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
+import app.block.Block;
+import app.block.BlockRegistry;
 import app.world.*;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
@@ -106,29 +108,56 @@ public class App implements IAppLogic {
         System.out.println("Running...");
 
         window.addMouseListener((button, action) -> {
-            if(button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
-
-            Vector3i pos = null;
-            {
-                var cast = new CubeRaycaster().cast(camera);
-                for(int i = 0; i < 100; i++) {
-                    pos = cast.next();
-                    if(!world.isBlockLoaded(pos.x, pos.y, pos.z) ||
-                            camera.getPosition().distance(new Vector3f(pos)) > 10
-                    ) {
-                        pos = null;
-                        break;
+            if (action == GLFW_PRESS) {
+                if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                    Vector3i pos = null;
+                    {
+                        var cast = new CubeRaycaster().cast(camera);
+                        for (int i = 0; i < 100; i++) {
+                            pos = cast.next();
+                            if (!world.isBlockLoaded(pos.x, pos.y, pos.z) ||
+                                    camera.getPosition().distance(new Vector3f(pos)) > 10
+                            ) {
+                                pos = null;
+                                break;
+                            }
+                            if (world.getBlockIDAt(pos.x, pos.y, pos.z) != 0) {
+                                break;
+                            }
+                        }
                     }
-                    if(world.getBlockIDAt(pos.x, pos.y, pos.z) != 0) {
-                        break;
+
+                    if (pos != null) {
+                        world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
+                        world.recalculateLighting();
+                    }
+                }
+                else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
+                    Vector3i pos = null;
+                    {
+                        var cast = new CubeRaycaster().cast(camera);
+                        for (int i = 0; i < 100; i++) {
+                            var n = cast.next();
+                            if (!world.isBlockLoaded(n.x, n.y, n.z) ||
+                                    camera.getPosition().distance(new Vector3f(n)) > 10
+                            ) {
+                                pos = null;
+                                break;
+                            }
+                            if (world.getBlockIDAt(n.x, n.y, n.z) != 0) {
+                                break;
+                            }
+                            pos = n;
+                        }
+                    }
+
+                    if (pos != null) {
+                        world.setBlockIDAt(pos.x, pos.y, pos.z, BlockRegistry.getBlockID("iron_ore"));
+                        world.recalculateLighting();
                     }
                 }
             }
 
-            if(pos != null) {
-                world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
-                world.recalculateLighting();
-            }
         });
     }
 

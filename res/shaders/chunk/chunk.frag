@@ -13,6 +13,7 @@ float lerp(float a, float b, float t) {
     return (a + b) / 2 + (b - a) * t;
 }
 
+const bool whiteWorld = false;
 
 void main()
 {
@@ -22,5 +23,10 @@ void main()
         outLightLevelInterpolator.y
     );
 
-    fragColor = texture(txtSampler, outUV) * (lightLevel * 0.8 + 0.2);
+    if(whiteWorld) {
+        fragColor = texture(txtSampler, outUV) * 0.0000000001 + lightLevel;
+    }
+    else {
+        fragColor = texture(txtSampler, outUV) * (lightLevel * 0.8 + 0.2);
+    }
 }

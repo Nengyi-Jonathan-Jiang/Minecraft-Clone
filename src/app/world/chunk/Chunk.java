@@ -11,7 +11,6 @@ public class Chunk {
     final int[][][] data;
     private final LightingData lightingData;
     private boolean shouldRebuildMesh = true;
-    private boolean shouldRecalculateLighting = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private Mesh mesh = new Mesh(new int[0]);
     private final Vector2i chunkPosition;
@@ -36,14 +35,13 @@ public class Chunk {
         return mesh;
     }
 
-    public boolean shouldRecalculateLighting() {
-        return shouldRecalculateLighting;
+    public void setDirty() {
+        shouldRebuildMesh = true;
     }
 
     public void setBlockAt(int x, int y, int z, int id) {
         data[x][y][z] = id;
         shouldRebuildMesh = true;
-        shouldRecalculateLighting = true;
     }
 
     public int getBlockIDAt(int x, int y, int z) {
