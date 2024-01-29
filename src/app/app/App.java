@@ -93,7 +93,7 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 50;
+        int loadRange = 17;
         for(int x = -loadRange; x <= loadRange; x++) {
             for(int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
@@ -106,6 +106,8 @@ public class App implements IAppLogic {
         System.out.println("Running...");
 
         window.addMouseListener((button, action) -> {
+            if(button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+
             Vector3i pos = null;
             {
                 var cast = new CubeRaycaster().cast(camera);
@@ -125,7 +127,7 @@ public class App implements IAppLogic {
 
             if(pos != null) {
                 world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
-                world.recalculateLightingAtPosition(pos);
+                world.recalculateLighting();
             }
         });
     }
