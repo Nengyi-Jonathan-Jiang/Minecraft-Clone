@@ -46,16 +46,6 @@ public class App implements IAppLogic {
         projection = new Projection(window.getWidth(), window.getHeight());
 
         blockOutlineMesh = new Mesh(
-            new float[]{
-                -.51f, -.51f, -.51f,
-                 .51f, -.51f, -.51f,
-                -.51f,  .51f, -.51f,
-                 .51f,  .51f, -.51f,
-                -.51f, -.51f,  .51f,
-                 .51f, -.51f,  .51f,
-                -.51f,  .51f,  .51f,
-                 .51f,  .51f,  .51f,
-            },
             new int[]  {
                 0, 1, 2, 1, 2, 3,
                 4, 5, 6, 5, 6, 7,
@@ -63,7 +53,20 @@ public class App implements IAppLogic {
                 1, 3, 5, 3, 5, 6,
                 0, 1, 4, 1, 4, 5,
                 2, 3, 6, 3, 6, 7
-            }
+            },
+            new Mesh.FloatAttributeData(
+                3,
+                new float[]{
+                        -.501f, -.501f, -.501f,
+                        .501f, -.501f, -.501f,
+                        -.501f,  .501f, -.501f,
+                        .501f,  .501f, -.501f,
+                        -.501f, -.501f,  .501f,
+                        .501f, -.501f,  .501f,
+                        -.501f,  .501f,  .501f,
+                        .501f,  .501f,  .501f,
+                }
+            )
         );
 
         worldShader = ShaderProgram.createBasicShaderProgram(
@@ -143,6 +146,16 @@ public class App implements IAppLogic {
 
         drawChunks();
         drawSelectedPosition();
+        drawUI();
+    }
+
+    private void drawUI() {
+        drawCrossHair();
+    }
+
+    private Mesh crossHairMesh;
+    private void drawCrossHair() {
+
     }
 
     private void drawSelectedPosition() {
@@ -165,6 +178,8 @@ public class App implements IAppLogic {
 
         if(pos != null) {
 
+            glLineWidth(2);
+            glEnable(GL_LINE_SMOOTH);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDisable(GL_CULL_FACE);
 

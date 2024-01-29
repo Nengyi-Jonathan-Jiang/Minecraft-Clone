@@ -13,7 +13,7 @@ public class Chunk {
     private boolean shouldRebuildMesh = true;
     private boolean shouldRecalculateLighting = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
-    private Mesh mesh = new Mesh(new float[0], new float[0], new int[0]);
+    private Mesh mesh = new Mesh(new int[0]);
     private final Vector2i chunkPosition;
     public final World world;
 

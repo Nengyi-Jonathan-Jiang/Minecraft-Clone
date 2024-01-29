@@ -94,8 +94,8 @@ public class ChunkMeshBuilder {
     private Mesh toMesh() {
 //        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
 
-        float[] positionData = ArrayUtil.unbox(positions.get(Float[]::new));
-        float[] uvData = ArrayUtil.unbox(uvs.get(Float[]::new));
+        Mesh.FloatAttributeData positionData = new Mesh.FloatAttributeData(3, ArrayUtil.unbox(positions.get(Float[]::new)));
+        Mesh.FloatAttributeData uvData = new Mesh.FloatAttributeData(2, ArrayUtil.unbox(uvs.get(Float[]::new)));
         int[] indexData = ArrayUtil.unbox(this.indices.get(Integer[]::new));
         Mesh.FloatAttributeData cornerAOData = new Mesh.FloatAttributeData(4, ArrayUtil.unbox(cornerAO.get(Float[]::new)));
         Mesh.FloatAttributeData aoInterpolationData = new Mesh.FloatAttributeData(2, ArrayUtil.unbox(aoInterpolation.get(Float[]::new)));
@@ -106,7 +106,12 @@ public class ChunkMeshBuilder {
         aoInterpolation.clear();
         indices.clear();
 
-        return new Mesh(positionData, uvData, indexData, cornerAOData, aoInterpolationData);
+        return new Mesh(
+                indexData,
+                positionData,
+                uvData,
+                cornerAOData,
+                aoInterpolationData);
     }
 
     private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
