@@ -9,6 +9,7 @@ import org.joml.Vector3i;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class World {
@@ -51,6 +52,20 @@ public class World {
     public void recalculateLightingForAllVisibleChunks() {
         lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
     }
+
+    public void recalculateLightingAtPosition(Vector3i position) {
+        lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(List.of(
+                getChunkForPosition(position.x - 1, position.z - 1),
+                getChunkForPosition(position.x - 1, position.z + 0),
+                getChunkForPosition(position.x - 1, position.z + 1),
+                getChunkForPosition(position.x + 0, position.z - 1),
+                getChunkForPosition(position.x + 0, position.z + 0),
+                getChunkForPosition(position.x + 0, position.z + 1),
+                getChunkForPosition(position.x + 1, position.z - 1),
+                getChunkForPosition(position.x + 1, position.z + 0),
+                getChunkForPosition(position.x + 1, position.z + 1)
+        )));
+    }
     
     public Collection<Chunk> getVisibleChunks() {
         return loadedChunks.values().stream().toList();
@@ -62,6 +77,10 @@ public class World {
 
     public int getBlockIDAt(int x, int y, int z) {
         return getChunkForPosition(x, z).getBlockIDAt(x & 15, y, z & 15);
+    }
+
+    public void setBlockIDAt(int x, int y, int z, int id) {
+        getChunkForPosition(x, z).setBlockAt(x & 15, y, z & 15, id);
     }
 
     public int getBlockLightAt(int x, int y, int z) {

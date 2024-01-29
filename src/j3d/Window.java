@@ -4,6 +4,8 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
+import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -17,6 +19,17 @@ public class Window {
     private final MouseInput mouseInput;
     private final Callable<Void> resizeFunc;
 
+    public interface KeyListener {
+        void onKeyEvent(int keyCode, int action);
+    }
+    public interface MouseListener {
+        void onMouseEvent(int button, int action);
+    }
+
+    private final List<KeyListener> keyListeners = new ArrayList<>();
+    private final List<MouseListener> mouseListeners = new ArrayList<>();
+
+    @SuppressWarnings("resource")
     public Window(String title, Callable<Void> resizeFunc) {
         this.resizeFunc = resizeFunc;
         if (!glfwInit()) {
@@ -37,7 +50,6 @@ public class Window {
         GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         assert vidMode != null;
         dimensions = new Dimension(vidMode.width(), vidMode.height());
-//        dimensions = new Dimension(800, 600);
 
         windowHandle = glfwCreateWindow(dimensions.width, dimensions.height, title, NULL, NULL);
         if (windowHandle == NULL) {
@@ -50,7 +62,13 @@ public class Window {
             System.out.printf("Error code [%s], msg [%s]%n", errorCode, MemoryUtil.memUTF8(msgPtr))
         );
 
-        glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> keyCallBack(key, action));
+        glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
+            keyCallBack(key, action);
+            keyListeners.forEach(listener -> listener.onKeyEvent(key, action));
+        });
+        glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods)-> {
+            mouseListeners.forEach(listener -> listener.onMouseEvent(button, action));
+        });
 
         glfwMakeContextCurrent(windowHandle);
 
@@ -64,7 +82,15 @@ public class Window {
         dimensions.width = arrWidth[0];
         dimensions.height = arrHeight[0];
 
-        mouseInput = new MouseInput(windowHandle);
+        mouseInput = new MouseInput(this);
+    }
+
+    public void addKeyListener(KeyListener keyListener) {
+        this.keyListeners.add(keyListener);
+    }
+
+    public void addMouseListener(MouseListener mouseListener) {
+        this.mouseListeners.add(mouseListener);
     }
 
     public void cleanup() {

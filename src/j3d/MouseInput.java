@@ -13,7 +13,8 @@ public class MouseInput {
     private Vector2f previousPos;
     private boolean rightButtonPressed;
 
-    public MouseInput(long windowHandle) {
+    @SuppressWarnings("resource")
+    public MouseInput(Window window) {
         previousPos = new Vector2f(-1, -1);
         currentPos = new Vector2f();
         movement = new Vector2f();
@@ -21,12 +22,12 @@ public class MouseInput {
         rightButtonPressed = false;
         inWindow = false;
 
-        glfwSetCursorPosCallback(windowHandle, (handle, xpos, ypos) -> {
+        glfwSetCursorPosCallback(window.getWindowHandle(), (handle, xpos, ypos) -> {
             currentPos.x = (float) xpos;
             currentPos.y = (float) ypos;
         });
-        glfwSetCursorEnterCallback(windowHandle, (handle, entered) -> inWindow = entered);
-        glfwSetMouseButtonCallback(windowHandle, (handle, button, action, mode) -> {
+        glfwSetCursorEnterCallback(window.getWindowHandle(), (handle, entered) -> inWindow = entered);
+        window.addMouseListener((button, action) -> {
             leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
             rightButtonPressed = button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS;
         });

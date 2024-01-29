@@ -1,19 +1,12 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
-import app.world.CubeRaycaster;
-import app.world.World;
+import app.world.*;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
-import j3d.IAppLogic;
-import j3d.MouseInput;
-import j3d.Window;
-import j3d.graph.Mesh;
-import j3d.graph.ShaderProgram;
-import j3d.graph.Texture;
-import j3d.graph.TextureCache;
-import j3d.scene.Camera;
-import j3d.scene.Projection;
+import j3d.*;
+import j3d.graph.*;
+import j3d.scene.*;
 import org.joml.*;
 
 import java.lang.Math;
@@ -100,7 +93,7 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 1;
+        int loadRange = 50;
         for(int x = -loadRange; x <= loadRange; x++) {
             for(int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
@@ -111,6 +104,30 @@ public class App implements IAppLogic {
         System.out.println("Preloading meshes");
         world.getVisibleChunks().forEach(Chunk::getMesh);
         System.out.println("Running...");
+
+        window.addMouseListener((button, action) -> {
+            Vector3i pos = null;
+            {
+                var cast = new CubeRaycaster().cast(camera);
+                for(int i = 0; i < 100; i++) {
+                    pos = cast.next();
+                    if(!world.isBlockLoaded(pos.x, pos.y, pos.z) ||
+                            camera.getPosition().distance(new Vector3f(pos)) > 10
+                    ) {
+                        pos = null;
+                        break;
+                    }
+                    if(world.getBlockIDAt(pos.x, pos.y, pos.z) != 0) {
+                        break;
+                    }
+                }
+            }
+
+            if(pos != null) {
+                world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
+                world.recalculateLightingAtPosition(pos);
+            }
+        });
     }
 
     @Override
@@ -136,12 +153,10 @@ public class App implements IAppLogic {
         }
 
         MouseInput mouseInput = window.getMouseInput();
-        if (mouseInput.isRightButtonPressed()) {
-            Vector2f movement = mouseInput.getMovement();
-            camera.rotateBy(
-                    (float) Math.toRadians(movement.x * MOUSE_SENSITIVITY),
-                    (float) Math.toRadians(movement.y * MOUSE_SENSITIVITY));
-        }
+        Vector2f movement = mouseInput.getMovement();
+        camera.rotateBy(
+                (float) Math.toRadians(movement.x * MOUSE_SENSITIVITY),
+                (float) Math.toRadians(movement.y * MOUSE_SENSITIVITY));
     }
 
     @Override
@@ -206,10 +221,10 @@ public class App implements IAppLogic {
         Vector3f pos = null;
         {
             var cast = new CubeRaycaster().cast(camera);
-            for(int i = 0; i < 50; i++) {
+            for(int i = 0; i < 100; i++) {
                 var castPos = cast.next();
                 pos = new Vector3f(castPos);
-                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z)) {
+                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || camera.getPosition().distance(pos) > 10) {
                     pos = null;
                     break;
                 }
