@@ -55,15 +55,15 @@ public class World {
 
     public void recalculateLightingAtPosition(Vector3i position) {
         lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(List.of(
-                getChunkForPosition(position.x - 1, position.z - 1),
-                getChunkForPosition(position.x - 1, position.z + 0),
-                getChunkForPosition(position.x - 1, position.z + 1),
-                getChunkForPosition(position.x + 0, position.z - 1),
-                getChunkForPosition(position.x + 0, position.z + 0),
-                getChunkForPosition(position.x + 0, position.z + 1),
-                getChunkForPosition(position.x + 1, position.z - 1),
-                getChunkForPosition(position.x + 1, position.z + 0),
-                getChunkForPosition(position.x + 1, position.z + 1)
+                getChunkForPosition(position.x - 16, position.z - 16),
+                getChunkForPosition(position.x - 16, position.z +  0),
+                getChunkForPosition(position.x - 16, position.z + 16),
+                getChunkForPosition(position.x +  0, position.z - 16),
+                getChunkForPosition(position.x +  0, position.z +  0),
+                getChunkForPosition(position.x +  0, position.z + 16),
+                getChunkForPosition(position.x + 16, position.z - 16),
+                getChunkForPosition(position.x + 16, position.z +  0),
+                getChunkForPosition(position.x + 16, position.z + 16)
         )));
     }
     
