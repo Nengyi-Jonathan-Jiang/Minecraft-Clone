@@ -10,6 +10,7 @@ import app.block.model.PartialMeshVertex;
 import app.world.World;
 import app.world.lighting.LightingEngine;
 import j3d.graph.Mesh;
+import j3d.graph.Mesh.MeshAttributeData;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -92,13 +93,13 @@ public class ChunkMeshBuilder {
     }
 
     private Mesh toMesh() {
-//        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
+        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
 
-        Mesh.FloatAttributeData positionData = new Mesh.FloatAttributeData(3, ArrayUtil.unbox(positions.get(Float[]::new)));
-        Mesh.FloatAttributeData uvData = new Mesh.FloatAttributeData(2, ArrayUtil.unbox(uvs.get(Float[]::new)));
         int[] indexData = ArrayUtil.unbox(this.indices.get(Integer[]::new));
-        Mesh.FloatAttributeData cornerAOData = new Mesh.FloatAttributeData(4, ArrayUtil.unbox(cornerAO.get(Float[]::new)));
-        Mesh.FloatAttributeData aoInterpolationData = new Mesh.FloatAttributeData(2, ArrayUtil.unbox(aoInterpolation.get(Float[]::new)));
+        MeshAttributeData positionData = MeshAttributeData.create(3, ArrayUtil.unbox(positions.get(Float[]::new)));
+        MeshAttributeData uvData = MeshAttributeData.create(2, ArrayUtil.unbox(uvs.get(Float[]::new)));
+        MeshAttributeData cornerAOData = MeshAttributeData.create(4, ArrayUtil.unbox(cornerAO.get(Float[]::new)));
+        MeshAttributeData aoInterpolationData = MeshAttributeData.create(2, ArrayUtil.unbox(aoInterpolation.get(Float[]::new)));
 
         positions.clear();
         uvs.clear();

@@ -11,16 +11,23 @@ import java.util.List;
 import static org.lwjgl.opengl.GL30.*;
 
 public class Mesh {
-    private final int numVertices;
+    private final int numIndices;
     private final int vaoId;
     private final List<Integer> vboIdList;
 
-    public sealed interface MeshAttributeData permits FloatAttributeData, IntAttributeData {}
+    public sealed interface MeshAttributeData permits FloatAttributeData, IntAttributeData {
+        static MeshAttributeData create(int elementSize, float[] data) {
+            return new FloatAttributeData(elementSize, data);
+        }
+        static MeshAttributeData create(int elementSize, int[] data) {
+            return new IntAttributeData(elementSize, data);
+        }
+    }
     public record FloatAttributeData (int elementSize, float[] data) implements MeshAttributeData {}
     public record IntAttributeData  (int elementSize, int[] data) implements MeshAttributeData {}
 
     public Mesh(int[] indices, MeshAttributeData... data) {
-        numVertices = indices.length;
+        numIndices = indices.length;
         vboIdList = new ArrayList<>();
 
         vaoId = glGenVertexArrays();
@@ -74,8 +81,8 @@ public class Mesh {
         glDeleteVertexArrays(vaoId);
     }
 
-    public int getNumVertices() {
-        return numVertices;
+    public int getNumIndices() {
+        return numIndices;
     }
 
     public final int getVaoId() {

@@ -10,6 +10,7 @@ import j3d.MouseInput;
 import j3d.Window;
 import j3d.graph.Mesh;
 import j3d.graph.ShaderProgram;
+import j3d.graph.Texture;
 import j3d.graph.TextureCache;
 import j3d.scene.Camera;
 import j3d.scene.Projection;
@@ -31,10 +32,12 @@ public class App implements IAppLogic {
 
     private Mesh blockOutlineMesh;
 
-
     private ShaderProgram worldShader;
     private ShaderProgram outlineShader;
+    private ShaderProgram uiShader;
     private World world;
+    private TextureCache textureCache;
+    private Window window;
 
     @Override
     public void cleanup() {
@@ -43,7 +46,8 @@ public class App implements IAppLogic {
 
     @Override
     public void init(Window window) {
-        projection = new Projection(window.getWidth(), window.getHeight());
+        this.window = window;
+        projection = new Projection(this.window.getWidth(), window.getHeight());
 
         blockOutlineMesh = new Mesh(
             new int[]  {
@@ -54,7 +58,7 @@ public class App implements IAppLogic {
                 0, 1, 4, 1, 4, 5,
                 2, 3, 6, 3, 6, 7
             },
-            new Mesh.FloatAttributeData(
+            Mesh.MeshAttributeData.create(
                 3,
                 new float[]{
                         -.501f, -.501f, -.501f,
@@ -77,14 +81,19 @@ public class App implements IAppLogic {
                 "shaders/block-outline/outline.vert",
                 "shaders/block-outline/outline.frag"
         );
+        uiShader = ShaderProgram.createBasicShaderProgram(
+            "shaders/ui/ui.vert",
+            "shaders/ui/ui.frag"
+        );
 
-        TextureCache textureCache = new TextureCache();
+        textureCache = new TextureCache();
 
         camera = new Camera();
 
         glClearColor(.7f, .93f, 1f, 1f);
 
         TextureAtlas.setTexture(textureCache.createTexture("atlas.png"));
+        textureCache.createTexture("crosshair.png");
 
         DefaultBlocksInitializer.run();
 
@@ -155,7 +164,41 @@ public class App implements IAppLogic {
 
     private Mesh crossHairMesh;
     private void drawCrossHair() {
+        if(crossHairMesh == null) crossHairMesh = new Mesh(
+            new int[]{0, 1, 2, 0, 2, 3},
+            Mesh.MeshAttributeData.create(2, new float[] {
+                -1, -1, -1, 1, 1, 1, 1, -1
+            }),
+            Mesh.MeshAttributeData.create(2, new float[] {
+                0, 0, 0, 1, 1, 1, 1, 0
+            })
+        );
 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_CULL_FACE);
+
+        uiShader.bind();
+
+        float aspect = 1f * window.getHeight() / window.getWidth();
+
+        uiShader.uniforms().setUniform("projectionMatrix", new Matrix4f(
+            aspect, 0, 0, 0,
+            0, -1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ).scale(.02f, .02f, 0));
+        uiShader.uniforms().setUniform("txtSampler", 0);
+
+        glActiveTexture(GL_TEXTURE0);
+        textureCache.getTexture("crosshair.png").bind();
+
+        // Render stuff
+
+        glBindVertexArray(crossHairMesh.getVaoId());
+        glDrawElements(GL_TRIANGLES, crossHairMesh.getNumIndices(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+        outlineShader.unbind();
     }
 
     private void drawSelectedPosition() {
@@ -195,7 +238,7 @@ public class App implements IAppLogic {
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(pos, new Quaternionf(), 1);
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
             glBindVertexArray(blockOutlineMesh.getVaoId());
-            glDrawElements(GL_TRIANGLES, blockOutlineMesh.getNumVertices(), GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, blockOutlineMesh.getNumIndices(), GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
             outlineShader.unbind();
@@ -228,7 +271,7 @@ public class App implements IAppLogic {
 
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
             glBindVertexArray(chunk.getMesh().getVaoId());
-            glDrawElements(GL_TRIANGLES, chunk.getMesh().getNumVertices(), GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, chunk.getMesh().getNumIndices(), GL_UNSIGNED_INT, 0);
         }
 
         glBindVertexArray(0);

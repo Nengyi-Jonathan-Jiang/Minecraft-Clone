@@ -33,11 +33,11 @@ public class Window {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-//        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
         GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         assert vidMode != null;
-//        dimensions = new Dimension(vidMode.width(), vidMode.height());
-        dimensions = new Dimension(800, 600);
+        dimensions = new Dimension(vidMode.width(), vidMode.height());
+//        dimensions = new Dimension(800, 600);
 
         windowHandle = glfwCreateWindow(dimensions.width, dimensions.height, title, NULL, NULL);
         if (windowHandle == NULL) {
