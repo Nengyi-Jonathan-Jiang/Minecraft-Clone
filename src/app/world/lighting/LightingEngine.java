@@ -29,7 +29,41 @@ public class LightingEngine {
         return !dirtyPositions.isEmpty();
     }
 
+    private static void addNeighborsToQueue(Vector3i pos, LightingEngineUpdateParameters parameters, PriorityQueue<LightingUpdate> queue, World world) {
+        for(FaceDirection face : FaceDirection.OUTER_FACES) {
+            Vector3i offset = face.direction;
+            Vector3i newPos = offset.add(pos, new Vector3i());
+            if(isOutOfRange(newPos, parameters)) {
+                System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
+                continue;
+            }
+            queue.offer(new LightingUpdate(newPos, world.getBlockLightAt(newPos.x, newPos.y, newPos.z)));
+        }
+    }
+
     public void updateLighting() {
+        /*
+         * For each dirty block B, push updateBlockLight(B, 0)
+         *
+         * While has update (B, l):
+         *
+         *     If(b has brighter independent neighbor (N, m):
+         *         push updateBlockLight(B, m)
+         *     Else: // b must have gotten darker!
+         *
+         *
+         * When you place a block, you can inspect its neighbours to the sides and below. Any that were pointing to your
+         * now-occluded block as their brightest light source should search their immediate neighbours for a new light
+         * source, and update their brightness accordingly. If they get dimmer, then repeat, looking for neighbours that
+         * relied on this cell for their brightest light, and updating them in turn.
+         *
+         * This keeps your lighting updates restricted to the "downstream" cone of light from the site you modified,
+         * pruning the edges where the lighting doesn't change due to occlusion / backup sources.
+         *
+         * // This might be useful https://github.com/PaperMC/Starlight/blob/fabric/src/main/java/ca/spottedleaf/starlight/common/light/BlockStarLightEngine.java
+         */
+
+
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
         dirtyPositions.forEach(pos -> {
@@ -64,6 +98,7 @@ public class LightingEngine {
                     System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
                     continue;
                 }
+                if(dirtyPositions.contains(newPos)) continue;
                 repropagatingBlocks.add(newPos);
             }
         }
@@ -80,8 +115,10 @@ public class LightingEngine {
         long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             var update = lightingUpdates.poll();
+
             Vector3i pos = update.pos;
-            int x = pos.x, y = pos.y, z = pos.z, lightLevel = update.lightLevel;
+
+            int lightLevel = update.lightLevel;
 
             // Why is this bad?
             if(isOutOfRange(pos, parameters)) {
@@ -121,6 +158,12 @@ public class LightingEngine {
                     //Add this update to the priority queue
                     lightingUpdates.offer(new LightingUpdate(newPos, newLightLevel));
                 }
+
+//                else if() {
+//
+//                    this.getBlockLightSourceAt(newPos, parameters).equals(pos)
+//
+//                }
             }
         }
 
@@ -301,12 +344,15 @@ public class LightingEngine {
         System.out.println("Updated lighting in " + lightingStep + " steps");
     }
 
-    private void setLightingSourceAt(Vector3i newPos, Vector3i pos) {
-        //lightingSource[newPos.x][newPos.y][newPos.z] = pos;
-        // TODO
+    private void setLightingSourceAt(Vector3i pos, Vector3i source) {
+        world.setBlockLightSourceAt(pos, source);
     }
 
-    private boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
+    private Vector3i getBlockLightSourceAt(Vector3i pos, LightingEngineUpdateParameters parameters) {
+        return world.getBlockLightSourceAt(pos);
+    }
+
+    private static boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
         if(parameters.isOutOfRange(pos)) return true;
         return !Chunk.isInRange(0, pos.y, 0);
     }

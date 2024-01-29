@@ -37,4 +37,7 @@ public class LightingData {
     public void setBlockLightSourceAt(Vector3i pos, Vector3i source) {
         lightingSource[pos.x][pos.y][pos.z] = source;
     }
+    public Vector3i getBlockLightSourceAt(Vector3i pos) {
+        return lightingSource[pos.x][pos.y][pos.z];
+    }
 }
