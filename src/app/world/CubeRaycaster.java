@@ -1,5 +1,6 @@
 package app.world;
 
+import j3d.scene.Camera;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -7,8 +8,10 @@ import util.MathUtil;
 
 import java.util.Iterator;
 
-public class BlockyRaycaster {
-    public Iterator<Vector3i> cast(Vector3f currPos, Vector2f cameraRotation) {
+public class CubeRaycaster {
+    public Iterator<Vector3i> cast(Camera camera) {
+        Vector3f currPos = camera.getPosition();
+        Vector2f cameraRotation = camera.getRotation();
 
         Vector3f start = new Vector3f(.5f).add(currPos);
         Vector3f stepper = new Vector3f(0, 0, -1).rotateX(-cameraRotation.x).rotateY(-cameraRotation.y);

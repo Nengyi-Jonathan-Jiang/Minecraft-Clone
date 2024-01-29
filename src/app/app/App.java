@@ -1,7 +1,7 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
-import app.world.BlockyRaycaster;
+import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
@@ -146,40 +146,45 @@ public class App implements IAppLogic {
     }
 
     private void drawSelectedPosition() {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDisable(GL_CULL_FACE);
-
-        outlineShader.bind();
-
-        outlineShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
-        outlineShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
-
-        outlineShader.uniforms().setUniform("txtSampler", 0);
-
-        // Render stuff
 
         Vector3f pos = null;
-
         {
-            var cast = new BlockyRaycaster().cast(camera.getPosition(), camera.getRotation());
+            var cast = new CubeRaycaster().cast(camera);
             for(int i = 0; i < 50; i++) {
                 var castPos = cast.next();
                 pos = new Vector3f(castPos);
-                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
+                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z)) {
+                    pos = null;
+                    break;
+                }
+                if(world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
                     break;
                 }
             }
         }
 
         if(pos != null) {
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glDisable(GL_CULL_FACE);
+
+            outlineShader.bind();
+
+            outlineShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
+            outlineShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
+
+            outlineShader.uniforms().setUniform("txtSampler", 0);
+
+            // Render stuff
+
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(pos, new Quaternionf(), 1);
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
             glBindVertexArray(blockOutlineMesh.getVaoId());
             glDrawElements(GL_TRIANGLES, blockOutlineMesh.getNumVertices(), GL_UNSIGNED_INT, 0);
-        }
 
-        glBindVertexArray(0);
-        outlineShader.unbind();
+            glBindVertexArray(0);
+            outlineShader.unbind();
+        }
     }
 
     private void drawChunks() {
