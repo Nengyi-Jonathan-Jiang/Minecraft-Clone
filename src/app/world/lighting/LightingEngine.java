@@ -6,6 +6,7 @@ import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.*;
 
+import java.lang.Math;
 import java.util.*;
 
 import static util.MathUtil.sum;
@@ -75,24 +76,49 @@ public class LightingEngine {
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
         for(Vector3i pos : dirtyPositions) {
-            world.setBlockLightAt(pos.x, pos.y, pos.z, 0);
+            int oldBlockLight = world.getBlockLightAt(pos.x, pos.y, pos.z);
 
-            for(FaceDirection face : FaceDirection.OUTER_FACES) {
+            int newBlockLight = 0;
+            List<Vector3i> possibleUpdatingBlocks = new ArrayList<>();
+
+            for(var face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
-                Vector3i newPos = offset.add(pos, new Vector3i());
-                if(isOutOfRange(newPos, parameters)) {
-                    System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
-                    continue;
+                Vector3i newPos = pos.add(offset, new Vector3i());
+
+                if(isOutOfRange(newPos, parameters)) continue;
+
+                int blockLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
+
+                int propagatedLight = face == FaceDirection.TOP && blockLight == 15 ? 15 : blockLight - 1;
+                newBlockLight = Math.max(newBlockLight, propagatedLight);
+
+                boolean neighborNeedsRecalculation = blockLight < oldBlockLight;
+                if(neighborNeedsRecalculation) {
+                    possibleUpdatingBlocks.add(newPos);
                 }
-                if(dirtyPositions.contains(newPos)) continue;
-                repropagatingBlocks.add(newPos);
             }
+
+            // We got lighter! Propagate to all neighbors
+            if(newBlockLight > oldBlockLight) {
+                world.setBlockLightAt(pos.x, pos.y, pos.z, newBlockLight);
+                for(FaceDirection face : FaceDirection.OUTER_FACES) {
+                    Vector3i offset = face.direction;
+                    Vector3i newPos = offset.add(pos, new Vector3i());
+                    if(isOutOfRange(newPos, parameters)) {
+                        System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
+                        continue;
+                    }
+                    if(dirtyPositions.contains(newPos)) continue;
+
+                    // TODO
+                }
+            }
+            // We got darker! All blocks whose source may have been this block need recalculation
+            else if(newBlockLight < oldBlockLight) {
+
+            }
+            // Otherwise nothing happened.
         }
-
-        // Add re-propagating blocks to update queue
-        repropagatingBlocks.stream().map(p -> new LightingUpdate(p, world.getBlockLightAt(p.x, p.y, p.z))).forEach(lightingUpdates::add);
-
-        System.out.println("Enqueued " + lightingUpdates.size() + " lighting updates");
 
         //While update queue is not empty
         long lightingStep;
