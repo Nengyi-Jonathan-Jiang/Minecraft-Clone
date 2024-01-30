@@ -35,7 +35,7 @@ public class Chunk {
         return mesh;
     }
 
-    public void setDirty() {
+    public void markMeshAsDirty() {
         shouldRebuildMesh = true;
     }
 

@@ -78,7 +78,9 @@ public class World {
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
-        getChunkForPosition(x, z).getLightingData().setBlockLightAt(new Vector3i(x & 15, y, z & 15), level);
+        Chunk chunk = getChunkForPosition(x, z);
+        chunk.getLightingData().setBlockLightAt(new Vector3i(x & 15, y, z & 15), level);
+        chunk.markMeshAsDirty();
     }
 
     public LightingEngine getLightingEngine() {
@@ -88,13 +90,5 @@ public class World {
     public boolean isBlockTransparent(int x, int y, int z) {
         // TODO: add transparent blocks
         return getBlockIDAt(x, y, z) == 0;
-    }
-
-    public Vector3i getBlockLightSourceAt(Vector3i pos) {
-        return getChunkForPosition(pos.x, pos.z).getLightingData().getBlockLightSourceAt(new Vector3i(pos.x & 15, pos.y, pos.z & 15));
-    }
-
-    public void setBlockLightSourceAt(Vector3i pos, Vector3i source) {
-        getChunkForPosition(pos.x, pos.z).getLightingData().setBlockLightSourceAt(new Vector3i(pos.x & 15, pos.y, pos.z & 15), source);
     }
 }

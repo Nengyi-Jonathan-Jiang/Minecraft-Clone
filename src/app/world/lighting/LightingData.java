@@ -8,16 +8,13 @@ import java.util.Arrays;
 
 public class LightingData {
     private final int[][][] blockLight;
-    private final Vector3i[][][] lightingSource;
 
     public LightingData() {
         blockLight = new int[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
-        lightingSource = new Vector3i[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
     }
 
     public void clear() {
         for(int[][] i : blockLight) for(int[] j : i) Arrays.fill(j, 0);
-        for(Vector3i[][] i : lightingSource) for(Vector3i[] j : i) Arrays.fill(j, null);
     }
 
     public int getBlockLightAt(Vector3i pos) {
@@ -34,10 +31,4 @@ public class LightingData {
         blockLight[pos.x][pos.y][pos.z] = level;
     }
 
-    public void setBlockLightSourceAt(Vector3i pos, Vector3i source) {
-        lightingSource[pos.x][pos.y][pos.z] = source;
-    }
-    public Vector3i getBlockLightSourceAt(Vector3i pos) {
-        return lightingSource[pos.x][pos.y][pos.z];
-    }
 }

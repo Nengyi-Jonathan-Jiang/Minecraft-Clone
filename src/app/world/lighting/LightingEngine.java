@@ -29,27 +29,15 @@ public class LightingEngine {
         return !dirtyPositions.isEmpty();
     }
 
-    private static void addNeighborsToQueue(Vector3i pos, LightingEngineUpdateParameters parameters, PriorityQueue<LightingUpdate> queue, World world) {
-        for(FaceDirection face : FaceDirection.OUTER_FACES) {
-            Vector3i offset = face.direction;
-            Vector3i newPos = offset.add(pos, new Vector3i());
-            if(isOutOfRange(newPos, parameters)) {
-                System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
-                continue;
-            }
-            queue.offer(new LightingUpdate(newPos, world.getBlockLightAt(newPos.x, newPos.y, newPos.z)));
-        }
-    }
-
     public void updateLighting() {
         /*
-         * For each dirty block B, push updateBlockLight(B, 0)
+         * For each dirty block B, push updateBlockLight(B, 0)  // Update queue means that we must recheck the light coming into the block
          *
-         * While has update (B, l):
+         * While has update (B, l, didGetDimmer):
+         *      if block did really update
+         *          setLight(B, new value)
+         *          push updateBlockLight(neighbors, new value - 1)
          *
-         *     If(b has brighter independent neighbor (N, m):
-         *         push updateBlockLight(B, m)
-         *     Else: // b must have gotten darker!
          *
          *
          * When you place a block, you can inspect its neighbours to the sides and below. Any that were pointing to your
@@ -66,31 +54,29 @@ public class LightingEngine {
 
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
-        dirtyPositions.forEach(pos -> {
-            dirtyChunks.addAll(List.of(
-                        world.getChunkForPosition(pos.x - 16, pos.z - 16),
-                        world.getChunkForPosition(pos.x - 16, pos.z + 0),
-                        world.getChunkForPosition(pos.x - 16, pos.z + 16),
-                        world.getChunkForPosition(pos.x + 0, pos.z - 16),
-                        world.getChunkForPosition(pos.x + 0, pos.z + 0),
-                        world.getChunkForPosition(pos.x + 0, pos.z + 16),
-                        world.getChunkForPosition(pos.x + 16, pos.z - 16),
-                        world.getChunkForPosition(pos.x + 16, pos.z + 0),
-                        world.getChunkForPosition(pos.x + 16, pos.z + 16)
-                ));
-        });
-
-        dirtyChunks.forEach(Chunk::setDirty);
+        dirtyPositions.forEach(pos -> dirtyChunks.addAll(List.of(
+            world.getChunkForPosition(pos.x - 16, pos.z - 16),
+            world.getChunkForPosition(pos.x - 16, pos.z + 0),
+            world.getChunkForPosition(pos.x - 16, pos.z + 16),
+            world.getChunkForPosition(pos.x + 0, pos.z - 16),
+            world.getChunkForPosition(pos.x + 0, pos.z + 0),
+            world.getChunkForPosition(pos.x + 0, pos.z + 16),
+            world.getChunkForPosition(pos.x + 16, pos.z - 16),
+            world.getChunkForPosition(pos.x + 16, pos.z + 0),
+            world.getChunkForPosition(pos.x + 16, pos.z + 16)
+        )));
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
         // Figure out which blocks need to be re-propagated
-        Set<Vector3i> repropagatingBlocks = new HashSet<>();
+
+        PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
         for(Vector3i pos : dirtyPositions) {
             world.setBlockLightAt(pos.x, pos.y, pos.z, 0);
+
             for(FaceDirection face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
                 Vector3i newPos = offset.add(pos, new Vector3i());
@@ -102,8 +88,6 @@ public class LightingEngine {
                 repropagatingBlocks.add(newPos);
             }
         }
-
-        PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
 
         // Add re-propagating blocks to update queue
         repropagatingBlocks.stream().map(p -> new LightingUpdate(p, world.getBlockLightAt(p.x, p.y, p.z))).forEach(lightingUpdates::add);
@@ -153,8 +137,6 @@ public class LightingEngine {
                 if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
                     //Set light level of the block
                     this.setBlockLightAt(newPos, newLightLevel, parameters);
-                    //Set where the light comes from
-                    this.setLightingSourceAt(newPos, pos);
                     //Add this update to the priority queue
                     lightingUpdates.offer(new LightingUpdate(newPos, newLightLevel));
                 }
@@ -284,7 +266,6 @@ public class LightingEngine {
 
                         //Set the light level of the block
                         chunk.getLightingData().setBlockLightAt(new Vector3i(x, y, z), 15);
-                        chunk.getLightingData().setBlockLightSourceAt(new Vector3i(x, y, z), new Vector3i(x, y + 1, z));
                         //Add the update to the priority queue
                         lightingUpdates.offer(new LightingUpdate(new Vector3i(trueX, trueY, trueZ), 15));
                     }
@@ -330,8 +311,6 @@ public class LightingEngine {
                 if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
                     //Set light level of the block
                     this.setBlockLightAt(newPos, newLightLevel, parameters);
-                    //Set where the light comes from
-                    this.setLightingSourceAt(newPos, pos);
                     //Add this update to the priority queue
                     lightingUpdates.offer(new LightingUpdate(newPos, newLightLevel));
                 }
@@ -342,14 +321,6 @@ public class LightingEngine {
             System.out.println("Warning: too many lighting updates.");
         }
         System.out.println("Updated lighting in " + lightingStep + " steps");
-    }
-
-    private void setLightingSourceAt(Vector3i pos, Vector3i source) {
-        world.setBlockLightSourceAt(pos, source);
-    }
-
-    private Vector3i getBlockLightSourceAt(Vector3i pos, LightingEngineUpdateParameters parameters) {
-        return world.getBlockLightSourceAt(pos);
     }
 
     private static boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
