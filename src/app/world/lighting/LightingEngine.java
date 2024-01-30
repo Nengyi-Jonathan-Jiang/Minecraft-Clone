@@ -71,15 +71,21 @@ public class LightingEngine {
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
-        // Figure out which blocks need to be re-propagated
+        Queue<Vector3i> lightingUpdates = new ArrayDeque<>();
+        dirtyPositions.forEach(lightingUpdates::offer);
 
-        PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
+        //While update queue is not empty
+        long lightingStep;
+        long maxLightingUpdates = (long) dirtyChunks.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT * 6;
+        for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
+            var pos = lightingUpdates.poll();
 
-        for(Vector3i pos : dirtyPositions) {
             int oldBlockLight = world.getBlockLightAt(pos.x, pos.y, pos.z);
 
             int newBlockLight = 0;
-            List<Vector3i> possibleUpdatingBlocks = new ArrayList<>();
+            List<Vector3i> neighbors = new ArrayList<>();
+
+            int opacity = world.isBlockTransparent(pos.x, pos.y, pos.z) ? 0 : 15;
 
             for(var face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
@@ -87,92 +93,22 @@ public class LightingEngine {
 
                 if(isOutOfRange(newPos, parameters)) continue;
 
-                int blockLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
+                int neighborLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
+                int neighborOpacity = world.isBlockTransparent(newPos.x, newPos.y, newPos.z) ? 0 : 15;
 
-                int propagatedLight = face == FaceDirection.TOP && blockLight == 15 ? 15 : blockLight - 1;
+                int propagatedLight = face == FaceDirection.TOP && neighborLight == 15 ? 15 - opacity :
+                    neighborLight - opacity - neighborOpacity - 1;
                 newBlockLight = Math.max(newBlockLight, propagatedLight);
 
-                boolean neighborNeedsRecalculation = blockLight < oldBlockLight;
-                if(neighborNeedsRecalculation) {
-                    possibleUpdatingBlocks.add(newPos);
-                }
+                neighbors.add(newPos);
             }
 
-            // We got lighter! Propagate to all neighbors
-            if(newBlockLight > oldBlockLight) {
+            // Our light level changed; our neighbors are all suspect
+            if(newBlockLight != oldBlockLight) {
+                neighbors.forEach(lightingUpdates::offer);
                 world.setBlockLightAt(pos.x, pos.y, pos.z, newBlockLight);
-                for(FaceDirection face : FaceDirection.OUTER_FACES) {
-                    Vector3i offset = face.direction;
-                    Vector3i newPos = offset.add(pos, new Vector3i());
-                    if(isOutOfRange(newPos, parameters)) {
-                        System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
-                        continue;
-                    }
-                    if(dirtyPositions.contains(newPos)) continue;
-
-                    // TODO
-                }
-            }
-            // We got darker! All blocks whose source may have been this block need recalculation
-            else if(newBlockLight < oldBlockLight) {
-
-            }
-            // Otherwise nothing happened.
-        }
-
-        //While update queue is not empty
-        long lightingStep;
-        long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT;
-        for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
-            var update = lightingUpdates.poll();
-
-            Vector3i pos = update.pos;
-
-            int lightLevel = update.lightLevel;
-
-            // Why is this bad?
-            if(isOutOfRange(pos, parameters)) {
-                System.out.println(pos.x + ", " + pos.y + ", " + pos.z + " is out of range");
-                continue;
             }
 
-            //For each adjacent block
-            for (FaceDirection face : FaceDirection.OUTER_FACES) {
-                Vector3i offset = face.direction;
-                //Get the position
-                Vector3i newPos = offset.add(pos, new Vector3i());
-
-                if (this.isOutOfRange(newPos, parameters)) {
-                    System.out.println(newPos.x + ", " + newPos.y + ", " + newPos.z + " is out of range");
-                    continue;
-                }
-                int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
-
-                if(newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) {
-                    continue;
-                }
-                // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
-
-                //This is the light value that will be propagated to the block
-                int newLightLevel = (face == FaceDirection.BOTTOM && lightLevel == 15) ? 15 : lightLevel - 1;
-
-                // Don't propagate darkness below 0
-                if(newLightLevel <= 0) continue;
-
-                //Don't update the light level if it is lower than the current level
-                if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
-                    //Set light level of the block
-                    this.setBlockLightAt(newPos, newLightLevel, parameters);
-                    //Add this update to the priority queue
-                    lightingUpdates.offer(new LightingUpdate(newPos, newLightLevel));
-                }
-
-//                else if() {
-//
-//                    this.getBlockLightSourceAt(newPos, parameters).equals(pos)
-//
-//                }
-            }
         }
 
         if(lightingStep == maxLightingUpdates) {
