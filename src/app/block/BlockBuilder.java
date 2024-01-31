@@ -11,11 +11,11 @@ public class BlockBuilder {
     private final String model;
     private final Vector2i texOffset;
     private final List<String> tags;
-    
+
     public BlockBuilder() {
         this(null, null, null, null, Collections.emptyList());
     }
-    
+
     private BlockBuilder(String name, String displayName, String model, Vector2i texOffset, List<String> tags) {
         this.name = name;
         this.displayName = displayName;
@@ -52,16 +52,16 @@ public class BlockBuilder {
     }
 
     public Block getResult() {
-        if(name == null || texOffset == null || model == null) {
+        if (name == null || texOffset == null || model == null) {
             throw new RuntimeException("Block must have name, model, and texOffset");
         }
 
         return new Block(
-            name,
-            displayName == null ? name : displayName,
-            BlockRegistry.getModel(model),
-            texOffset,
-            tags
+                name,
+                displayName == null ? name : displayName,
+                BlockRegistry.getModel(model),
+                texOffset,
+                tags
         );
     }
 }

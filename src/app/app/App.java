@@ -1,14 +1,19 @@
 package app.app;
 
 import app.atlas.TextureAtlas;
-import app.block.Block;
 import app.block.BlockRegistry;
-import app.world.*;
+import app.world.CubeRaycaster;
+import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.worldgen.WorldGenerator;
-import j3d.*;
-import j3d.graph.*;
-import j3d.scene.*;
+import j3d.IAppLogic;
+import j3d.MouseInput;
+import j3d.Window;
+import j3d.graph.Mesh;
+import j3d.graph.ShaderProgram;
+import j3d.graph.TextureCache;
+import j3d.scene.Camera;
+import j3d.scene.Projection;
 import org.joml.*;
 
 import java.lang.Math;
@@ -33,6 +38,12 @@ public class App implements IAppLogic {
     private World world;
     private TextureCache textureCache;
     private Window window;
+    private Mesh crossHairMesh;
+
+    private static void startRender(Window window) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.getWidth(), window.getHeight());
+    }
 
     @Override
     public void cleanup() {
@@ -45,27 +56,27 @@ public class App implements IAppLogic {
         projection = new Projection(this.window.getWidth(), window.getHeight());
 
         blockOutlineMesh = new Mesh(
-            new int[]  {
-                0, 1, 2, 1, 2, 3,
-                4, 5, 6, 5, 6, 7,
-                0, 2, 4, 2, 4, 6,
-                1, 3, 5, 3, 5, 6,
-                0, 1, 4, 1, 4, 5,
-                2, 3, 6, 3, 6, 7
-            },
-            Mesh.MeshAttributeData.create(
-                3,
-                new float[]{
-                        -.501f, -.501f, -.501f,
-                        .501f, -.501f, -.501f,
-                        -.501f,  .501f, -.501f,
-                        .501f,  .501f, -.501f,
-                        -.501f, -.501f,  .501f,
-                        .501f, -.501f,  .501f,
-                        -.501f,  .501f,  .501f,
-                        .501f,  .501f,  .501f,
-                }
-            )
+                new int[]{
+                        0, 1, 2, 1, 2, 3,
+                        4, 5, 6, 5, 6, 7,
+                        0, 2, 4, 2, 4, 6,
+                        1, 3, 5, 3, 5, 6,
+                        0, 1, 4, 1, 4, 5,
+                        2, 3, 6, 3, 6, 7
+                },
+                Mesh.MeshAttributeData.create(
+                        3,
+                        new float[]{
+                                -.501f, -.501f, -.501f,
+                                .501f, -.501f, -.501f,
+                                -.501f, .501f, -.501f,
+                                .501f, .501f, -.501f,
+                                -.501f, -.501f, .501f,
+                                .501f, -.501f, .501f,
+                                -.501f, .501f, .501f,
+                                .501f, .501f, .501f,
+                        }
+                )
         );
 
         worldShader = ShaderProgram.createBasicShaderProgram(
@@ -77,8 +88,8 @@ public class App implements IAppLogic {
                 "shaders/block-outline/outline.frag"
         );
         uiShader = ShaderProgram.createBasicShaderProgram(
-            "shaders/ui/ui.vert",
-            "shaders/ui/ui.frag"
+                "shaders/ui/ui.vert",
+                "shaders/ui/ui.frag"
         );
 
         textureCache = new TextureCache();
@@ -95,12 +106,13 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 17;
-        for(int x = -loadRange; x <= loadRange; x++) {
-            for(int z = -loadRange; z <= loadRange; z++) {
+        int loadRange = 40;
+        for (int x = -loadRange; x <= loadRange; x++) {
+            for (int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
             }
         }
+
         System.out.println("Generated " + world.getVisibleChunks().size() + " chunks");
         world.recalculateLightingForAllVisibleChunks();
         System.out.println("Preloading meshes");
@@ -131,8 +143,7 @@ public class App implements IAppLogic {
                         world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
                         world.recalculateLighting();
                     }
-                }
-                else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
+                } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                     Vector3i pos = null;
                     {
                         var cast = new CubeRaycaster().cast(camera);
@@ -208,16 +219,15 @@ public class App implements IAppLogic {
         drawCrossHair();
     }
 
-    private Mesh crossHairMesh;
     private void drawCrossHair() {
-        if(crossHairMesh == null) crossHairMesh = new Mesh(
-            new int[]{0, 1, 2, 0, 2, 3},
-            Mesh.MeshAttributeData.create(2, new float[] {
-                -1, -1, -1, 1, 1, 1, 1, -1
-            }),
-            Mesh.MeshAttributeData.create(2, new float[] {
-                0, 0, 0, 1, 1, 1, 1, 0
-            })
+        if (crossHairMesh == null) crossHairMesh = new Mesh(
+                new int[]{0, 1, 2, 0, 2, 3},
+                Mesh.MeshAttributeData.create(2, new float[]{
+                        -1, -1, -1, 1, 1, 1, 1, -1
+                }),
+                Mesh.MeshAttributeData.create(2, new float[]{
+                        0, 0, 0, 1, 1, 1, 1, 0
+                })
         );
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -228,10 +238,10 @@ public class App implements IAppLogic {
         float aspect = 1f * window.getHeight() / window.getWidth();
 
         uiShader.uniforms().setUniform("projectionMatrix", new Matrix4f(
-            aspect, 0, 0, 0,
-            0, -1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
+                aspect, 0, 0, 0,
+                0, -1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
         ).scale(.02f, .02f, 0));
         uiShader.uniforms().setUniform("txtSampler", 0);
 
@@ -252,20 +262,20 @@ public class App implements IAppLogic {
         Vector3f pos = null;
         {
             var cast = new CubeRaycaster().cast(camera);
-            for(int i = 0; i < 100; i++) {
+            for (int i = 0; i < 100; i++) {
                 var castPos = cast.next();
                 pos = new Vector3f(castPos);
-                if(!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || camera.getPosition().distance(pos) > 10) {
+                if (!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || camera.getPosition().distance(pos) > 10) {
                     pos = null;
                     break;
                 }
-                if(world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
+                if (world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
                     break;
                 }
             }
         }
 
-        if(pos != null) {
+        if (pos != null) {
 
             glLineWidth(2);
             glEnable(GL_LINE_SMOOTH);
@@ -307,12 +317,12 @@ public class App implements IAppLogic {
         glActiveTexture(GL_TEXTURE0);
         TextureAtlas.get().bind();
 
-        for(Chunk chunk : world.getVisibleChunks()) {
+        for (Chunk chunk : world.getVisibleChunks()) {
             Vector2i chunkPosition = chunk.getChunkPosition();
 
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
-                new Vector3f(chunkPosition.x, 0, chunkPosition.y),
-                new Quaternionf(), 1
+                    new Vector3f(chunkPosition.x, 0, chunkPosition.y),
+                    new Quaternionf(), 1
             );
 
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
@@ -322,11 +332,6 @@ public class App implements IAppLogic {
 
         glBindVertexArray(0);
         worldShader.unbind();
-    }
-
-    private static void startRender(Window window) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, window.getWidth(), window.getHeight());
     }
 
     @Override

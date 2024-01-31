@@ -1,19 +1,17 @@
 package app.block;
 
 import app.block.model.BlockModel;
-import org.joml.Vector2f;
-import org.joml.Vector2i;
 import util.DenseIntMap;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BlockRegistry {
-    private BlockRegistry() {}
-
     private static final Map<String, BlockModel> models = new HashMap<>();
     private static final DenseIntMap<Block> blocks = new DenseIntMap<>();
     private static final Map<String, Integer> blockIDs = new HashMap<>();
+    private BlockRegistry() {
+    }
 
     public static void registerBlock(Block block) {
         blocks.put(block.getID(), block);
@@ -28,13 +26,15 @@ public class BlockRegistry {
         return models.get(name);
     }
 
-    public static Block getBlock(int id){
+    public static Block getBlock(int id) {
         return blocks.get(id);
     }
 
-    public static Block getBlock(String name){
+    public static Block getBlock(String name) {
         return getBlock(getBlockID(name));
     }
 
-    public static int getBlockID(String name) { return blockIDs.get(name); }
+    public static int getBlockID(String name) {
+        return blockIDs.get(name);
+    }
 }

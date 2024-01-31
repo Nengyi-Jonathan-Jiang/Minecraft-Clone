@@ -8,13 +8,13 @@ import j3d.graph.Mesh;
 import org.joml.Vector2i;
 
 public class Chunk {
+    public final World world;
     final int[][][] data;
     private final LightingData lightingData;
-    private boolean shouldRebuildMesh = true;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
-    private Mesh mesh = new Mesh(new int[0]);
     private final Vector2i chunkPosition;
-    public final World world;
+    private boolean shouldRebuildMesh = true;
+    private Mesh mesh = new Mesh(new int[0]);
 
     public Chunk(Vector2i chunkPosition, World world) {
         this.chunkPosition = chunkPosition;
@@ -23,13 +23,17 @@ public class Chunk {
         lightingData = new LightingData();
     }
 
+    public static boolean isInRange(int x, int y, int z) {
+        return x >= 0 && y >= 0 && z >= 0 && x < World.CHUNK_SIZE && y < World.CHUNK_HEIGHT && z < World.CHUNK_SIZE;
+    }
+
     private void rebuildMesh() {
         mesh = chunkMeshBuilder.build(world, this);
         shouldRebuildMesh = false;
     }
 
     public Mesh getMesh() {
-        if(shouldRebuildMesh) {
+        if (shouldRebuildMesh) {
             rebuildMesh();
         }
         return mesh;
@@ -58,9 +62,5 @@ public class Chunk {
 
     public LightingData getLightingData() {
         return lightingData;
-    }
-
-    public static boolean isInRange(int x, int y, int z) {
-        return x >= 0 && y >= 0 && z >= 0 && x < World.CHUNK_SIZE && y < World.CHUNK_HEIGHT && z < World.CHUNK_SIZE;
     }
 }

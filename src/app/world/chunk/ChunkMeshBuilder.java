@@ -23,17 +23,18 @@ public class ChunkMeshBuilder {
 
     // AO and lighting data should be passed as a vec4 (corner AO values) + 1 vec2 (for interpolation)
     private final ArrayConcatenator<Float> cornerAO = new ArrayConcatenator<>(),
-                                           aoInterpolation = new ArrayConcatenator<>();
+            aoInterpolation = new ArrayConcatenator<>();
 
     private final ArrayConcatenator<Integer> indices = new ArrayConcatenator<>();
 
     private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
-        if (x >= World.CHUNK_SIZE || y >= World.CHUNK_HEIGHT || z >= World.CHUNK_SIZE || x < 0 || y < 0 || z < 0) return true;
+        if (x >= World.CHUNK_SIZE || y >= World.CHUNK_HEIGHT || z >= World.CHUNK_SIZE || x < 0 || y < 0 || z < 0)
+            return true;
 
         int otherID = data[x][y][z];
 
-        if(otherID == 0) return true;
-        if(otherID == id) return false;
+        if (otherID == 0) return true;
+        if (otherID == id) return false;
 
         Block block = BlockRegistry.getBlock(otherID);
 
@@ -49,13 +50,13 @@ public class ChunkMeshBuilder {
 
         int currIndex = 0;
 
-        for(int x = 0; x < World.CHUNK_SIZE; x++) {
-            for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
-                for(int z = 0; z < World.CHUNK_SIZE; z++) {
+        for (int x = 0; x < World.CHUNK_SIZE; x++) {
+            for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
+                for (int z = 0; z < World.CHUNK_SIZE; z++) {
                     int blockID = chunk.data[x][y][z];
 
                     // Don't generate a mesh for air blocks
-                    if(blockID == 0) continue;
+                    if (blockID == 0) continue;
 
                     Vector3i pos = new Vector3i(x, y, z);
 
@@ -67,22 +68,22 @@ public class ChunkMeshBuilder {
                     boolean hasVisibleFace = false;
 
                     LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
-                        pos.add(new Vector3i(
-                            chunk.getChunkPosition().x,
-                            0,
-                            chunk.getChunkPosition().y
-                        ), new Vector3i())
+                            pos.add(new Vector3i(
+                                    chunk.getChunkPosition().x,
+                                    0,
+                                    chunk.getChunkPosition().y
+                            ), new Vector3i())
                     );
 
-                    for(FaceDirection direction : FaceDirection.OUTER_FACES) {
+                    for (FaceDirection direction : FaceDirection.OUTER_FACES) {
                         Vector3i newPos = pos.add(direction.direction, new Vector3i());
-                        if(shouldShowFace(newPos.x, newPos.y, newPos.z, blockID, chunk.data)) {
+                        if (shouldShowFace(newPos.x, newPos.y, newPos.z, blockID, chunk.data)) {
                             hasVisibleFace = true;
                             currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
                         }
                     }
 
-                    if(hasVisibleFace) {
+                    if (hasVisibleFace) {
                         currIndex += addFace(currIndex, texOffset, pos, blockModel, FaceDirection.INNER, aoData);
                     }
                 }
@@ -122,15 +123,15 @@ public class ChunkMeshBuilder {
 
         Vector4f aoCorners = aoData.getAOForPoint(direction);
 
-        for(PartialMeshVertex vertex : vertices) {
+        for (PartialMeshVertex vertex : vertices) {
             positions.addAll(
-                vertex.x() + chunkPosition.x,
-                vertex.y() + chunkPosition.y,
-                vertex.z() + chunkPosition.z
+                    vertex.x() + chunkPosition.x,
+                    vertex.y() + chunkPosition.y,
+                    vertex.z() + chunkPosition.z
             );
             uvs.addAll(
-                (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
-                (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
+                    (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
+                    (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
             );
 
             Vector2f aoInterpolator = aoData.getInterpolatorForPoint(vertex.pos(), direction);
@@ -139,7 +140,7 @@ public class ChunkMeshBuilder {
             aoInterpolation.addAll(aoInterpolator.x, aoInterpolator.y);
         }
 
-        for(int index : face.indices()) {
+        for (int index : face.indices()) {
             indices.addAll(index + currIndex);
         }
 

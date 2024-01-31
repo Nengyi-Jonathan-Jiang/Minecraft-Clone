@@ -12,15 +12,15 @@ public class BlockModelLoader {
 
         List<PartialMeshVertex> vertices = new ArrayList<>();
         List<Integer> topIndices = new ArrayList<>(),
-                      frontIndices = new ArrayList<>(),
-                      rightIndices = new ArrayList<>(),
-                      bottomIndices = new ArrayList<>(),
-                      backIndices = new ArrayList<>(),
-                      leftIndices = new ArrayList<>(),
-                      innerIndices = new ArrayList<>();
+                frontIndices = new ArrayList<>(),
+                rightIndices = new ArrayList<>(),
+                bottomIndices = new ArrayList<>(),
+                backIndices = new ArrayList<>(),
+                leftIndices = new ArrayList<>(),
+                innerIndices = new ArrayList<>();
 
 
-        while(scan.hasNextLine()) {
+        while (scan.hasNextLine()) {
             String line = scan.nextLine().strip().replaceAll(" {2,}", " ");
             Scanner s = new Scanner(line);
 
@@ -37,11 +37,11 @@ public class BlockModelLoader {
                         throw new RuntimeException("Invalid input in line: \"%s\"".formatted(line), e);
                     }
                     vertices.add(new PartialMeshVertex(
-                        x / 16f - .5f,
-                        y / 16f - .5f,
-                        z / 16f - .5f,
-                        tx,
-                        ty
+                            x / 16f - .5f,
+                            y / 16f - .5f,
+                            z / 16f - .5f,
+                            tx,
+                            ty
                     ));
                     break;
                 case "//":
@@ -58,7 +58,7 @@ public class BlockModelLoader {
                         case "inner" -> innerIndices;
                         default -> throw new RuntimeException("Error while reading block model: Unknown face " + face);
                     };
-                    while(s.hasNextInt()) {
+                    while (s.hasNextInt()) {
                         target.add(s.nextInt() - 1);
                     }
                     break;
@@ -67,18 +67,18 @@ public class BlockModelLoader {
 
         PartialMeshVertex[] verticesArr = vertices.toArray(PartialMeshVertex[]::new);
 
-        PartialMesh top    = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(topIndices));
-        PartialMesh front  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(frontIndices));
-        PartialMesh right  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(rightIndices));
+        PartialMesh top = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(topIndices));
+        PartialMesh front = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(frontIndices));
+        PartialMesh right = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(rightIndices));
         PartialMesh bottom = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(bottomIndices));
-        PartialMesh back   = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(backIndices));
-        PartialMesh left   = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(leftIndices));
-        PartialMesh inner  = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(innerIndices));
+        PartialMesh back = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(backIndices));
+        PartialMesh left = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(leftIndices));
+        PartialMesh inner = createOptimizedPartialMesh(verticesArr, ArrayUtil.toIntArray(innerIndices));
 
         return new BlockModel(top, front, right, bottom, back, left, inner);
     }
-    
-    private static PartialMesh createOptimizedPartialMesh(PartialMeshVertex[] vertices, int[] indices){
+
+    private static PartialMesh createOptimizedPartialMesh(PartialMeshVertex[] vertices, int[] indices) {
         Set<Integer> usedIndices = Arrays.stream(indices).boxed().collect(Collectors.toSet());
 
         Map<Integer, Integer> indexMap = new HashMap<>();
@@ -86,7 +86,7 @@ public class BlockModelLoader {
 
         {
             int i = 0;
-            for(int index : usedIndices) {
+            for (int index : usedIndices) {
                 indexMap.put(index, i);
                 optimizedVertices[i] = vertices[index];
                 i++;
@@ -95,7 +95,7 @@ public class BlockModelLoader {
 
         int[] optimizedIndices = new int[indices.length];
 
-        for(int i = 0; i < indices.length; i++) {
+        for (int i = 0; i < indices.length; i++) {
             optimizedIndices[i] = indexMap.get(indices[i]);
         }
 

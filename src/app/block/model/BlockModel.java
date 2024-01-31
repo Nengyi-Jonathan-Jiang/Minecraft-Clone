@@ -7,6 +7,30 @@ public record BlockModel(
         PartialMesh bottom, PartialMesh back, PartialMesh left,
         PartialMesh inner) {
 
+    public static BlockModel combine(BlockModel a, BlockModel b) {
+        return new BlockModel(
+                PartialMesh.combine(a.top, b.top),
+                PartialMesh.combine(a.front, b.front),
+                PartialMesh.combine(a.right, b.right),
+                PartialMesh.combine(a.bottom, b.bottom),
+                PartialMesh.combine(a.back, b.back),
+                PartialMesh.combine(a.left, b.left),
+                PartialMesh.combine(a.inner, b.inner)
+        );
+    }
+
+    public PartialMesh getFace(FaceDirection direction) {
+        return switch (direction) {
+            case TOP -> top;
+            case FRONT -> front;
+            case RIGHT -> right;
+            case BOTTOM -> bottom;
+            case BACK -> back;
+            case LEFT -> left;
+            case INNER -> inner;
+        };
+    }
+
     public enum FaceDirection {
         TOP(new Vector3i(0, 1, 0), 1),
         FRONT(new Vector3i(0, 0, 1), .7f),
@@ -35,29 +59,5 @@ public record BlockModel(
             T2 = new Vector3i(direction.z, direction.x, direction.y);
             t2 = T2.mul(-1, new Vector3i());
         }
-    }
-
-    public static BlockModel combine(BlockModel a, BlockModel b) {
-        return new BlockModel(
-                PartialMesh.combine(a.top, b.top),
-                PartialMesh.combine(a.front, b.front),
-                PartialMesh.combine(a.right, b.right),
-                PartialMesh.combine(a.bottom, b.bottom),
-                PartialMesh.combine(a.back, b.back),
-                PartialMesh.combine(a.left, b.left),
-                PartialMesh.combine(a.inner, b.inner)
-        );
-    }
-
-    public PartialMesh getFace(FaceDirection direction) {
-        return switch (direction) {
-            case TOP -> top;
-            case FRONT -> front;
-            case RIGHT -> right;
-            case BOTTOM -> bottom;
-            case BACK -> back;
-            case LEFT -> left;
-            case INNER -> inner;
-        };
     }
 }

@@ -9,6 +9,7 @@ import org.joml.Vector3i;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class World {
@@ -23,11 +24,15 @@ public class World {
         lightingEngine = new LightingEngine(this);
     }
 
+    public static Vector2i getChunkPosition(int x, int z) {
+        return new Vector2i(x & ~15, z & ~15);
+    }
+
     public Chunk getChunkForPosition(int x, int z) {
         Vector2i chunkPos = getChunkPosition(x, z);
         return getChunk(chunkPos.x, chunkPos.y);
     }
-    
+
     public void loadChunkAtPosition(int x, int z) {
         loadChunk(getChunkPosition(x, z));
     }
@@ -38,13 +43,11 @@ public class World {
         return loadedChunks.get(chunkPosition);
     }
 
-    public static Vector2i getChunkPosition(int x, int z) {
-        return new Vector2i(x & ~15, z & ~15);
-    }
-
     private void loadChunk(Vector2i chunkPosition) {
-        if(!loadedChunks.containsKey(chunkPosition)) {
-            loadedChunks.put(chunkPosition, worldGenerator.generateChunk(chunkPosition, this));
+        if (!loadedChunks.containsKey(chunkPosition)) {
+            Chunk chunk = worldGenerator.generateChunk(chunkPosition, this);
+            loadedChunks.put(chunkPosition, chunk);
+            lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(List.of(chunk)));
         }
     }
 
@@ -55,7 +58,7 @@ public class World {
     public void recalculateLighting() {
         lightingEngine.updateLighting();
     }
-    
+
     public Collection<Chunk> getVisibleChunks() {
         return loadedChunks.values().stream().toList();
     }

@@ -14,11 +14,11 @@ public class LightingData {
     }
 
     public void clear() {
-        for(int[][] i : blockLight) for(int[] j : i) Arrays.fill(j, 0);
+        for (int[][] i : blockLight) for (int[] j : i) Arrays.fill(j, 0);
     }
 
     public int getBlockLightAt(Vector3i pos) {
-        if(pos.y >= World.CHUNK_HEIGHT) return 15;
+        if (pos.y >= World.CHUNK_HEIGHT) return 15;
 
         int x = MathUtil.clamp(pos.x, 0, World.CHUNK_SIZE - 1);
         int y = MathUtil.clamp(pos.y, 0, World.CHUNK_HEIGHT - 1);
