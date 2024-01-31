@@ -109,7 +109,7 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 40;
+        int loadRange = 100;
         for (int x = -loadRange; x <= loadRange; x++) {
             for (int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
@@ -221,7 +221,7 @@ public class App implements IAppLogic {
 
         if(!world.isBlockLoaded((int) player.getPosition().x, 0, (int)player.getPosition().z)) {
             world.loadChunkAtPosition((int) player.getPosition().x, (int) player.getPosition().z);
-            world.getLightingEngine().recalculateLighting(new LightingEngineUpdateParameters(List.of(world.getChunkForPosition((int) player.getPosition().x, (int) player.getPosition().z))));
+            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(world.getChunkForPosition((int) player.getPosition().x, (int) player.getPosition().z))));
         }
     }
 

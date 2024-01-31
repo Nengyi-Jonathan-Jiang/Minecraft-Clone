@@ -1,6 +1,5 @@
 package app.world.lighting;
 
-import app.block.BlockRegistry;
 import app.block.model.BlockModel.FaceDirection;
 import app.world.World;
 import app.world.chunk.Chunk;
@@ -103,7 +102,7 @@ public class LightingEngine {
         return new AOData(pos);
     }
 
-    public void recalculateLighting(LightingEngineUpdateParameters parameters) {
+    public void invalidateLighting(LightingEngineUpdateParameters parameters) {
         for (Chunk chunk : parameters.chunksToUpdate) {
             for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
                 for (int x = 0; x < World.CHUNK_SIZE; x++) {

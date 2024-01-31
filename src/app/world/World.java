@@ -49,7 +49,7 @@ public class World {
     }
 
     public void invalidateLightingForAllVisibleChunks() {
-        lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
+        lightingEngine.invalidateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
     }
 
     public void recalculateLighting() {
