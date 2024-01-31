@@ -64,12 +64,13 @@ public class LightingEngine {
 
             int opacity = world.isBlockTransparent(pos.x, pos.y, pos.z) ? 0 : 15;
 
+            if(pos.y == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
+
             for (var face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
                 Vector3i newPos = pos.add(offset, new Vector3i());
 
                 if (isOutOfRange(newPos, parameters)) {
-                    System.out.println(newPos + " out of range");
                     continue;
                 }
 
@@ -103,85 +104,19 @@ public class LightingEngine {
     }
 
     public void recalculateLighting(LightingEngineUpdateParameters parameters) {
-        // Propagate light to any neighboring chunks if needed
-
-        PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
-
-        Set<Vector3i> borderBlocks = new HashSet<>();
-
         for (Chunk chunk : parameters.chunksToUpdate) {
-            chunk.getLightingData().clear();
-
-            for (int x = 0; x < World.CHUNK_SIZE; x++) {
-                for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                    //Set the light level of all blocks exposed to skylight to max
-                    for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
+            for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
+                for (int x = 0; x < World.CHUNK_SIZE; x++) {
+                    for (int z = 0; z < World.CHUNK_SIZE; z++) {
                         int trueX = x + chunk.getChunkPosition().x;
                         //noinspection UnnecessaryLocalVariable
                         int trueY = y;
                         int trueZ = z + chunk.getChunkPosition().y;
 
-                        int blockID = world.getBlockIDAt(trueX, trueY, trueZ);
-
-                        boolean isTransparent = blockID == 0 || BlockRegistry.getBlock(blockID).hasTag("transparent");
-
-                        // TODO: add emissive blocks
-
-                        if (!isTransparent) break;
-
-                        //Set the light level of the block
-                        chunk.getLightingData().setBlockLightAt(new Vector3i(x, y, z), 15);
-                        //Add the update to the priority queue
-                        lightingUpdates.offer(new LightingUpdate(new Vector3i(trueX, trueY, trueZ), 15));
+                        dirtyPositions.add(new Vector3i(trueX, trueY, trueZ));
                     }
                 }
             }
-        }
-
-        //While update queue is not empty
-        long lightingStep;
-        long maxLightingUpdates = 64L * parameters.chunksToUpdate.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT;
-        for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
-            var update = lightingUpdates.poll();
-            Vector3i pos = update.pos;
-            int lightLevel = update.lightLevel;
-
-            // Why is this bad?
-            if (isOutOfRange(pos, parameters)) continue;
-
-            //For each adjacent block
-            for (Vector3i offset : Arrays.stream(FaceDirection.OUTER_FACES).map(i -> i.direction).toList()) {
-                //Get the position
-                Vector3i newPos = offset.add(pos, new Vector3i());
-
-                if (isOutOfRange(newPos, parameters)) {
-                    continue;
-                }
-                int newBlockID = world.getBlockIDAt(newPos.x, newPos.y, newPos.z);
-
-                if (newBlockID != 0 && !BlockRegistry.getBlock(newBlockID).hasTag("transparent")) {
-                    continue;
-                }
-                // Hey cool idea: transparent blocks do not attenuate light. Like fiber optics
-
-                //This is the light value that will be propagated to the block
-                int newLightLevel = lightLevel - 1;
-
-                // Don't propagate darkness below 0
-                if (newLightLevel <= 0) continue;
-
-                //Don't update the light level if it is lower than the current level
-                if (newLightLevel > this.getBlockLightAt(newPos, parameters)) {
-                    //Set light level of the block
-                    this.setBlockLightAt(newPos, newLightLevel, parameters);
-                    //Add this update to the priority queue
-                    lightingUpdates.offer(new LightingUpdate(newPos, newLightLevel));
-                }
-            }
-        }
-
-        if (lightingStep == maxLightingUpdates) {
-            System.out.println("Warning: too many lighting updates.");
         }
     }
 

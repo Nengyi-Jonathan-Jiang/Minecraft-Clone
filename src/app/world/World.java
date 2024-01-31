@@ -45,11 +45,10 @@ public class World {
         if (!loadedChunks.containsKey(chunkPosition)) {
             Chunk chunk = worldGenerator.generateChunk(chunkPosition, this);
             loadedChunks.put(chunkPosition, chunk);
-            lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(List.of(chunk)));
         }
     }
 
-    public void recalculateLightingForAllVisibleChunks() {
+    public void invalidateLightingForAllVisibleChunks() {
         lightingEngine.recalculateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
     }
 

@@ -6,6 +6,7 @@ import app.player.Player;
 import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
@@ -13,11 +14,11 @@ import j3d.Window;
 import j3d.graph.Mesh;
 import j3d.graph.ShaderProgram;
 import j3d.graph.TextureCache;
-import j3d.scene.Camera;
 import j3d.scene.Projection;
 import org.joml.*;
 
 import java.lang.Math;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -114,8 +115,9 @@ public class App implements IAppLogic {
                 world.loadChunkAtPosition(x, z);
             }
         }
-
-        System.out.println("Generated " + world.getVisibleChunks().size() + " chunks");
+        System.out.println("Precalculating lighting");
+        world.invalidateLightingForAllVisibleChunks();
+        world.recalculateLighting();
         System.out.println("Preloading meshes");
         world.getVisibleChunks().forEach(Chunk::getMesh);
         System.out.println("Running...");
@@ -167,8 +169,13 @@ public class App implements IAppLogic {
                     }
                 }
             }
-
         });
+
+        world.loadChunkAtPosition(0, 0);
+        for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
+            player.setPosition(new Vector3f(0, y, 0));
+            if(world.getBlockIDAt(0, y, 0) == 0) break;
+        }
     }
 
     @Override
@@ -211,6 +218,11 @@ public class App implements IAppLogic {
     public void update(Window window, long deltaTime) {
         // TODO
         // DO PHYSICS!!
+
+        if(!world.isBlockLoaded((int) player.getPosition().x, 0, (int)player.getPosition().z)) {
+            world.loadChunkAtPosition((int) player.getPosition().x, (int) player.getPosition().z);
+            world.getLightingEngine().recalculateLighting(new LightingEngineUpdateParameters(List.of(world.getChunkForPosition((int) player.getPosition().x, (int) player.getPosition().z))));
+        }
     }
 
     @Override

@@ -17,7 +17,6 @@ public class LightingEngineUpdateParameters {
     public LightingEngineUpdateParameters(Collection<Chunk> chunksToUpdate) {
         this.chunksToUpdate = new HashSet<>(chunksToUpdate);
         this.updateChunkPositions = chunksToUpdate.stream().map(Chunk::getChunkPosition).collect(Collectors.toSet());
-        System.out.println(updateChunkPositions);
     }
 
     public boolean isOutOfRange(Vector3i pos) {
