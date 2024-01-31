@@ -38,7 +38,6 @@ public class World {
 
     private Chunk getChunk(int chunkX, int chunkZ) {
         Vector2i chunkPosition = new Vector2i(chunkX, chunkZ);
-        loadChunk(chunkPosition);
         return loadedChunks.get(chunkPosition);
     }
 
@@ -97,7 +96,7 @@ public class World {
                 new Vector2i(pos.x + 16, pos.y - 16),
                 new Vector2i(pos.x + 16, pos.y + 0),
                 new Vector2i(pos.x + 16, pos.y + 16)
-        ).filter(p -> this.isBlockLoaded(p.x, 0, p.y)).map(p -> getChunkForPosition(p.x, p.y)).collect(Collectors.toList());
+        ).filter(loadedChunks::containsKey).map(loadedChunks::get).collect(Collectors.toList());
     }
 
     public LightingEngine getLightingEngine() {

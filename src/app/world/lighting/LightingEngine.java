@@ -42,7 +42,7 @@ public class LightingEngine {
 
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
-        dirtyPositions.forEach(pos -> dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x, pos.y))));
+        dirtyPositions.forEach(pos -> dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x, pos.z))));
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
 
@@ -68,8 +68,10 @@ public class LightingEngine {
                 Vector3i offset = face.direction;
                 Vector3i newPos = pos.add(offset, new Vector3i());
 
-//                if (isOutOfRange(newPos, parameters)) continue;
-                if(newPos.y < 0 || newPos.y >= World.CHUNK_HEIGHT) continue;
+                if (isOutOfRange(newPos, parameters)) {
+                    System.out.println(newPos + " out of range");
+                    continue;
+                }
 
                 int neighborLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
                 int neighborOpacity = world.isBlockTransparent(newPos.x, newPos.y, newPos.z) ? 0 : 15;
@@ -101,10 +103,11 @@ public class LightingEngine {
     }
 
     public void recalculateLighting(LightingEngineUpdateParameters parameters) {
-        System.out.println("Recalculating lighting for " + parameters.chunksToUpdate.size() + " chunks");
         // Propagate light to any neighboring chunks if needed
 
         PriorityQueue<LightingUpdate> lightingUpdates = new PriorityQueue<>();
+
+        Set<Vector3i> borderBlocks = new HashSet<>();
 
         for (Chunk chunk : parameters.chunksToUpdate) {
             chunk.getLightingData().clear();
@@ -180,7 +183,6 @@ public class LightingEngine {
         if (lightingStep == maxLightingUpdates) {
             System.out.println("Warning: too many lighting updates.");
         }
-        System.out.println("Updated lighting in " + lightingStep + " steps");
     }
 
     public int getBlockLightAt(Vector3i pos, LightingEngineUpdateParameters chunks) {

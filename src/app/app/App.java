@@ -116,7 +116,6 @@ public class App implements IAppLogic {
         }
 
         System.out.println("Generated " + world.getVisibleChunks().size() + " chunks");
-        world.recalculateLightingForAllVisibleChunks();
         System.out.println("Preloading meshes");
         world.getVisibleChunks().forEach(Chunk::getMesh);
         System.out.println("Running...");
@@ -143,7 +142,6 @@ public class App implements IAppLogic {
 
                     if (pos != null) {
                         world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
-                        world.recalculateLighting();
                     }
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                     Vector3i pos = null;
@@ -166,7 +164,6 @@ public class App implements IAppLogic {
 
                     if (pos != null) {
                         world.setBlockIDAt(pos.x, pos.y, pos.z, BlockRegistry.getBlockID("iron_ore"));
-                        world.recalculateLighting();
                     }
                 }
             }
@@ -218,6 +215,9 @@ public class App implements IAppLogic {
 
     @Override
     public void draw(Window window) {
+        if(world.getLightingEngine().needsUpdate())
+            world.recalculateLighting();
+
         startRender(window);
 
         drawChunks();
