@@ -14,7 +14,7 @@ public class MouseInput {
 
     @SuppressWarnings("resource")
     public MouseInput(Window window) {
-        previousPos = new Vector2f(-1, -1);
+        previousPos = new Vector2f();
         currentPos = new Vector2f();
         movement = new Vector2f();
         leftButtonPressed = false;
@@ -39,20 +39,9 @@ public class MouseInput {
     }
 
     public void input() {
-        movement.x = 0;
-        movement.y = 0;
-        if (previousPos.x > 0 && previousPos.y > 0) {
-            double deltax = currentPos.x - previousPos.x;
-            double deltay = currentPos.y - previousPos.y;
-            boolean rotateX = deltax != 0;
-            boolean rotateY = deltay != 0;
-            if (rotateX) {
-                movement.y = (float) deltax;
-            }
-            if (rotateY) {
-                movement.x = (float) deltay;
-            }
-        }
+        movement.y = currentPos.x - previousPos.x;
+        movement.x = currentPos.y - previousPos.y;
+
         previousPos.x = currentPos.x;
         previousPos.y = currentPos.y;
     }

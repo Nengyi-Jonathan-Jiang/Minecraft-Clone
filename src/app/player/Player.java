@@ -1,6 +1,7 @@
 package app.player;
 
 import j3d.scene.Camera;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class Player {
@@ -29,5 +30,21 @@ public class Player {
 
     public Camera getCamera() {
         return camera;
+    }
+
+    public void move(Vector3f movement) {
+        camera.move(movement);
+    }
+
+    public void setRotation(float x, float y) {
+        camera.setRotation(x, y);
+    }
+
+    public Vector2f getRotation() {
+        return camera.getRotation();
+    }
+
+    public void rotateBy(float x, float y) {
+        camera.rotateBy(x, y);
     }
 }

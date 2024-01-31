@@ -8,6 +8,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
+import util.UniqueQueue;
 
 import java.util.*;
 
@@ -41,23 +42,13 @@ public class LightingEngine {
 
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
-        dirtyPositions.forEach(pos -> dirtyChunks.addAll(List.of(
-                world.getChunkForPosition(pos.x - 16, pos.z - 16),
-                world.getChunkForPosition(pos.x - 16, pos.z + 0),
-                world.getChunkForPosition(pos.x - 16, pos.z + 16),
-                world.getChunkForPosition(pos.x + 0, pos.z - 16),
-                world.getChunkForPosition(pos.x + 0, pos.z + 0),
-                world.getChunkForPosition(pos.x + 0, pos.z + 16),
-                world.getChunkForPosition(pos.x + 16, pos.z - 16),
-                world.getChunkForPosition(pos.x + 16, pos.z + 0),
-                world.getChunkForPosition(pos.x + 16, pos.z + 16)
-        )));
+        dirtyPositions.forEach(pos -> dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x, pos.y))));
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
-        Queue<Vector3i> lightingUpdates = new ArrayDeque<>();
+        UniqueQueue<Vector3i> lightingUpdates = new UniqueQueue<>();
         dirtyPositions.forEach(lightingUpdates::offer);
 
         //While update queue is not empty
@@ -77,7 +68,8 @@ public class LightingEngine {
                 Vector3i offset = face.direction;
                 Vector3i newPos = pos.add(offset, new Vector3i());
 
-                if (isOutOfRange(newPos, parameters)) continue;
+//                if (isOutOfRange(newPos, parameters)) continue;
+                if(newPos.y < 0 || newPos.y >= World.CHUNK_HEIGHT) continue;
 
                 int neighborLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
                 int neighborOpacity = world.isBlockTransparent(newPos.x, newPos.y, newPos.z) ? 0 : 15;
@@ -94,7 +86,6 @@ public class LightingEngine {
                 neighbors.forEach(lightingUpdates::offer);
                 world.setBlockLightAt(pos.x, pos.y, pos.z, newBlockLight);
             }
-
         }
 
         if (lightingStep == maxLightingUpdates) {

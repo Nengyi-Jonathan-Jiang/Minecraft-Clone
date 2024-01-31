@@ -2,6 +2,7 @@ package app.app;
 
 import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
+import app.player.Player;
 import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
@@ -27,7 +28,8 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 public class App implements IAppLogic {
     private static final float MOUSE_SENSITIVITY = 0.5f;
     private static final float MOVEMENT_SPEED = 0.015f;
-    private Camera camera;
+    private Player player;
+
     private Projection projection;
 
     private Mesh blockOutlineMesh;
@@ -94,7 +96,7 @@ public class App implements IAppLogic {
 
         textureCache = new TextureCache();
 
-        camera = new Camera();
+        player = new Player();
 
         glClearColor(.7f, .93f, 1f, 1f);
 
@@ -124,11 +126,11 @@ public class App implements IAppLogic {
                 if (button == GLFW_MOUSE_BUTTON_LEFT) {
                     Vector3i pos = null;
                     {
-                        var cast = new CubeRaycaster().cast(camera);
+                        var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
                             pos = cast.next();
                             if (!world.isBlockLoaded(pos.x, pos.y, pos.z) ||
-                                    camera.getPosition().distance(new Vector3f(pos)) > 10
+                                    player.getPosition().distance(new Vector3f(pos)) > 10
                             ) {
                                 pos = null;
                                 break;
@@ -146,11 +148,11 @@ public class App implements IAppLogic {
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                     Vector3i pos = null;
                     {
-                        var cast = new CubeRaycaster().cast(camera);
+                        var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
                             var n = cast.next();
                             if (!world.isBlockLoaded(n.x, n.y, n.z) ||
-                                    camera.getPosition().distance(new Vector3f(n)) > 10
+                                    player.getPosition().distance(new Vector3f(n)) > 10
                             ) {
                                 pos = null;
                                 break;
@@ -176,35 +178,42 @@ public class App implements IAppLogic {
     public void input(Window window, long deltaTime) {
         float move = deltaTime * MOVEMENT_SPEED;
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            camera.move(new Vector3f(0, 0, -1).rotateY(-camera.getRotation().y).mul(move));
+            player.move(new Vector3f(0, 0, -1).rotateY(-player.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_S)) {
-            camera.move(new Vector3f(0, 0, 1).rotateY(-camera.getRotation().y).mul(move));
+            player.move(new Vector3f(0, 0, 1).rotateY(-player.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            camera.move(new Vector3f(-1, 0, 0).rotateY(-camera.getRotation().y).mul(move));
+            player.move(new Vector3f(-1, 0, 0).rotateY(-player.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_D)) {
-            camera.move(new Vector3f(1, 0, 0).rotateY(-camera.getRotation().y).mul(move));
+            player.move(new Vector3f(1, 0, 0).rotateY(-player.getRotation().y).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_SPACE)) {
-            camera.move(new Vector3f(0, 1, 0).mul(move));
+            player.move(new Vector3f(0, 1, 0).mul(move));
         }
         if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-            camera.move(new Vector3f(0, -1, 0).mul(move));
+            player.move(new Vector3f(0, -1, 0).mul(move));
         }
 
         MouseInput mouseInput = window.getMouseInput();
         Vector2f movement = mouseInput.getMovement();
-        System.out.println(movement);
-        camera.rotateBy(
+        player.rotateBy(
                 (float) Math.toRadians(movement.x * MOUSE_SENSITIVITY),
                 (float) Math.toRadians(movement.y * MOUSE_SENSITIVITY));
+
+        if(player.getRotation().x >= Math.PI / 2) {
+            player.setRotation((float) Math.PI / 2f, player.getRotation().y);
+        }
+        if(player.getRotation().x <= -Math.PI / 2) {
+            player.setRotation((float) -Math.PI / 2f, player.getRotation().y);
+        }
     }
 
     @Override
     public void update(Window window, long deltaTime) {
         // TODO
+        // DO PHYSICS!!
     }
 
     @Override
@@ -262,11 +271,11 @@ public class App implements IAppLogic {
 
         Vector3f pos = null;
         {
-            var cast = new CubeRaycaster().cast(camera);
+            var cast = new CubeRaycaster().cast(player.getCamera());
             for (int i = 0; i < 100; i++) {
                 var castPos = cast.next();
                 pos = new Vector3f(castPos);
-                if (!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || camera.getPosition().distance(pos) > 10) {
+                if (!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || player.getPosition().distance(pos) > 10) {
                     pos = null;
                     break;
                 }
@@ -286,7 +295,7 @@ public class App implements IAppLogic {
             outlineShader.bind();
 
             outlineShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
-            outlineShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
+            outlineShader.uniforms().setUniform("viewMatrix", player.getCamera().getViewMatrix());
 
             outlineShader.uniforms().setUniform("txtSampler", 0);
 
@@ -309,7 +318,7 @@ public class App implements IAppLogic {
         worldShader.bind();
 
         worldShader.uniforms().setUniform("projectionMatrix", projection.getProjectionMatrix());
-        worldShader.uniforms().setUniform("viewMatrix", camera.getViewMatrix());
+        worldShader.uniforms().setUniform("viewMatrix", player.getCamera().getViewMatrix());
 
         worldShader.uniforms().setUniform("txtSampler", 0);
 

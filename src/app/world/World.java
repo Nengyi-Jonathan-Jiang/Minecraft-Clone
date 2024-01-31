@@ -7,10 +7,9 @@ import app.world.worldgen.WorldGenerator;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class World {
     public static int CHUNK_HEIGHT = 256;
@@ -83,7 +82,22 @@ public class World {
     public void setBlockLightAt(int x, int y, int z, int level) {
         Chunk chunk = getChunkForPosition(x, z);
         chunk.getLightingData().setBlockLightAt(new Vector3i(x & 15, y, z & 15), level);
-        chunk.markMeshAsDirty();
+        getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
+    }
+
+    public Collection<Chunk> getLoadedNeighbors(Chunk chunk) {
+        Vector2i pos = chunk.getChunkPosition();
+        return Stream.of(
+                new Vector2i(pos.x - 16, pos.y - 16),
+                new Vector2i(pos.x - 16, pos.y + 0),
+                new Vector2i(pos.x - 16, pos.y + 16),
+                new Vector2i(pos.x + 0, pos.y - 16),
+                new Vector2i(pos.x + 0, pos.y + 0),
+                new Vector2i(pos.x + 0, pos.y + 16),
+                new Vector2i(pos.x + 16, pos.y - 16),
+                new Vector2i(pos.x + 16, pos.y + 0),
+                new Vector2i(pos.x + 16, pos.y + 16)
+        ).filter(p -> this.isBlockLoaded(p.x, 0, p.y)).map(p -> getChunkForPosition(p.x, p.y)).collect(Collectors.toList());
     }
 
     public LightingEngine getLightingEngine() {
