@@ -196,6 +196,7 @@ public class App implements IAppLogic {
 
         MouseInput mouseInput = window.getMouseInput();
         Vector2f movement = mouseInput.getMovement();
+        System.out.println(movement);
         camera.rotateBy(
                 (float) Math.toRadians(movement.x * MOUSE_SENSITIVITY),
                 (float) Math.toRadians(movement.y * MOUSE_SENSITIVITY));

@@ -6,11 +6,10 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class MouseInput {
 
-    private Vector2f currentPos;
-    private Vector2f movement;
-    private boolean inWindow;
+    private final Vector2f currentPos;
+    private final Vector2f movement;
     private boolean leftButtonPressed;
-    private Vector2f previousPos;
+    private final Vector2f previousPos;
     private boolean rightButtonPressed;
 
     @SuppressWarnings("resource")
@@ -20,13 +19,11 @@ public class MouseInput {
         movement = new Vector2f();
         leftButtonPressed = false;
         rightButtonPressed = false;
-        inWindow = false;
 
         glfwSetCursorPosCallback(window.getWindowHandle(), (handle, xpos, ypos) -> {
             currentPos.x = (float) xpos;
             currentPos.y = (float) ypos;
         });
-        glfwSetCursorEnterCallback(window.getWindowHandle(), (handle, entered) -> inWindow = entered);
         window.addMouseListener((button, action) -> {
             leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
             rightButtonPressed = button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS;
@@ -44,7 +41,7 @@ public class MouseInput {
     public void input() {
         movement.x = 0;
         movement.y = 0;
-        if (previousPos.x > 0 && previousPos.y > 0 && inWindow) {
+        if (previousPos.x > 0 && previousPos.y > 0) {
             double deltax = currentPos.x - previousPos.x;
             double deltay = currentPos.y - previousPos.y;
             boolean rotateX = deltax != 0;

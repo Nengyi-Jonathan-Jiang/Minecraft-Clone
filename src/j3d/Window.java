@@ -56,6 +56,8 @@ public class Window {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
+        glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
         glfwSetFramebufferSizeCallback(windowHandle, (window, w, h) -> onResize(w, h));
 
         glfwSetErrorCallback((int errorCode, long msgPtr) ->
