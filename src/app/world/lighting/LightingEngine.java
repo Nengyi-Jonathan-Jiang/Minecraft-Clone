@@ -8,6 +8,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import util.UniqueQueue;
+import util.Vector3iWrapper;
 
 import java.util.*;
 
@@ -17,8 +18,7 @@ public class LightingEngine {
     private static final boolean useAO = true;
 
     private final World world;
-    private final Set<Vector3i> dirtyPositions = new HashSet<>();
-
+    private final Set<Vector3iWrapper> dirtyPositions = new HashSet<>();
 
     public LightingEngine(World world) {
         this.world = world;
@@ -30,7 +30,7 @@ public class LightingEngine {
     }
 
     public void markPositionAsDirty(Vector3i pos) {
-        dirtyPositions.add(pos);
+        dirtyPositions.add(new Vector3iWrapper(pos));
     }
 
     public boolean needsUpdate() {
@@ -47,7 +47,7 @@ public class LightingEngine {
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
-        UniqueQueue<Vector3i> lightingUpdates = new UniqueQueue<>();
+        UniqueQueue<Vector3iWrapper> lightingUpdates = new UniqueQueue<>();
         dirtyPositions.forEach(lightingUpdates::offer);
 
         //While update queue is not empty
@@ -59,7 +59,7 @@ public class LightingEngine {
             int oldBlockLight = world.getBlockLightAt(pos.x, pos.y, pos.z);
 
             int newBlockLight = 0;
-            List<Vector3i> neighbors = new ArrayList<>();
+            List<Vector3iWrapper> neighbors = new ArrayList<>();
 
             int opacity = world.isBlockTransparent(pos.x, pos.y, pos.z) ? 0 : 15;
 
@@ -67,7 +67,7 @@ public class LightingEngine {
 
             for (var face : FaceDirection.OUTER_FACES) {
                 Vector3i offset = face.direction;
-                Vector3i newPos = pos.add(offset, new Vector3i());
+                Vector3iWrapper newPos = (Vector3iWrapper) pos.add(offset, new Vector3iWrapper());
 
                 if (isOutOfRange(newPos, parameters)) {
                     continue;
@@ -112,7 +112,7 @@ public class LightingEngine {
                         int trueY = y;
                         int trueZ = z + chunk.getChunkPosition().y;
 
-                        dirtyPositions.add(new Vector3i(trueX, trueY, trueZ));
+                        dirtyPositions.add(new Vector3iWrapper(trueX, trueY, trueZ));
                     }
                 }
             }
