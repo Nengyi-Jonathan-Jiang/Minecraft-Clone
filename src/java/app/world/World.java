@@ -1,23 +1,21 @@
 package app.world;
 
+import app.util.ChunkOffset;
+import app.util.PositionInChunk;
+import app.util.WorldPosition;
 import app.world.chunk.Chunk;
 import app.world.lighting.LightingEngine;
 import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
-import org.joml.Vector2i;
-import org.joml.Vector3i;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class World {
-    public static final int CHUNK_HEIGHT = 256;
-    public static final int CHUNK_SIZE = 16;
-
-    public static final int BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
-
-    private final Map<Vector2i, Chunk> loadedChunks = new HashMap<>();
+    public static int CHUNK_HEIGHT = 256;
+    public static int CHUNK_SIZE = 16;
+    private final Map<ChunkOffset, Chunk> loadedChunks = new HashMap<>();
     private final WorldGenerator worldGenerator;
     private final LightingEngine lightingEngine;
 
@@ -26,25 +24,25 @@ public class World {
         lightingEngine = new LightingEngine(this);
     }
 
-    public static Vector2i getChunkPosition(int x, int z) {
-        return new Vector2i(x & ~15, z & ~15);
+    public static ChunkOffset getChunkOffset(int x, int z) {
+        return new ChunkOffset(x, z);
     }
 
     public Chunk getChunkForPosition(int x, int z) {
-        Vector2i chunkPos = getChunkPosition(x, z);
-        return getChunk(chunkPos.x, chunkPos.y);
+        ChunkOffset chunkPos = getChunkOffset(x, z);
+        return getChunk(chunkPos.x(), chunkPos.z());
     }
 
     public void loadChunkAtPosition(int x, int z) {
-        loadChunk(getChunkPosition(x, z));
+        loadChunk(getChunkOffset(x, z));
     }
 
     private Chunk getChunk(int chunkX, int chunkZ) {
-        Vector2i chunkPosition = new Vector2i(chunkX, chunkZ);
+        ChunkOffset chunkPosition = new ChunkOffset(chunkX, chunkZ);
         return loadedChunks.get(chunkPosition);
     }
 
-    private void loadChunk(Vector2i chunkPosition) {
+    private void loadChunk(ChunkOffset chunkPosition) {
         if (!loadedChunks.containsKey(chunkPosition)) {
             Chunk chunk = worldGenerator.generateChunk(chunkPosition, this);
             loadedChunks.put(chunkPosition, chunk);
@@ -64,7 +62,7 @@ public class World {
     }
 
     public boolean isBlockLoaded(int x, int y, int z) {
-        return loadedChunks.containsKey(getChunkPosition(x, z)) && y >= 0 && y < CHUNK_HEIGHT;
+        return loadedChunks.containsKey(getChunkOffset(x, z)) && y >= 0 && y < CHUNK_HEIGHT;
     }
 
     public int getBlockIDAt(int x, int y, int z) {
@@ -73,39 +71,35 @@ public class World {
 
     public void setBlockIDAt(int x, int y, int z, int id) {
         getChunkForPosition(x, z).setBlockAt(x & 15, y, z & 15, id);
-        lightingEngine.markPositionAsDirty(new Vector3i(x, y, z));
+        lightingEngine.markPositionAsDirty(new WorldPosition(x, y, z));
     }
 
     public int getBlockLightAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(getPositionInChunk(x, y, z));
-    }
-
-    public static Vector3i getPositionInChunk(int x, int y, int z) {
-        return new Vector3i(x & 15, y, z & 15);
+        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new PositionInChunk(x, y, z));
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
         Chunk chunk = getChunkForPosition(x, z);
-        chunk.getLightingData().setBlockLightAt(getPositionInChunk(x, y, z), level);
+        chunk.getLightingData().setBlockLightAt(new PositionInChunk(x, y, z), level);
         getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
     }
 
     public Collection<Chunk> getLoadedNeighbors(Chunk chunk) {
-        Vector2i chunkPos = chunk.getChunkPosition();
+        ChunkOffset chunkPos = chunk.getChunkOffset();
         return getLoadedNeighbors(chunkPos);
     }
 
-    public Collection<Chunk> getLoadedNeighbors(Vector2i chunkPos) {
+    public Collection<Chunk> getLoadedNeighbors(ChunkOffset chunkPos) {
         return Stream.of(
-                new Vector2i(chunkPos.x - 16, chunkPos.y - 16),
-                new Vector2i(chunkPos.x - 16, chunkPos.y + 0),
-                new Vector2i(chunkPos.x - 16, chunkPos.y + 16),
-                new Vector2i(chunkPos.x + 0, chunkPos.y - 16),
-                new Vector2i(chunkPos.x + 0, chunkPos.y + 0),
-                new Vector2i(chunkPos.x + 0, chunkPos.y + 16),
-                new Vector2i(chunkPos.x + 16, chunkPos.y - 16),
-                new Vector2i(chunkPos.x + 16, chunkPos.y + 0),
-                new Vector2i(chunkPos.x + 16, chunkPos.y + 16)
+                chunkPos.add(-16, 0, -16, new ChunkOffset()),
+                chunkPos.add(-16, 0,   0, new ChunkOffset()),
+                chunkPos.add(-16, 0,  16, new ChunkOffset()),
+                chunkPos.add(  0, 0, -16, new ChunkOffset()),
+                chunkPos.add(  0, 0,   0, new ChunkOffset()),
+                chunkPos.add(  0, 0,  16, new ChunkOffset()),
+                chunkPos.add( 16, 0, -16, new ChunkOffset()),
+                chunkPos.add( 16, 0,   0, new ChunkOffset()),
+                chunkPos.add( 16, 0,  16, new ChunkOffset())
         ).filter(loadedChunks::containsKey).map(loadedChunks::get).collect(Collectors.toList());
     }
 

@@ -4,15 +4,19 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class UniqueQueue<T> {
     private final Queue<T> backingQueue;
     private final Set<T> elements;
 
-
     public UniqueQueue() {
+        this(HashSet::new);
+    }
+
+    public UniqueQueue(Supplier<Set<T>> container) {
         backingQueue = new ArrayDeque<>();
-        elements = new HashSet<>();
+        elements = container.get();
     }
 
     public void offer(T element) {
