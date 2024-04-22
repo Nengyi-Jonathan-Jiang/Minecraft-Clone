@@ -1,6 +1,6 @@
 package app.util;
 
-public class PositionInChunk implements Vec3i {
+public class PositionInChunk implements IVec3i {
     private int bits;
 
     public PositionInChunk(int x, int y, int z) {
@@ -14,17 +14,21 @@ public class PositionInChunk implements Vec3i {
 
     @Override
     public int y() {
-        return (bits >> 4) & 255;
+        return bits >> 8;
     }
 
     @Override
     public int z() {
-        return (bits >> 12) & 15;
+        return (bits >> 4) & 15;
     }
 
     @Override
     public void set(int x, int y, int z) {
-        bits = (x & 15) | ((y & 255) << 4) | ((z & 15) << 12);
+        bits = (x & 15) | ((z & 15) << 4) | (y << 8);
+    }
+
+    public WorldPosition getAbsolutePosition(ChunkOffset chunkOffset) {
+        return chunkOffset.add(this, new WorldPosition());
     }
 
     @Override
@@ -33,10 +37,10 @@ public class PositionInChunk implements Vec3i {
     }
 
     @Override
-    public int compareTo(Vec3i other) {
+    public int compareTo(IVec3i other) {
         if(other instanceof PositionInChunk pos) {
             return bits - pos.bits;
         }
-        return Vec3i.super.compareTo(other);
+        return IVec3i.super.compareTo(other);
     }
 }

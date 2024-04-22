@@ -1,14 +1,15 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
+import app.util.IVec3i;
+import app.util.Vec3i;
+import app.util.WorldPosition;
 import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 import org.joml.Vector4f;
 import util.UniqueQueue;
-import util.Vector3iWrapper;
 
 import java.util.*;
 
@@ -18,19 +19,19 @@ public class LightingEngine {
     private static final boolean useAO = true;
 
     private final World world;
-    private final Set<Vector3iWrapper> dirtyPositions = new HashSet<>();
+    private final Set<WorldPosition> dirtyPositions = new HashSet<>();
 
     public LightingEngine(World world) {
         this.world = world;
     }
 
-    private static boolean isOutOfRange(Vector3i pos, LightingEngineUpdateParameters parameters) {
+    private static boolean isOutOfRange(WorldPosition pos, LightingEngineUpdateParameters parameters) {
         if (parameters.isOutOfRange(pos)) return true;
-        return !Chunk.isInRange(0, pos.y, 0);
+        return !Chunk.isYInRange(pos.y());
     }
 
-    public void markPositionAsDirty(Vector3i pos) {
-        dirtyPositions.add(new Vector3iWrapper(pos));
+    public void markPositionAsDirty(WorldPosition pos) {
+        dirtyPositions.add(pos);
     }
 
     public boolean needsUpdate() {
@@ -43,7 +44,7 @@ public class LightingEngine {
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
 
-        UniqueQueue<Vector3iWrapper> lightingUpdates = new UniqueQueue<>();
+        UniqueQueue<WorldPosition> lightingUpdates = new UniqueQueue<>();
         dirtyPositions.forEach(lightingUpdates::offer);
 
         //While update queue is not empty
@@ -61,28 +62,28 @@ public class LightingEngine {
         dirtyPositions.clear();
     }
 
-    private void updateLightingStep(UniqueQueue<Vector3iWrapper> lightingUpdates, LightingEngineUpdateParameters parameters) {
+    private void updateLightingStep(UniqueQueue<WorldPosition> lightingUpdates, LightingEngineUpdateParameters parameters) {
         var pos = lightingUpdates.poll();
 
-        int oldBlockLight = world.getBlockLightAt(pos.x, pos.y, pos.z);
+        int oldBlockLight = world.getBlockLightAt(pos.x(), pos.y(), pos.z());
 
         int newBlockLight = 0;
-        List<Vector3iWrapper> neighbors = new ArrayList<>();
+        List<WorldPosition> neighbors = new ArrayList<>();
 
-        int opacity = world.isBlockTransparent(pos.x, pos.y, pos.z) ? 0 : 15;
+        int opacity = world.isBlockTransparent(pos.x(), pos.y(), pos.z()) ? 0 : 15;
 
-        if(pos.y == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
+        if(pos.y() == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
 
         for (var face : FaceDirection.OUTER_FACES) {
-            Vector3i offset = face.direction;
-            Vector3iWrapper newPos = (Vector3iWrapper) pos.add(offset, new Vector3iWrapper());
+            Vec3i offset = face.direction;
+            WorldPosition newPos = pos.add(offset, new WorldPosition());
 
             if (isOutOfRange(newPos, parameters)) {
                 continue;
             }
 
-            int neighborLight = world.getBlockLightAt(newPos.x, newPos.y, newPos.z);
-            int neighborOpacity = world.isBlockTransparent(newPos.x, newPos.y, newPos.z) ? 0 : 15;
+            int neighborLight = world.getBlockLightAt(newPos.x(), newPos.y(), newPos.z());
+            int neighborOpacity = world.isBlockTransparent(newPos.x(), newPos.y(), newPos.z()) ? 0 : 15;
 
             int propagatedLight = face == FaceDirection.TOP && neighborLight == 15 ? 15 - opacity :
                     neighborLight - opacity - neighborOpacity - 1;
@@ -94,20 +95,20 @@ public class LightingEngine {
         // Our light level changed; our neighbors are all suspect
         if (newBlockLight != oldBlockLight) {
             neighbors.forEach(lightingUpdates::offer);
-            world.setBlockLightAt(pos.x, pos.y, pos.z, newBlockLight);
+            world.setBlockLightAt(pos.x(), pos.y(), pos.z(), newBlockLight);
         }
     }
 
     private Set<Chunk> computeDirtyChunks() {
         // limit lighting updates to within 15 blocks of dirty positions
         Set<Chunk> dirtyChunks = new HashSet<>();
-        for (Vector3iWrapper pos : dirtyPositions) {
-            dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x, pos.z)));
+        for (WorldPosition pos : dirtyPositions) {
+            dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x(), pos.z())));
         }
         return dirtyChunks;
     }
 
-    public AOData getAOData(Vector3i pos) {
+    public AOData getAOData(WorldPosition pos) {
         return new AOData(pos);
     }
 
@@ -116,31 +117,31 @@ public class LightingEngine {
             for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
                 for (int x = 0; x < World.CHUNK_SIZE; x++) {
                     for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                        int trueX = x + chunk.getChunkPosition().x;
+                        int trueX = x + chunk.getChunkOffset().x();
                         //noinspection UnnecessaryLocalVariable
                         int trueY = y;
-                        int trueZ = z + chunk.getChunkPosition().y;
+                        int trueZ = z + chunk.getChunkOffset().z();
 
-                        dirtyPositions.add(new Vector3iWrapper(trueX, trueY, trueZ));
+                        dirtyPositions.add(new WorldPosition(trueX, trueY, trueZ));
                     }
                 }
             }
         }
     }
 
-    public int getBlockLightAt(Vector3i pos, LightingEngineUpdateParameters chunks) {
+    public int getBlockLightAt(WorldPosition pos, LightingEngineUpdateParameters chunks) {
         if (isOutOfRange(pos, chunks)) return 15;
 
-        return world.getBlockLightAt(pos.x, pos.y, pos.z);
+        return world.getBlockLightAt(pos.x(), pos.y(), pos.z());
     }
 
-    private void setBlockLightAt(Vector3i pos, int level, LightingEngineUpdateParameters chunks) {
+    private void setBlockLightAt(WorldPosition pos, int level, LightingEngineUpdateParameters chunks) {
         if (isOutOfRange(pos, chunks)) return;
 
-        world.setBlockLightAt(pos.x, pos.y, pos.z, level);
+        world.setBlockLightAt(pos.x(), pos.y(), pos.z(), level);
     }
 
-    private record LightingUpdate(Vector3i pos, int lightLevel) implements Comparable<LightingUpdate> {
+    private record LightingUpdate(WorldPosition pos, int lightLevel) implements Comparable<LightingUpdate> {
         @Override
         public int compareTo(LightingUpdate o2) {
             return lightLevel - o2.lightLevel;
@@ -148,27 +149,27 @@ public class LightingEngine {
     }
 
     public class AOData {
-        private final Vector3i blockPosition;
+        private final WorldPosition position;
 
-        public AOData(Vector3i blockPosition) {
-            this.blockPosition = blockPosition;
+        public AOData(WorldPosition position) {
+            this.position = position;
         }
 
-        private int getLightAtIfLoadedOrDefault(Vector3i p, int defaultValue) {
-            return world.isBlockLoaded(p.x, p.y, p.z)
-                    ? world.getBlockLightAt(p.x, p.y, p.z)
+        private int getLightAtIfLoadedOrDefault(WorldPosition p, int defaultValue) {
+            return world.isBlockLoaded(p.x(), p.y(), p.z())
+                    ? world.getBlockLightAt(p.x(), p.y(), p.z())
                     : defaultValue;
         }
 
         // TODO (medium priority): refactor for readability.
         public Vector4f getAOForPoint(FaceDirection faceDirection) {
             // The block adjacent to this face.
-            Vector3i adjacentPos = blockPosition.add(faceDirection.direction, new Vector3i());
+            WorldPosition adjacentPos = position.add(faceDirection.direction, new WorldPosition());
 
-            if (!world.isBlockLoaded(adjacentPos.x, adjacentPos.y, adjacentPos.z))
+            if (!world.isBlockLoaded(adjacentPos.x(), adjacentPos.y(), adjacentPos.z()))
                 return new Vector4f(0);
 
-            int baseBlockLight = world.getBlockLightAt(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+            int baseBlockLight = world.getBlockLightAt(adjacentPos.x(), adjacentPos.y(), adjacentPos.z());
             float lightMultiplier = faceDirection.lightMultiplier;
 
             if (!useAO) return new Vector4f(baseBlockLight * lightMultiplier / 15f);

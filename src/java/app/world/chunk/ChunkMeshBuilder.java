@@ -7,13 +7,14 @@ import app.block.model.BlockModel;
 import app.block.model.BlockModel.FaceDirection;
 import app.block.model.PartialMesh;
 import app.block.model.PartialMeshVertex;
+import app.util.PositionInChunk;
+import app.util.WorldPosition;
 import app.world.World;
 import app.world.lighting.LightingEngine;
 import j3d.graph.Mesh;
 import j3d.graph.Mesh.MeshAttributeData;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
-import org.joml.Vector3i;
 import org.joml.Vector4f;
 import util.ArrayConcatenator;
 import util.ArrayUtil;
@@ -58,7 +59,7 @@ public class ChunkMeshBuilder {
                     // Don't generate a mesh for air blocks
                     if (blockID == 0) continue;
 
-                    Vector3i pos = new Vector3i(x, y, z);
+                    PositionInChunk pos = new PositionInChunk(x, y, z);
 
                     Block block = BlockRegistry.getBlock(blockID);
 
@@ -68,16 +69,16 @@ public class ChunkMeshBuilder {
                     boolean hasVisibleFace = false;
 
                     LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
-                            pos.add(new Vector3i(
-                                    chunk.getChunkPosition().x,
+                            pos.add(new WorldPosition(
+                                    chunk.getChunkOffset().x(),
                                     0,
-                                    chunk.getChunkPosition().y
-                            ), new Vector3i())
+                                    chunk.getChunkOffset().z()
+                            ), new WorldPosition())
                     );
 
                     for (FaceDirection direction : FaceDirection.OUTER_FACES) {
-                        Vector3i newPos = pos.add(direction.direction, new Vector3i());
-                        if (shouldShowFace(newPos.x, newPos.y, newPos.z, blockID, chunk.data)) {
+                        WorldPosition newPos = pos.add(direction.direction, new WorldPosition());
+                        if (shouldShowFace(newPos.x(), newPos.y(), newPos.z(), blockID, chunk.data)) {
                             hasVisibleFace = true;
                             currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
                         }
@@ -116,7 +117,7 @@ public class ChunkMeshBuilder {
                 aoInterpolationData);
     }
 
-    private int addFace(int currIndex, Vector2i texOffset, Vector3i chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
+    private int addFace(int currIndex, Vector2i texOffset, PositionInChunk chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
         PartialMesh face = model.getFace(direction);
 
         PartialMeshVertex[] vertices = face.vertices();
@@ -125,9 +126,9 @@ public class ChunkMeshBuilder {
 
         for (PartialMeshVertex vertex : vertices) {
             positions.addAll(
-                    vertex.x() + chunkPosition.x,
-                    vertex.y() + chunkPosition.y,
-                    vertex.z() + chunkPosition.z
+                    vertex.x() + chunkPosition.x(),
+                    vertex.y() + chunkPosition.y(),
+                    vertex.z() + chunkPosition.z()
             );
             uvs.addAll(
                     (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),

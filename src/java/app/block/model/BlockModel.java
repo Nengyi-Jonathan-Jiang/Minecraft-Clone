@@ -1,6 +1,7 @@
 package app.block.model;
 
-import org.joml.Vector3i;
+
+import app.util.Vec3i;
 
 public record BlockModel(
         PartialMesh top, PartialMesh front, PartialMesh right,
@@ -32,32 +33,28 @@ public record BlockModel(
     }
 
     public enum FaceDirection {
-        TOP(new Vector3i(0, 1, 0), 1),
-        FRONT(new Vector3i(0, 0, 1), .7f),
-        RIGHT(new Vector3i(1, 0, 0), .7f),
-        BOTTOM(new Vector3i(0, -1, 0), .5f),
-        BACK(new Vector3i(0, 0, -1), .7f),
-        LEFT(new Vector3i(-1, 0, 0), .7f),
-        INNER(new Vector3i(0, 0, 0), .6f);
+        TOP(new Vec3i(0, 1, 0), 1),
+        FRONT(new Vec3i(0, 0, 1), .7f),
+        RIGHT(new Vec3i(1, 0, 0), .7f),
+        BOTTOM(new Vec3i(0, -1, 0), .5f),
+        BACK(new Vec3i(0, 0, -1), .7f),
+        LEFT(new Vec3i(-1, 0, 0), .7f),
+        INNER(new Vec3i(0, 0, 0), .6f);
 
         public static final FaceDirection[] OUTER_FACES = {TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT, INNER};
 
-        public final Vector3i direction;
+        public final Vec3i direction;
         public final float lightMultiplier;
-        public final Vector3i T1, T2, t1, t2;
+        public final Vec3i T1, T2, t1, t2;
 
-        FaceDirection(Vector3i direction, float lightMultiplier) {
+        FaceDirection(Vec3i direction, float lightMultiplier) {
             this.direction = direction;
             this.lightMultiplier = lightMultiplier;
 
-            // Intellij doesn't like it when I permute the arguments.
-
-            //noinspection SuspiciousNameCombination
-            T1 = new Vector3i(direction.y, direction.z, direction.x);
-            t1 = T1.mul(-1, new Vector3i());
-            //noinspection SuspiciousNameCombination
-            T2 = new Vector3i(direction.z, direction.x, direction.y);
-            t2 = T2.mul(-1, new Vector3i());
+            T1 = new Vec3i(direction.y(), direction.z(), direction.x());
+            t1 = T1.mul(-1, new Vec3i());
+            T2 = new Vec3i(direction.z(), direction.x(), direction.y());
+            t2 = T2.mul(-1, new Vec3i());
         }
     }
 }

@@ -3,6 +3,8 @@ package app.app;
 import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
 import app.player.Player;
+import app.util.ChunkOffset;
+import app.util.WorldPosition;
 import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
@@ -109,7 +111,7 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 100;
+        int loadRange = 1;
         for (int x = -loadRange; x <= loadRange; x++) {
             for (int z = -loadRange; z <= loadRange; z++) {
                 world.loadChunkAtPosition(x, z);
@@ -125,7 +127,7 @@ public class App implements IAppLogic {
         window.addMouseListener((button, action) -> {
             if (action == GLFW_PRESS) {
                 if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                    Vector3i pos = null;
+                    WorldPosition pos = null;
                     {
                         var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
@@ -146,7 +148,7 @@ public class App implements IAppLogic {
                         world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
                     }
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                    Vector3i pos = null;
+                    WorldPosition pos = null;
                     {
                         var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
@@ -340,10 +342,10 @@ public class App implements IAppLogic {
         TextureAtlas.get().bind();
 
         for (Chunk chunk : world.getVisibleChunks()) {
-            Vector2i chunkPosition = chunk.getChunkPosition();
+            ChunkOffset chunkOffset = chunk.getChunkOffset();
 
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
-                    new Vector3f(chunkPosition.x, 0, chunkPosition.y),
+                    new Vector3f(chunkOffset.x(), 0, chunkOffset.z()),
                     new Quaternionf(), 1
             );
 

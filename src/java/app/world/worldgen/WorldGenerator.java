@@ -2,17 +2,18 @@ package app.world.worldgen;
 
 import app.block.Block;
 import app.block.BlockRegistry;
+import app.util.ChunkOffset;
 import app.world.World;
 import app.world.chunk.Chunk;
 import org.joml.SimplexNoise;
 import org.joml.Vector2i;
 
 public class WorldGenerator {
-    public Chunk generateChunk(Vector2i chunkPosition, World world) {
-        int chunkOffsetX = chunkPosition.x;
-        int chunkOffsetZ = chunkPosition.y;
+    public Chunk generateChunk(ChunkOffset chunkOffset, World world) {
+        int chunkOffsetX = chunkOffset.x();
+        int chunkOffsetZ = chunkOffset.z();
 
-        Chunk result = new Chunk(chunkPosition, world);
+        Chunk result = new Chunk(chunkOffset, world);
 
         addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
         convertTopLayersToGrass(result);

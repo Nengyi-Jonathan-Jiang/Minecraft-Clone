@@ -1,10 +1,9 @@
 package util;
 
-import org.joml.Vector3i;
 
-public class Vector3iWrapper extends Vector3i {
+public class Vector3iWrapper extends WorldPosition {
     public Vector3iWrapper() { super(); }
-    public Vector3iWrapper(Vector3i value) { super(value); }
+    public Vector3iWrapper(WorldPosition value) { super(value); }
     public Vector3iWrapper(int x, int y, int z) { super(x, y, z); }
 
     @Override

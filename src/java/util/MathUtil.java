@@ -1,6 +1,7 @@
 package util;
 
-import org.joml.Vector3i;
+
+import app.util.Vec3i;
 
 import java.util.Arrays;
 
@@ -15,9 +16,9 @@ public class MathUtil {
         return value < min ? min : value > max ? max : value;
     }
 
-    public static Vector3i sum(Vector3i... vectors) {
-        Vector3i res = new Vector3i();
-        for(var vec : vectors) res.add(vec);
+    public static Vec3i sum(Vec3i... vectors) {
+        Vec3i res = new Vec3i();
+        for(var vec : vectors) res.add(vec, res);
         return res;
     }
 

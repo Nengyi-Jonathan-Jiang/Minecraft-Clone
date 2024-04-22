@@ -1,12 +1,15 @@
 package app.util;
 
-public class ChunkOffset implements Vec3i {
+public class ChunkOffset implements IVec3i {
     private int x;
-    private int y;
     private int z;
 
-    public ChunkOffset(int x, int y, int z) {
-        set(x, y, z);
+    public ChunkOffset() {
+        this(0, 0);
+    }
+
+    public ChunkOffset(int x, int z) {
+        set(x, 0, z);
     }
 
     @Override
@@ -14,9 +17,10 @@ public class ChunkOffset implements Vec3i {
         return x;
     }
 
+    @Deprecated
     @Override
     public int y() {
-        return y;
+        return 0;
     }
 
     @Override
@@ -26,13 +30,16 @@ public class ChunkOffset implements Vec3i {
 
     @Override
     public void set(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.x = x & ~15;
+        this.z = z & ~15;
     }
 
     @Override
     public int hashCode() {
         return defaultHash();
+    }
+
+    public static ChunkOffset fromAbsolutePosition(WorldPosition pos) {
+        return new ChunkOffset(pos.x(), pos.z());
     }
 }
