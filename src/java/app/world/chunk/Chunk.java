@@ -20,7 +20,7 @@ public class Chunk {
         this.chunkPosition = chunkPosition;
         this.world = world;
         data = new int[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
-        lightingData = new LightingData();
+        lightingData = new LightingData(chunkPosition);
     }
 
     public static boolean isInRange(int x, int y, int z) {

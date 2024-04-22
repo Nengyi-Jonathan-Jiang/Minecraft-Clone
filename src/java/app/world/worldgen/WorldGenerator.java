@@ -2,12 +2,16 @@ package app.world.worldgen;
 
 import app.block.Block;
 import app.block.BlockRegistry;
+import app.noise.FastNoiseLiteSimplexNoise;
+import app.noise.INoise;
+import app.noise.JomlSimplexNoise;
 import app.world.World;
 import app.world.chunk.Chunk;
-import org.joml.SimplexNoise;
 import org.joml.Vector2i;
 
 public class WorldGenerator {
+    private final INoise simplexNoise = new FastNoiseLiteSimplexNoise();
+
     public Chunk generateChunk(Vector2i chunkPosition, World world) {
         int chunkOffsetX = chunkPosition.x;
         int chunkOffsetZ = chunkPosition.y;
@@ -46,19 +50,19 @@ public class WorldGenerator {
                 int trueZ = chunkOffsetZ + z;
 
                 for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
-                    float perturbX = SimplexNoise.noise(trueX / 50f, y / 50f, trueZ / 50f);
-                    float perturbY = SimplexNoise.noise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
-                    float perturbZ = SimplexNoise.noise(trueX / 50f + 2.34f, y / 50f + 4.37f, trueZ / 50f + 9.84f);
+                    float perturbX = simplexNoise.getNoise(trueX / 50f, y / 50f, trueZ / 50f);
+                    float perturbY = simplexNoise.getNoise(trueX / 50f + 9.2f, y / 50f - 2.432f, trueZ / 50f + 3.52f);
+                    float perturbZ = simplexNoise.getNoise(trueX / 50f + 2.34f, y / 50f + 4.37f, trueZ / 50f + 9.84f);
 
                     float xx = trueX + perturbX * 30f;
                     float yy = y + perturbY * 30f;
                     float zz = trueZ + perturbZ * 30f;
 
                     float noise =
-                            .25f * SimplexNoise.noise(xx / 20f, zz / 20f)
-                                    + .5f * SimplexNoise.noise(xx / 40f, zz / 40f)
-                                    + 1.f * SimplexNoise.noise(xx / 80f, zz / 80f)
-                                    + 2.f * SimplexNoise.noise(xx / 160f, zz / 160f);
+                            .25f * simplexNoise.getNoise(xx / 20f, zz / 20f)
+                                    + .5f * simplexNoise.getNoise(xx / 40f, zz / 40f)
+                                    + 1.f * simplexNoise.getNoise(xx / 80f, zz / 80f)
+                                    + 2.f * simplexNoise.getNoise(xx / 160f, zz / 160f);
                     float height = noise * 5f + 64f;
 
                     if (yy < height - 3) {

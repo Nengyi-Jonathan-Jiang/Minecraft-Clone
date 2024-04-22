@@ -12,8 +12,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class World {
-    public static int CHUNK_HEIGHT = 256;
-    public static int CHUNK_SIZE = 16;
+    public static final int CHUNK_HEIGHT = 256;
+    public static final int CHUNK_SIZE = 16;
+
+    public static final int BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
+
     private final Map<Vector2i, Chunk> loadedChunks = new HashMap<>();
     private final WorldGenerator worldGenerator;
     private final LightingEngine lightingEngine;
@@ -74,12 +77,16 @@ public class World {
     }
 
     public int getBlockLightAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new Vector3i(x & 15, y, z & 15));
+        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(getPositionInChunk(x, y, z));
+    }
+
+    public static Vector3i getPositionInChunk(int x, int y, int z) {
+        return new Vector3i(x & 15, y, z & 15);
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
         Chunk chunk = getChunkForPosition(x, z);
-        chunk.getLightingData().setBlockLightAt(new Vector3i(x & 15, y, z & 15), level);
+        chunk.getLightingData().setBlockLightAt(getPositionInChunk(x, y, z), level);
         getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
     }
 

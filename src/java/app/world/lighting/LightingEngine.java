@@ -19,6 +19,7 @@ public class LightingEngine {
 
     private final World world;
     private final Set<Vector3iWrapper> dirtyPositions = new HashSet<>();
+    private final Set<Chunk> dirtyChunks = new HashSet<>();
 
     public LightingEngine(World world) {
         this.world = world;
@@ -31,17 +32,21 @@ public class LightingEngine {
 
     public void markPositionAsDirty(Vector3i pos) {
         dirtyPositions.add(new Vector3iWrapper(pos));
+        Chunk chunk = world.getChunkForPosition(pos.x, pos.z);
+        Vector3i chunkPos = World.getPositionInChunk(pos.x, pos.y, pos.z);
+        chunk.getLightingData().markBlockDirty(chunkPos);
+        dirtyChunks.addAll(world.getLoadedNeighbors(chunk));
     }
 
     public boolean needsUpdate() {
-        return !dirtyPositions.isEmpty();
+        return !dirtyChunks.isEmpty();
     }
 
     public void updateLighting() {
-        Set<Chunk> dirtyChunks = computeDirtyChunks();
+        Set<Chunk> dirtyChunks = getDirtyChunks();
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
-        System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
+        System.out.println("Updating " + dirtyChunks.size() + " chunks");
 
         UniqueQueue<Vector3iWrapper> lightingUpdates = new UniqueQueue<>();
         dirtyPositions.forEach(lightingUpdates::offer);
@@ -98,12 +103,7 @@ public class LightingEngine {
         }
     }
 
-    private Set<Chunk> computeDirtyChunks() {
-        // limit lighting updates to within 15 blocks of dirty positions
-        Set<Chunk> dirtyChunks = new HashSet<>();
-        for (Vector3iWrapper pos : dirtyPositions) {
-            dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x, pos.z)));
-        }
+    private Set<Chunk> getDirtyChunks() {
         return dirtyChunks;
     }
 
@@ -112,9 +112,11 @@ public class LightingEngine {
     }
 
     public void invalidateLighting(LightingEngineUpdateParameters parameters) {
+        dirtyChunks.addAll(parameters.chunksToUpdate);
+
         for (Chunk chunk : parameters.chunksToUpdate) {
-            for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
-                for (int x = 0; x < World.CHUNK_SIZE; x++) {
+            for (int x = 0; x < World.CHUNK_SIZE; x++) {
+                for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
                     for (int z = 0; z < World.CHUNK_SIZE; z++) {
                         int trueX = x + chunk.getChunkPosition().x;
                         //noinspection UnnecessaryLocalVariable
