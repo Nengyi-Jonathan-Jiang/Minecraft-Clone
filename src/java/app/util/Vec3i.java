@@ -37,4 +37,14 @@ public class Vec3i implements IVec3i {
     public int hashCode() {
         return defaultHash();
     }
+
+    @Override
+    public String toString() {
+        return defaultToString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return defaultEquals(obj);
+    }
 }

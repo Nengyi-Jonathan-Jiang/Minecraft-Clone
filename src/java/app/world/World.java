@@ -15,6 +15,9 @@ import java.util.stream.Stream;
 public class World {
     public static int CHUNK_HEIGHT = 256;
     public static int CHUNK_SIZE = 16;
+
+    public static int BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
+
     private final Map<ChunkOffset, Chunk> loadedChunks = new HashMap<>();
     private final WorldGenerator worldGenerator;
     private final LightingEngine lightingEngine;
@@ -24,68 +27,58 @@ public class World {
         lightingEngine = new LightingEngine(this);
     }
 
-    public static ChunkOffset getChunkOffset(int x, int z) {
-        return new ChunkOffset(x, z);
+    public Chunk getOrLoadChunk(int x, int z) {
+        return getOrLoadChunk(new ChunkOffset(x, z));
     }
 
-    public Chunk getChunkForPosition(int x, int z) {
-        ChunkOffset chunkPos = getChunkOffset(x, z);
-        return getChunk(chunkPos.x(), chunkPos.z());
-    }
-
-    public void loadChunkAtPosition(int x, int z) {
-        getOrLoadChunk(getChunkOffset(x, z));
-    }
-
-    private Chunk getChunk(int chunkX, int chunkZ) {
-        ChunkOffset chunkPosition = new ChunkOffset(chunkX, chunkZ);
-        return getOrLoadChunk(chunkPosition);
+    public Chunk getOrLoadChunk(WorldPosition position) {
+        return getOrLoadChunk(position.x(), position.z());
     }
 
     private Chunk getOrLoadChunk(ChunkOffset chunkPosition) {
-        return loadedChunks.computeIfAbsent(chunkPosition, (__) ->
-            worldGenerator.generateChunk(chunkPosition, this)
+        return loadedChunks.computeIfAbsent(chunkPosition, (pos) ->
+            worldGenerator.generateChunk(pos, this)
         );
     }
 
     public void invalidateLightingForAllVisibleChunks() {
-        lightingEngine.invalidateLighting(new LightingEngineUpdateParameters(getVisibleChunks()));
+        lightingEngine.invalidateLighting(new LightingEngineUpdateParameters(getLoadedChunks()));
     }
 
-    public void recalculateLighting() {
+    public void updateLighting() {
         lightingEngine.updateLighting();
     }
 
-    public Collection<Chunk> getVisibleChunks() {
+    public Collection<Chunk> getLoadedChunks() {
         return loadedChunks.values().stream().toList();
     }
 
     public boolean isBlockLoaded(int x, int y, int z) {
-        return loadedChunks.containsKey(getChunkOffset(x, z)) && y >= 0 && y < CHUNK_HEIGHT;
+        return Chunk.isYInRange(y) && loadedChunks.containsKey(new ChunkOffset(x, z));
     }
 
     public int getBlockIDAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getBlockIDAt(x & 15, y, z & 15);
+        return getOrLoadChunk(x, z).getBlockIDAt(x & 15, y, z & 15);
     }
 
     public void setBlockIDAt(int x, int y, int z, int id) {
-        getChunkForPosition(x, z).setBlockAt(x & 15, y, z & 15, id);
+        getOrLoadChunk(x, z).setBlockAt(x & 15, y, z & 15, id);
         lightingEngine.markPositionAsDirty(new WorldPosition(x, y, z));
     }
 
     public int getBlockLightAt(int x, int y, int z) {
-        return getChunkForPosition(x, z).getLightingData().getBlockLightAt(new PositionInChunk(x, y, z));
+        return getOrLoadChunk(x, z).getLightingData().getBlockLightAt(new PositionInChunk(x, y, z));
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
-        Chunk chunk = getChunkForPosition(x, z);
+        Chunk chunk = getOrLoadChunk(x, z);
         chunk.getLightingData().setBlockLightAt(new PositionInChunk(x, y, z), level);
         getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
     }
 
     public Collection<Chunk> getLoadedNeighbors(Chunk chunk) {
-        ChunkOffset chunkPos = chunk.getChunkOffset();
-        return getLoadedNeighbors(chunkPos);
+        ChunkOffset chunkOffset = chunk.getChunkOffset();
+        return getLoadedNeighbors(chunkOffset);
     }
 
     public Collection<Chunk> getLoadedNeighbors(ChunkOffset chunkPos) {

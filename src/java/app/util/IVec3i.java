@@ -16,6 +16,11 @@ public interface IVec3i extends Comparable<IVec3i> {
         return new Vector3f(x(), y(), z());
     }
 
+    static <T extends IVec3i> T fromVector3f(Vector3f v, T dest) {
+        dest.set((int)v.x(), (int)v.y(), (int)v.z());
+        return dest;
+    }
+
     default <T extends IVec3i> T add(int x, int y, int z, T dest) {
         dest.set(x() + x, y() + y, z() + z);
         return dest;
@@ -61,6 +66,10 @@ public interface IVec3i extends Comparable<IVec3i> {
         return result;
     }
 
+    default String defaultToString() {
+        return "(" + x() + ", " + y() + ", " + z() + ")";
+    }
+
     @Override
     default int compareTo(IVec3i other) {
         int x1 = x(), x2 = other.x();
@@ -69,5 +78,9 @@ public interface IVec3i extends Comparable<IVec3i> {
         if(y1 != y2) return Integer.compare(y1, y2);
         int z1 = z(), z2 = other.z();
         return Integer.compare(z1, z2);
+    }
+
+    default boolean defaultEquals(Object other) {
+        return other instanceof IVec3i v && v.x() == x() && v.y() == y() && v.z() == z();
     }
 }

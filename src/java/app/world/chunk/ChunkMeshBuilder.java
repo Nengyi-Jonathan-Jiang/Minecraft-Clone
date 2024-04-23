@@ -51,52 +51,46 @@ public class ChunkMeshBuilder {
 
         int currIndex = 0;
 
-        for (int x = 0; x < World.CHUNK_SIZE; x++) {
-            for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
-                for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                    int blockID = chunk.data[x][y][z];
+        for(PositionInChunk pos : Chunk.allPositionsInChunk()) {
+            int blockID = chunk.getBlockIDAt(pos);
 
-                    // Don't generate a mesh for air blocks
-                    if (blockID == 0) continue;
+            // Don't generate a mesh for air blocks
+            if (blockID == 0) continue;
 
-                    PositionInChunk pos = new PositionInChunk(x, y, z);
+            Block block = BlockRegistry.getBlock(blockID);
 
-                    Block block = BlockRegistry.getBlock(blockID);
+            BlockModel blockModel = block.getModel();
+            Vector2i texOffset = block.getTexOffset();
 
-                    BlockModel blockModel = block.getModel();
-                    Vector2i texOffset = block.getTexOffset();
+            boolean hasVisibleFace = false;
 
-                    boolean hasVisibleFace = false;
+            LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
+                    pos.add(new WorldPosition(
+                            chunk.getChunkOffset().x(),
+                            0,
+                            chunk.getChunkOffset().z()
+                    ), new WorldPosition())
+            );
 
-                    LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
-                            pos.add(new WorldPosition(
-                                    chunk.getChunkOffset().x(),
-                                    0,
-                                    chunk.getChunkOffset().z()
-                            ), new WorldPosition())
-                    );
-
-                    for (FaceDirection direction : FaceDirection.OUTER_FACES) {
-                        WorldPosition newPos = pos.add(direction.direction, new WorldPosition());
-                        if (shouldShowFace(newPos.x(), newPos.y(), newPos.z(), blockID, chunk.data)) {
-                            hasVisibleFace = true;
-                            currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
-                        }
-                    }
-
-                    if (hasVisibleFace) {
-                        currIndex += addFace(currIndex, texOffset, pos, blockModel, FaceDirection.INNER, aoData);
-                    }
+            for (FaceDirection direction : FaceDirection.OUTER_FACES) {
+                WorldPosition newPos = pos.add(direction.direction, new WorldPosition());
+                if (shouldShowFace(newPos.x(), newPos.y(), newPos.z(), blockID, chunk.data)) {
+                    hasVisibleFace = true;
+                    currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
                 }
             }
+
+            if (hasVisibleFace) {
+                currIndex += addFace(currIndex, texOffset, pos, blockModel, FaceDirection.INNER, aoData);
+            }
         }
+
+        System.out.println("Regenerated chunk mesh at " + chunk.getChunkOffset() + ": " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
 
         return toMesh();
     }
 
     private Mesh toMesh() {
-        System.out.println("Created mesh with " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
-
         int[] indexData = ArrayUtil.unbox(this.indices.get(Integer[]::new));
         MeshAttributeData positionData = MeshAttributeData.create(3, ArrayUtil.unbox(positions.get(Float[]::new)));
         MeshAttributeData uvData = MeshAttributeData.create(2, ArrayUtil.unbox(uvs.get(Float[]::new)));

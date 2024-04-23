@@ -19,6 +19,7 @@ public class LightingEngine {
 
     private final World world;
     private final Set<WorldPosition> dirtyPositions = new HashSet<>();
+    private final Set<Chunk> dirtyChunks = new HashSet<>();
 
     public LightingEngine(World world) {
         this.world = world;
@@ -31,6 +32,7 @@ public class LightingEngine {
 
     public void markPositionAsDirty(WorldPosition pos) {
         dirtyPositions.add(pos);
+        dirtyChunks.addAll(world.getLoadedNeighbors(world.getOrLoadChunk(pos)));
     }
 
     public boolean needsUpdate() {
@@ -38,9 +40,7 @@ public class LightingEngine {
     }
 
     public void updateLighting() {
-        System.out.println("Updating lighting");
-
-        Set<Chunk> dirtyChunks = computeDirtyChunks();
+        if(!needsUpdate()) return;
 
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
@@ -51,7 +51,7 @@ public class LightingEngine {
 
         //While update queue is not empty
         long lightingStep;
-        long maxLightingUpdates = (long) dirtyChunks.size() * World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT * 6;
+        long maxLightingUpdates = (long) dirtyChunks.size() * World.BLOCKS_PER_CHUNK * 6;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
             updateLightingStep(lightingUpdates, parameters);
         }
@@ -62,6 +62,7 @@ public class LightingEngine {
         System.out.println("Updated lighting in " + lightingStep + " steps");
 
         dirtyPositions.clear();
+        dirtyChunks.clear();
     }
 
     private void updateLightingStep(UniqueQueue<WorldPosition> lightingUpdates, LightingEngineUpdateParameters parameters) {
@@ -101,34 +102,32 @@ public class LightingEngine {
         }
     }
 
-    private Set<Chunk> computeDirtyChunks() {
-        // limit lighting updates to within 15 blocks of dirty positions
-        Set<Chunk> dirtyChunks = new HashSet<>();
-        for (WorldPosition pos : dirtyPositions) {
-            dirtyChunks.addAll(world.getLoadedNeighbors(world.getChunkForPosition(pos.x(), pos.z())));
-        }
-        return dirtyChunks;
-    }
-
     public AOData getAOData(WorldPosition pos) {
         return new AOData(pos);
     }
 
     public void invalidateLighting(LightingEngineUpdateParameters parameters) {
+        System.out.println("Invalidating lighting for " + parameters.chunksToUpdate.size() + " chunks");
         for (Chunk chunk : parameters.chunksToUpdate) {
+            Collection<Chunk> loadedNeighbors = world.getLoadedNeighbors(chunk);
+            System.out.println("Chunk at " + chunk.getChunkOffset() + "has " + loadedNeighbors.size() + " loaded neighbors");
+
+            dirtyChunks.addAll(loadedNeighbors);
+
             for (int y = World.CHUNK_HEIGHT - 1; y >= 0; y--) {
                 for (int x = 0; x < World.CHUNK_SIZE; x++) {
                     for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                        int trueX = x + chunk.getChunkOffset().x();
-                        //noinspection UnnecessaryLocalVariable
-                        int trueY = y;
-                        int trueZ = z + chunk.getChunkOffset().z();
+                        WorldPosition pos = chunk.getChunkOffset().add(x, y, z, new WorldPosition());
 
-                        dirtyPositions.add(new WorldPosition(trueX, trueY, trueZ));
+//                        System.out.println(pos);
+
+                        dirtyPositions.add(pos);
                     }
                 }
             }
         }
+
+        System.out.println(dirtyChunks.size() + " dirty chunks");
     }
 
     public int getBlockLightAt(WorldPosition pos, LightingEngineUpdateParameters chunks) {

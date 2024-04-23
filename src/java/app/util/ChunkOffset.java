@@ -42,4 +42,14 @@ public class ChunkOffset implements IVec3i {
     public static ChunkOffset fromAbsolutePosition(WorldPosition pos) {
         return new ChunkOffset(pos.x(), pos.z());
     }
+
+    @Override
+    public String toString() {
+        return "ChunkOffset" + defaultToString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return defaultEquals(obj);
+    }
 }

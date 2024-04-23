@@ -8,4 +8,9 @@ public class WorldPosition extends Vec3i {
     public WorldPosition() {
         super();
     }
+
+    @Override
+    public String toString() {
+        return "WorldPosition" + super.toString();
+    }
 }

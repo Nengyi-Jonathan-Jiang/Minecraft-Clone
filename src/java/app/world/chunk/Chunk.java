@@ -8,6 +8,8 @@ import app.world.World;
 import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
 
+import java.util.Iterator;
+
 public class Chunk {
     public final World world;
     final int[][][] data;
@@ -16,6 +18,24 @@ public class Chunk {
     private final ChunkOffset chunkOffset;
     private boolean shouldRebuildMesh = true;
     private Mesh mesh = new Mesh(new int[0]);
+
+    public static Iterable<PositionInChunk> allPositionsInChunk() {
+        return () -> new Iterator<>() {
+            PositionInChunk current = new PositionInChunk(0);
+
+            @Override
+            public boolean hasNext() {
+                return current.getBits() != 0x10000;
+            }
+
+            @Override
+            public PositionInChunk next() {
+                PositionInChunk res = new PositionInChunk(current.getBits());
+                current = new PositionInChunk(current.getBits() + 1);
+                return res;
+            }
+        };
+    }
 
     public Chunk(ChunkOffset chunkOffset, World world) {
         this.chunkOffset = chunkOffset;
@@ -79,5 +99,12 @@ public class Chunk {
 
     public LightingData getLightingData() {
         return lightingData;
+    }
+
+    @Override
+    public String toString() {
+        return "Chunk{" +
+            "chunkOffset=" + chunkOffset +
+        '}';
     }
 }

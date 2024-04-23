@@ -7,6 +7,10 @@ public class PositionInChunk implements IVec3i {
         set(x, y, z);
     }
 
+    public PositionInChunk(int bits) {
+        this.bits = bits;
+    }
+
     @Override
     public int x() {
         return bits & 15;
@@ -31,6 +35,10 @@ public class PositionInChunk implements IVec3i {
         return chunkOffset.add(this, new WorldPosition());
     }
 
+    public int getBits() {
+        return bits;
+    }
+
     @Override
     public int hashCode() {
         return bits;
@@ -42,5 +50,18 @@ public class PositionInChunk implements IVec3i {
             return bits - pos.bits;
         }
         return IVec3i.super.compareTo(other);
+    }
+
+    @Override
+    public String toString() {
+        return "PositionInChunk" + defaultToString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof PositionInChunk pos) {
+            return bits == pos.bits;
+        }
+        return defaultEquals(obj);
     }
 }
