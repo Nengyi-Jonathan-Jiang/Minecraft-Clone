@@ -3,6 +3,7 @@ package app.world.lighting;
 import app.util.ChunkOffset;
 import app.util.PositionInChunk;
 import app.world.World;
+import app.world.chunk.Chunk;
 import util.MathUtil;
 
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class LightingData {
     }
 
     public int getBlockLightAt(PositionInChunk pos) {
-        if (pos.y() >= World.CHUNK_HEIGHT) return 15;
+        if (!Chunk.isYInRange(pos.y())) return 15;
 
         int x = MathUtil.clamp(pos.x(), 0, World.CHUNK_SIZE - 1);
         int y = MathUtil.clamp(pos.y(), 0, World.CHUNK_HEIGHT - 1);
@@ -33,5 +34,4 @@ public class LightingData {
     public void setBlockLightAt(PositionInChunk pos, int level) {
         blockLight[pos.x()][pos.y()][pos.z()] = level;
     }
-
 }

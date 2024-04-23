@@ -4,10 +4,12 @@ import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
 import app.player.Player;
 import app.util.ChunkOffset;
+import app.util.IVec3i;
 import app.util.WorldPosition;
 import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
@@ -19,6 +21,7 @@ import j3d.scene.Projection;
 import org.joml.*;
 
 import java.lang.Math;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -216,12 +219,14 @@ public class App implements IAppLogic {
 
     @Override
     public void update(Window window, long deltaTime) {
-//        if(!world.isBlockLoaded((int) player.getPosition().x, 0, (int)player.getPosition().z)) {
-//            world.loadChunkAtPosition((int) player.getPosition().x, (int) player.getPosition().z);
-//            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(world.getChunkForPosition(
-//                    IVec3i.fromVector3f(player.getPosition(), new WorldPosition())
-//            ))));
-//        }
+        if(!world.isBlockLoaded((int) player.getPosition().x, 0, (int)player.getPosition().z)) {
+            WorldPosition position = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
+
+            world.getOrLoadChunk(position);
+            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(world.getOrLoadChunk(
+                    position
+            ))));
+        }
     }
 
     @Override

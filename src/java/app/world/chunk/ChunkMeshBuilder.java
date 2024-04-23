@@ -10,7 +10,7 @@ import app.block.model.PartialMeshVertex;
 import app.util.PositionInChunk;
 import app.util.WorldPosition;
 import app.world.World;
-import app.world.lighting.LightingEngine;
+import app.world.lighting.AOData;
 import j3d.graph.Mesh;
 import j3d.graph.Mesh.MeshAttributeData;
 import org.joml.Vector2f;
@@ -64,7 +64,7 @@ public class ChunkMeshBuilder {
 
             boolean hasVisibleFace = false;
 
-            LightingEngine.AOData aoData = world.getLightingEngine().getAOData(
+            AOData aoData = world.getLightingEngine().getAOData(
                     pos.add(new WorldPosition(
                             chunk.getChunkOffset().x(),
                             0,
@@ -111,7 +111,7 @@ public class ChunkMeshBuilder {
                 aoInterpolationData);
     }
 
-    private int addFace(int currIndex, Vector2i texOffset, PositionInChunk chunkPosition, BlockModel model, FaceDirection direction, LightingEngine.AOData aoData) {
+    private int addFace(int currIndex, Vector2i texOffset, PositionInChunk chunkPosition, BlockModel model, FaceDirection direction, AOData aoData) {
         PartialMesh face = model.getFace(direction);
 
         PartialMeshVertex[] vertices = face.vertices();

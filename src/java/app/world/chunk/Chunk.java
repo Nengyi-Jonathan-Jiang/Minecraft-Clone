@@ -45,11 +45,19 @@ public class Chunk {
     }
 
     public static boolean isYInRange(int y) {
-        return y >= 0 && y < World.CHUNK_SIZE;
+        return y >= 0 && y < World.CHUNK_HEIGHT;
+    }
+
+    private static boolean isXInRange(int x) {
+        return x >= 0 && x < World.CHUNK_SIZE;
+    }
+
+    private static boolean isZInRange(int z) {
+        return z >= 0 && z < World.CHUNK_SIZE;
     }
 
     public static boolean isInRange(int x, int y, int z) {
-        return x >= 0 && y >= 0 && z >= 0 && x < World.CHUNK_SIZE && isYInRange(y);
+        return isXInRange(x) && isYInRange(y) && isZInRange(z);
     }
 
     private void rebuildMesh() {

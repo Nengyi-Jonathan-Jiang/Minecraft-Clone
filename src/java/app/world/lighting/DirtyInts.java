@@ -5,23 +5,38 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class LimitedIntSet implements Set<Integer> {
+public class DirtyInts implements Set<Integer> {
     private final int[] nextValue;
     private int lastValue;
     private final int capacity;
-    private int size;
+    private int count;
 
     private static final int EMPTY_VALUE = -2;
     private static final int NO_NEXT_VALUE = -1;
 
-    public LimitedIntSet(int capacity) {
+    public DirtyInts(int capacity) {
         this.capacity = capacity;
 
         this.nextValue = new int[capacity + 1];
         clear();
     }
 
-    public void setAll() {
+    public boolean isDirty(int i) {
+        return nextValue[i] != EMPTY_VALUE;
+    }
+
+    public boolean markDirty(int i) {
+        if(nextValue[i] != EMPTY_VALUE) return false;
+
+        this.nextValue[this.lastValue] = i;
+
+        this.nextValue[this.lastValue = i] = NO_NEXT_VALUE;
+        this.count++;
+
+        return true;
+    }
+
+    public void markAllDirty() {
         nextValue[capacity] = 0;
         for(int i = 0; i < capacity-  1; i++) {
             nextValue[i] = i + 1;
@@ -29,21 +44,32 @@ public class LimitedIntSet implements Set<Integer> {
         nextValue[capacity - 1] = NO_NEXT_VALUE;
     }
 
+    public int count() {
+        return count;
+    }
+
     @Override
-    public int size() {
-        return size;
+    public void clear() {
+        Arrays.fill(nextValue, EMPTY_VALUE);
+        this.nextValue[capacity] = NO_NEXT_VALUE;
+        this.lastValue = capacity;
+        this.count = 0;
     }
 
     @Override
     public boolean isEmpty() {
-        return size == 0;
+        return count == 0;
+    }
+
+    @Override
+    public int size() {
+        return count();
     }
 
     @Override
     public boolean contains(Object o) {
         if (o instanceof Integer) {
-            int i = (int) o;
-            return nextValue[i] != EMPTY_VALUE;
+            return isDirty((int) o);
         }
         return false;
     }
@@ -79,14 +105,7 @@ public class LimitedIntSet implements Set<Integer> {
 
     @Override
     public boolean add(Integer i) {
-        if(nextValue[i] != EMPTY_VALUE) return false;
-
-        this.nextValue[this.lastValue] = i;
-
-        this.nextValue[this.lastValue = i] = NO_NEXT_VALUE;
-        this.size++;
-
-        return true;
+        return markDirty(i);
     }
 
     @Override
@@ -119,14 +138,6 @@ public class LimitedIntSet implements Set<Integer> {
     @Override
     public boolean removeAll(Collection<?> c) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        Arrays.fill(nextValue, EMPTY_VALUE);
-        this.nextValue[capacity] = NO_NEXT_VALUE;
-        this.lastValue = capacity;
-        this.size = 0;
     }
 
     public String toString() {

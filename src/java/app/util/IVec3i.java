@@ -81,6 +81,9 @@ public interface IVec3i extends Comparable<IVec3i> {
     }
 
     default boolean defaultEquals(Object other) {
-        return other instanceof IVec3i v && v.x() == x() && v.y() == y() && v.z() == z();
+        if (other instanceof IVec3i v) {
+            return v.x() == x() && v.y() == y() && v.z() == z();
+        }
+        return false;
     }
 }

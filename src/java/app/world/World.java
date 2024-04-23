@@ -57,6 +57,10 @@ public class World {
         return Chunk.isYInRange(y) && loadedChunks.containsKey(new ChunkOffset(x, z));
     }
 
+    public boolean isBlockLoaded(WorldPosition pos) {
+        return isBlockLoaded(pos.x(), pos.y(), pos.z());
+    }
+
     public int getBlockIDAt(int x, int y, int z) {
         return getOrLoadChunk(x, z).getBlockIDAt(x & 15, y, z & 15);
     }
@@ -71,9 +75,16 @@ public class World {
     }
 
     public void setBlockLightAt(int x, int y, int z, int level) {
+        setBlockLightAt(x, y, z, level, true);
+    }
+
+    public void setBlockLightAt(int x, int y, int z, int level, boolean markMeshesAsDirty) {
         Chunk chunk = getOrLoadChunk(x, z);
         chunk.getLightingData().setBlockLightAt(new PositionInChunk(x, y, z), level);
-        getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
+
+        if(markMeshesAsDirty) {
+            getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
+        }
     }
 
     public Collection<Chunk> getLoadedNeighbors(Chunk chunk) {
