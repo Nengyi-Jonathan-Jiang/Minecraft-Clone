@@ -3,17 +3,11 @@ package j3d.scene;
 import org.joml.*;
 
 public class Camera {
-    private final Vector3f direction;
     private final Vector3f position;
-    private final Vector3f right;
     private final Vector2f rotation;
-    private final Vector3f up;
     private final Matrix4f viewMatrix;
 
     public Camera() {
-        direction = new Vector3f();
-        right = new Vector3f();
-        up = new Vector3f();
         position = new Vector3f();
         viewMatrix = new Matrix4f();
         rotation = new Vector2f();
@@ -34,42 +28,6 @@ public class Camera {
 
     public void move(Vector3f movement) {
         position.add(movement);
-        recalculate();
-    }
-
-    public void moveBackwards(float inc) {
-        viewMatrix.positiveZ(direction).negate().mul(inc);
-        position.sub(direction);
-        recalculate();
-    }
-
-    public void moveDown(float inc) {
-        viewMatrix.positiveY(up).mul(inc);
-        position.sub(up);
-        recalculate();
-    }
-
-    public void moveForward(float inc) {
-        viewMatrix.positiveZ(direction).negate().mul(inc);
-        position.add(direction);
-        recalculate();
-    }
-
-    public void moveLeft(float inc) {
-        viewMatrix.positiveX(right).mul(inc);
-        position.sub(right);
-        recalculate();
-    }
-
-    public void moveRight(float inc) {
-        viewMatrix.positiveX(right).mul(inc);
-        position.add(right);
-        recalculate();
-    }
-
-    public void moveUp(float inc) {
-        viewMatrix.positiveY(up).mul(inc);
-        position.add(up);
         recalculate();
     }
 
