@@ -1,7 +1,6 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
-import app.util.IVec3i;
 import app.util.Vec3i;
 import app.util.WorldPosition;
 import app.world.World;
@@ -13,7 +12,7 @@ import util.UniqueQueue;
 
 import java.util.*;
 
-import static util.MathUtil.sum;
+import static util.MathUtil.addAll;
 
 public class LightingEngine {
     private static final boolean useAO = true;
@@ -39,7 +38,10 @@ public class LightingEngine {
     }
 
     public void updateLighting() {
+        System.out.println("Updating lighting");
+
         Set<Chunk> dirtyChunks = computeDirtyChunks();
+
         LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
 
         System.out.println("Updating " + dirtyPositions.size() + " dirty blocks in " + dirtyChunks.size() + " chunks");
@@ -175,16 +177,16 @@ public class LightingEngine {
             if (!useAO) return new Vector4f(baseBlockLight * lightMultiplier / 15f);
 
             // Light levels for corners
-            int l_xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1, faceDirection.t2), baseBlockLight);
-            int l_Xy = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1, faceDirection.t2), baseBlockLight);
-            int l_xY = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1, faceDirection.T2), baseBlockLight);
-            int l_XY = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1, faceDirection.T2), baseBlockLight);
+            int l_xy = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.t1, faceDirection.t2), baseBlockLight);
+            int l_Xy = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.T1, faceDirection.t2), baseBlockLight);
+            int l_xY = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.t1, faceDirection.T2), baseBlockLight);
+            int l_XY = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.T1, faceDirection.T2), baseBlockLight);
 
             // Light levels for edges
-            int l_x = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t1), baseBlockLight);
-            int l_y = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.t2), baseBlockLight);
-            int l_X = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T1), baseBlockLight);
-            int l_Y = getLightAtIfLoadedOrDefault(sum(adjacentPos, faceDirection.T2), baseBlockLight);
+            int l_x = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.t1), baseBlockLight);
+            int l_y = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.t2), baseBlockLight);
+            int l_X = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.T1), baseBlockLight);
+            int l_Y = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.T2), baseBlockLight);
 
             return new Vector4f(
                     calculateWeightedAOValue(
@@ -204,11 +206,12 @@ public class LightingEngine {
 
         public Vector2f getInterpolatorForPoint(Vector3f point, FaceDirection faceDirection) {
             // Get rid of the component in the direction of the face normal
-            var mask = new Vector3f(faceDirection.direction).absolute().sub(1, 1, 1).absolute();
+            var mask = faceDirection.direction.toVector3f().absolute().sub(1, 1, 1).absolute();
+
             var flattenedPoint = mask.mul(point);
 
-            float x = flattenedPoint.dot(new Vector3f(faceDirection.T1));
-            float y = flattenedPoint.dot(new Vector3f(faceDirection.T2));
+            float x = flattenedPoint.dot(faceDirection.T1.toVector3f());
+            float y = flattenedPoint.dot(faceDirection.T1.toVector3f());
 
             return new Vector2f(x, y);
         }

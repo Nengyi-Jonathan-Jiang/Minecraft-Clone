@@ -1,6 +1,6 @@
 package app.util;
 
-import util.Vector3iWrapper;
+import org.joml.Vector3f;
 
 public interface IVec3i extends Comparable<IVec3i> {
     int x();
@@ -10,6 +10,10 @@ public interface IVec3i extends Comparable<IVec3i> {
 
     interface ComponentWiseFunction {
         int apply(int component);
+    }
+
+    default Vector3f toVector3f() {
+        return new Vector3f(x(), y(), z());
     }
 
     default <T extends IVec3i> T add(int x, int y, int z, T dest) {

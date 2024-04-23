@@ -132,20 +132,20 @@ public class App implements IAppLogic {
                         var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
                             pos = cast.next();
-                            if (!world.isBlockLoaded(pos.x, pos.y, pos.z) ||
-                                    player.getPosition().distance(new Vector3f(pos)) > 10
+                            if (!world.isBlockLoaded(pos.x(), pos.y(), pos.z()) ||
+                                    player.getPosition().distance(pos.toVector3f()) > 10
                             ) {
                                 pos = null;
                                 break;
                             }
-                            if (world.getBlockIDAt(pos.x, pos.y, pos.z) != 0) {
+                            if (world.getBlockIDAt(pos.x(), pos.y(), pos.z()) != 0) {
                                 break;
                             }
                         }
                     }
 
                     if (pos != null) {
-                        world.setBlockIDAt(pos.x, pos.y, pos.z, 0);
+                        world.setBlockIDAt(pos.x(), pos.y(), pos.z(), 0);
                     }
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                     WorldPosition pos = null;
@@ -153,13 +153,13 @@ public class App implements IAppLogic {
                         var cast = new CubeRaycaster().cast(player.getCamera());
                         for (int i = 0; i < 100; i++) {
                             var n = cast.next();
-                            if (!world.isBlockLoaded(n.x, n.y, n.z) ||
-                                    player.getPosition().distance(new Vector3f(n)) > 10
+                            if (!world.isBlockLoaded(n.x(), n.y(), n.z()) ||
+                                    player.getPosition().distance(n.toVector3f()) > 10
                             ) {
                                 pos = null;
                                 break;
                             }
-                            if (world.getBlockIDAt(n.x, n.y, n.z) != 0) {
+                            if (world.getBlockIDAt(n.x(), n.y(), n.z()) != 0) {
                                 break;
                             }
                             pos = n;
@@ -167,7 +167,7 @@ public class App implements IAppLogic {
                     }
 
                     if (pos != null) {
-                        world.setBlockIDAt(pos.x, pos.y, pos.z, BlockRegistry.getBlockID("iron_ore"));
+                        world.setBlockIDAt(pos.x(), pos.y(), pos.z(), BlockRegistry.getBlockID("iron_ore"));
                     }
                 }
             }
@@ -288,12 +288,12 @@ public class App implements IAppLogic {
             var cast = new CubeRaycaster().cast(player.getCamera());
             for (int i = 0; i < 100; i++) {
                 var castPos = cast.next();
-                pos = new Vector3f(castPos);
-                if (!world.isBlockLoaded(castPos.x, castPos.y, castPos.z) || player.getPosition().distance(pos) > 10) {
+                pos = castPos.toVector3f();
+                if (!world.isBlockLoaded(castPos.x(), castPos.y(), castPos.z()) || player.getPosition().distance(pos) > 10) {
                     pos = null;
                     break;
                 }
-                if (world.getBlockIDAt(castPos.x, castPos.y, castPos.z) != 0) {
+                if (world.getBlockIDAt(castPos.x(), castPos.y(), castPos.z()) != 0) {
                     break;
                 }
             }

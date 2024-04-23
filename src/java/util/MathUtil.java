@@ -1,6 +1,7 @@
 package util;
 
 
+import app.util.IVec3i;
 import app.util.Vec3i;
 
 import java.util.Arrays;
@@ -16,10 +17,9 @@ public class MathUtil {
         return value < min ? min : value > max ? max : value;
     }
 
-    public static Vec3i sum(Vec3i... vectors) {
-        Vec3i res = new Vec3i();
-        for(var vec : vectors) res.add(vec, res);
-        return res;
+    public static <T extends IVec3i> T addAll(T dest, Vec3i... vectors) {
+        for(var vec : vectors) dest.add(vec, dest);
+        return dest;
     }
 
     public static float min(double... x) {

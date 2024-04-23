@@ -34,19 +34,18 @@ public class World {
     }
 
     public void loadChunkAtPosition(int x, int z) {
-        loadChunk(getChunkOffset(x, z));
+        getOrLoadChunk(getChunkOffset(x, z));
     }
 
     private Chunk getChunk(int chunkX, int chunkZ) {
         ChunkOffset chunkPosition = new ChunkOffset(chunkX, chunkZ);
-        return loadedChunks.get(chunkPosition);
+        return getOrLoadChunk(chunkPosition);
     }
 
-    private void loadChunk(ChunkOffset chunkPosition) {
-        if (!loadedChunks.containsKey(chunkPosition)) {
-            Chunk chunk = worldGenerator.generateChunk(chunkPosition, this);
-            loadedChunks.put(chunkPosition, chunk);
-        }
+    private Chunk getOrLoadChunk(ChunkOffset chunkPosition) {
+        return loadedChunks.computeIfAbsent(chunkPosition, (__) ->
+            worldGenerator.generateChunk(chunkPosition, this)
+        );
     }
 
     public void invalidateLightingForAllVisibleChunks() {
