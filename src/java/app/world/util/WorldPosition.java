@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 public class WorldPosition extends Vec3i {
     public WorldPosition(int x, int y, int z) {

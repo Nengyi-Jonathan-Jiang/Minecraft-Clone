@@ -1,7 +1,6 @@
 package app.world;
 
-import app.util.Vec3i;
-import app.util.WorldPosition;
+import app.world.util.WorldPosition;
 import j3d.scene.Camera;
 import org.joml.Vector2f;
 import org.joml.Vector3f;

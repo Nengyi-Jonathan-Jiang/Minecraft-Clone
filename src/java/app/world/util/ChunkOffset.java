@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 public class ChunkOffset implements IVec3i {
     private int x;

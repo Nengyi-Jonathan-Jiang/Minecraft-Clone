@@ -1,7 +1,7 @@
 package app.world.lighting;
 
-import app.util.ChunkOffset;
-import app.util.PositionInChunk;
+import app.world.util.ChunkOffset;
+import app.world.util.PositionInChunk;
 import app.world.World;
 import app.world.chunk.Chunk;
 import util.MathUtil;

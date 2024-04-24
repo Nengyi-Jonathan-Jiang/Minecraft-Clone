@@ -10,10 +10,10 @@ uniform sampler2D txtSampler;
 
 
 float lerp(float a, float b, float t) {
-    return (a + b) / 2 + (b - a) * t;
+    return (a + b) / 2 + (b - a) * (2 * t * (0.75 - t * t));
 }
 
-const bool whiteWorld = false;
+const bool whiteWorld = true;
 
 void main()
 {

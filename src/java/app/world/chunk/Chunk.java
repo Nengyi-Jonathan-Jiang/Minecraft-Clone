@@ -2,8 +2,8 @@ package app.world.chunk;
 
 import app.block.Block;
 import app.block.BlockRegistry;
-import app.util.ChunkOffset;
-import app.util.PositionInChunk;
+import app.world.util.ChunkOffset;
+import app.world.util.PositionInChunk;
 import app.world.World;
 import app.world.lighting.LightingData;
 import j3d.graph.Mesh;

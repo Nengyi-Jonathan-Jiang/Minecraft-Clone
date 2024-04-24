@@ -1,7 +1,7 @@
 package app.block.model;
 
 
-import app.util.Vec3i;
+import app.world.util.Vec3i;
 
 public record BlockModel(
         PartialMesh top, PartialMesh front, PartialMesh right,

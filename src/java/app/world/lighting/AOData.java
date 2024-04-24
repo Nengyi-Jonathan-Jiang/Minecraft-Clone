@@ -1,7 +1,7 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel;
-import app.util.WorldPosition;
+import app.world.util.WorldPosition;
 import app.world.World;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -77,9 +77,9 @@ public class AOData {
     }
 
     private float calculateWeightedAOValue(float current, float side1, float side2, float corner) {
-        return (current + side1 + side2 + corner) / 4f;
-//        return (float) Math.pow(
-//            current * current + side1 * side1 + side2 * side2 + corner * corner, 0.5f
-//        ) / 2;
+//        return (current + side1 + side2 + corner) / 4f;
+        return (float) Math.sqrt(
+            current * current + side1 * side1 + side2 * side2 + corner * corner
+        ) / 2;
     }
 }

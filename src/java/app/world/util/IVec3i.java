@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 import org.joml.Vector3f;
 

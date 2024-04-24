@@ -1,9 +1,9 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
-import app.util.PositionInChunk;
-import app.util.Vec3i;
-import app.util.WorldPosition;
+import app.world.util.PositionInChunk;
+import app.world.util.Vec3i;
+import app.world.util.WorldPosition;
 import app.world.World;
 import app.world.chunk.Chunk;
 import util.UniqueQueue;

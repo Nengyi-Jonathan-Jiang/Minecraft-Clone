@@ -1,7 +1,7 @@
 package app.world.lighting;
 
-import app.util.ChunkOffset;
-import app.util.WorldPosition;
+import app.world.util.ChunkOffset;
+import app.world.util.WorldPosition;
 import app.world.chunk.Chunk;
 
 import java.util.Collection;

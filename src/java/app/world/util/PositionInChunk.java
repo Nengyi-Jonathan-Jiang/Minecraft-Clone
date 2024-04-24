@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 public class PositionInChunk implements IVec3i {
     private int bits;

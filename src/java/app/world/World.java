@@ -1,8 +1,8 @@
 package app.world;
 
-import app.util.ChunkOffset;
-import app.util.PositionInChunk;
-import app.util.WorldPosition;
+import app.world.util.ChunkOffset;
+import app.world.util.PositionInChunk;
+import app.world.util.WorldPosition;
 import app.world.chunk.Chunk;
 import app.world.lighting.LightingEngine;
 import app.world.lighting.LightingEngineUpdateParameters;

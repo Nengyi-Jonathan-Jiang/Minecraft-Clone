@@ -1,8 +1,8 @@
 package util;
 
 
-import app.util.IVec3i;
-import app.util.Vec3i;
+import app.world.util.IVec3i;
+import app.world.util.Vec3i;
 
 import java.util.Arrays;
 

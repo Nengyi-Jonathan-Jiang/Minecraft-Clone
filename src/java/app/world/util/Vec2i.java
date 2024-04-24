@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 public interface Vec2i extends Comparable<Vec2i> {
     int x();

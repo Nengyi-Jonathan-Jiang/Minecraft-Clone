@@ -4,7 +4,7 @@ import app.block.Block;
 import app.block.BlockRegistry;
 import app.noise.FastNoiseLiteSimplexNoise;
 import app.noise.INoise;
-import app.util.ChunkOffset;
+import app.world.util.ChunkOffset;
 import app.world.World;
 import app.world.chunk.Chunk;
 
@@ -59,11 +59,7 @@ public class WorldGenerator {
                     float yy = y + perturbY * perturb_size;
                     float zz = trueZ + perturbZ * perturb_size;
 
-                    float noise =
-                            .25f * noiseGenerator.getNoise(xx / 20f, zz / 20f)
-                                    + .5f * noiseGenerator.getNoise(xx / 40f, zz / 40f)
-                                    + 1.f * noiseGenerator.getNoise(xx / 80f, zz / 80f)
-                                    + 2.f * noiseGenerator.getNoise(xx / 160f, zz / 160f);
+                    float noise = 4 * noiseGenerator.getNoise(xx / 20f, zz / 20f);
                     float height = noise * 5f + 64f;
 
                     if (yy < height - 3) {

@@ -1,4 +1,4 @@
-package app.util;
+package app.world.util;
 
 public class Vec3i implements IVec3i {
     private int x, y ,z;
