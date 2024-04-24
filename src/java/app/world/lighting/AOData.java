@@ -19,8 +19,8 @@ public class AOData {
     }
 
     private int getLightAtIfLoadedOrDefault(WorldPosition p, int defaultValue) {
-        return world.isBlockLoaded(p.x(), p.y(), p.z())
-                ? world.getBlockLightAt(p.x(), p.y(), p.z())
+        return world.isBlockLoaded(p)
+                ? world.getBlockLightAt(p)
                 : defaultValue;
     }
 
@@ -31,7 +31,7 @@ public class AOData {
         if (!world.isBlockLoaded(adjacentPos))
             return new Vector4f(0);
 
-        int baseBlockLight = world.getBlockLightAt(adjacentPos.x(), adjacentPos.y(), adjacentPos.z());
+        int baseBlockLight = world.getBlockLightAt(adjacentPos);
         float lightMultiplier = faceDirection.lightMultiplier;
 
         if (!LightingEngine.useAO) return new Vector4f(baseBlockLight * lightMultiplier / 15f);

@@ -1,6 +1,7 @@
 package app.block;
 
 import app.block.model.BlockModel;
+import app.block.model.PartialMesh;
 import util.DenseIntMap;
 
 import java.util.HashMap;
@@ -10,8 +11,8 @@ public class BlockRegistry {
     private static final Map<String, BlockModel> models = new HashMap<>();
     private static final DenseIntMap<Block> blocks = new DenseIntMap<>();
     private static final Map<String, Integer> blockIDs = new HashMap<>();
-    private BlockRegistry() {
-    }
+
+    private BlockRegistry() {}
 
     public static void registerBlock(Block block) {
         blocks.put(block.getID(), block);

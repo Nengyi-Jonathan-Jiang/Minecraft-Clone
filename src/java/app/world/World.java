@@ -1,7 +1,6 @@
 package app.world;
 
 import app.world.util.ChunkOffset;
-import app.world.util.PositionInChunk;
 import app.world.util.WorldPosition;
 import app.world.chunk.Chunk;
 import app.world.lighting.LightingEngine;
@@ -31,7 +30,11 @@ public class World {
         return getOrLoadChunk(new ChunkOffset(x, z));
     }
 
-    public Chunk getOrLoadChunk(WorldPosition position) {
+    public void loadChunk(WorldPosition position) {
+        getOrLoadChunkAtPos(position);
+    }
+
+    public Chunk getOrLoadChunkAtPos(WorldPosition position) {
         return getOrLoadChunk(position.x(), position.z());
     }
 
@@ -53,34 +56,29 @@ public class World {
         return loadedChunks.values().stream().toList();
     }
 
-    public boolean isBlockLoaded(int x, int y, int z) {
-        return Chunk.isYInRange(y) && loadedChunks.containsKey(new ChunkOffset(x, z));
-    }
-
     public boolean isBlockLoaded(WorldPosition pos) {
-        return isBlockLoaded(pos.x(), pos.y(), pos.z());
+        return Chunk.isYInRange(pos.y()) && loadedChunks.containsKey(pos.getChunkOffset());
     }
 
-    public int getBlockIDAt(int x, int y, int z) {
-        return getOrLoadChunk(x, z).getBlockIDAt(x & 15, y, z & 15);
+    public int getBlockIDAt(WorldPosition pos) {
+        return getOrLoadChunk(pos.getChunkOffset()).getBlockIDAt(pos.getPositionInChunk());
     }
 
-    public void setBlockIDAt(int x, int y, int z, int id) {
-        getOrLoadChunk(x, z).setBlockAt(x & 15, y, z & 15, id);
-        lightingEngine.markPositionAsDirty(new WorldPosition(x, y, z));
+    public void setBlockIDAt(WorldPosition pos, int id) {
+        getOrLoadChunk(pos.getChunkOffset()).setBlockAt(pos.getPositionInChunk(), id);
     }
 
-    public int getBlockLightAt(int x, int y, int z) {
-        return getOrLoadChunk(x, z).getLightingData().getBlockLightAt(new PositionInChunk(x, y, z));
+    public int getBlockLightAt(WorldPosition pos) {
+        return getOrLoadChunkAtPos(pos).getLightingData().getBlockLightAt(pos.getPositionInChunk());
     }
 
-    public void setBlockLightAt(int x, int y, int z, int level) {
-        setBlockLightAt(x, y, z, level, true);
+    public void setBlockLightAt(WorldPosition pos, int level) {
+        setBlockLightAt(pos, level, true);
     }
 
-    public void setBlockLightAt(int x, int y, int z, int level, boolean markMeshesAsDirty) {
-        Chunk chunk = getOrLoadChunk(x, z);
-        chunk.getLightingData().setBlockLightAt(new PositionInChunk(x, y, z), level);
+    public void setBlockLightAt(WorldPosition pos, int level, boolean markMeshesAsDirty) {
+        Chunk chunk = getOrLoadChunkAtPos(pos);
+        chunk.getLightingData().setBlockLightAt(pos.getPositionInChunk(), level);
 
         if(markMeshesAsDirty) {
             getLoadedNeighbors(chunk).forEach(Chunk::markMeshAsDirty);
@@ -104,14 +102,21 @@ public class World {
                 chunkPos.add( 16, 0,   0, new ChunkOffset()),
                 chunkPos.add( 16, 0,  16, new ChunkOffset())
         ).filter(loadedChunks::containsKey).map(loadedChunks::get).collect(Collectors.toList());
+//        return Stream.of(
+//                chunkPos.add(-16, 0, -16, new ChunkOffset()),
+//                chunkPos.add(-16, 0,   0, new ChunkOffset()),
+//                chunkPos.add(-16, 0,  16, new ChunkOffset()),
+//                chunkPos.add(  0, 0, -16, new ChunkOffset()),
+//                chunkPos.add(  0, 0,   0, new ChunkOffset()),
+//                chunkPos.add(  0, 0,  16, new ChunkOffset()),
+//                chunkPos.add( 16, 0, -16, new ChunkOffset()),
+//                chunkPos.add( 16, 0,   0, new ChunkOffset()),
+//                chunkPos.add( 16, 0,  16, new ChunkOffset())
+//        ).map(this::getOrLoadChunk).collect(Collectors.toList());
     }
 
     public LightingEngine getLightingEngine() {
         return lightingEngine;
     }
 
-    public boolean isBlockTransparent(int x, int y, int z) {
-        // TODO: add transparent blocks
-        return getBlockIDAt(x, y, z) == 0;
-    }
 }

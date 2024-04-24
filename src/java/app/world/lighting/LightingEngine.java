@@ -1,12 +1,10 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
-import app.world.util.PositionInChunk;
 import app.world.util.Vec3i;
 import app.world.util.WorldPosition;
 import app.world.World;
 import app.world.chunk.Chunk;
-import util.UniqueQueue;
 
 import java.util.*;
 
@@ -26,7 +24,7 @@ public class LightingEngine {
     }
 
     public void markPositionAsDirty(WorldPosition pos) {
-        Chunk chunk = world.getOrLoadChunk(pos);
+        Chunk chunk = world.getOrLoadChunkAtPos(pos);
         chunk.getLightingData().markBlockDirty(pos.getPositionInChunk());
         dirtyChunks.addAll(world.getLoadedNeighbors(chunk));
     }
@@ -38,20 +36,21 @@ public class LightingEngine {
     public void updateLighting() {
         if(!needsUpdate()) return;
 
-        LightingEngineUpdateParameters parameters = new LightingEngineUpdateParameters(dirtyChunks);
-
         System.out.println("Updating " + dirtyChunks.size() + " chunks");
 
-        UniqueQueue<WorldPosition> lightingUpdates = new UniqueQueue<>();
-        for(var c : dirtyChunks) {
-            c.getLightingData().getDirtyBlocks().forEach(lightingUpdates::offer);
-        }
+//        UniqueQueue<WorldPosition> lightingUpdates = new UniqueQueue<>();
+
+        LightingUpdateQueue lightingUpdates = new LightingUpdateQueue(dirtyChunks);
+
+//        for(var c : dirtyChunks) {
+//            c.getLightingData().getDirtyBlocks().forEach(lightingUpdates::offer);
+//        }
 
         //While update queue is not empty
         long lightingStep;
         long maxLightingUpdates = (long) dirtyChunks.size() * World.BLOCKS_PER_CHUNK * 6;
         for (lightingStep = 0; lightingStep < maxLightingUpdates && !lightingUpdates.isEmpty(); lightingStep++) {
-            updateLightingStep(lightingUpdates, parameters);
+            updateLightingStep(lightingUpdates);
         }
 
         if (lightingStep == maxLightingUpdates) {
@@ -66,15 +65,19 @@ public class LightingEngine {
         dirtyChunks.clear();
     }
 
-    private void updateLightingStep(UniqueQueue<WorldPosition> lightingUpdates, LightingEngineUpdateParameters parameters) {
-        var pos = lightingUpdates.poll();
+    private void updateLightingStep(LightingUpdateQueue lightingUpdates) {
+        var update = lightingUpdates.poll();
+        WorldPosition pos = update.worldPosition();
 
-        int oldBlockLight = world.getBlockLightAt(pos.x(), pos.y(), pos.z());
+        LightingUpdateQueue.LightingUpdateChunk lightingChunk = update.containingChunk();
+        Chunk chunk = lightingChunk.getChunk();
+
+        int oldBlockLight = chunk.getLightingData().getBlockLightAt(pos.getPositionInChunk());
 
         int newBlockLight = 0;
         List<WorldPosition> neighbors = new ArrayList<>();
 
-        int opacity = world.isBlockTransparent(pos.x(), pos.y(), pos.z()) ? 0 : 15;
+        int opacity = chunk.getBlockIDAt(pos.getPositionInChunk()) == 0 ? 0 : 15;
 
         if(pos.y() == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
 
@@ -82,12 +85,13 @@ public class LightingEngine {
             Vec3i offset = face.direction;
             WorldPosition newPos = pos.add(offset, new WorldPosition());
 
-            if (isOutOfRange(newPos, parameters)) {
+            if (lightingUpdates.isOutOfRange(newPos)) {
                 continue;
             }
 
-            int neighborLight = world.getBlockLightAt(newPos.x(), newPos.y(), newPos.z());
-            int neighborOpacity = world.isBlockTransparent(newPos.x(), newPos.y(), newPos.z()) ? 0 : 15;
+            Chunk neighborChunk = world.getOrLoadChunkAtPos(newPos);
+            int neighborLight = neighborChunk.getLightingData().getBlockLightAt(newPos.getPositionInChunk());
+            int neighborOpacity = neighborChunk.getBlockAt(newPos.getPositionInChunk()) == null ? 0 : 15;
 
             int propagatedLight = face == FaceDirection.TOP && neighborLight == 15 ? 15 - opacity :
                     neighborLight - opacity - neighborOpacity - 1;
@@ -99,7 +103,7 @@ public class LightingEngine {
         // Our light level changed; our neighbors are all suspect
         if (newBlockLight != oldBlockLight) {
             neighbors.forEach(lightingUpdates::offer);
-            world.setBlockLightAt(pos.x(), pos.y(), pos.z(), newBlockLight, false);
+            world.setBlockLightAt(pos, newBlockLight, false);
         }
     }
 
@@ -115,23 +119,19 @@ public class LightingEngine {
             dirtyChunks.addAll(loadedNeighbors);
 
             chunk.getLightingData().markAllDirty();
-
-//            for (PositionInChunk x : chunk.getLightingData().getDirtyBlocks()) {
-//                System.out.println(x + " in " + chunk);
-//            }
         }
     }
 
     public int getBlockLightAt(WorldPosition pos, LightingEngineUpdateParameters chunks) {
         if (isOutOfRange(pos, chunks)) return 15;
 
-        return world.getBlockLightAt(pos.x(), pos.y(), pos.z());
+        return world.getBlockLightAt(pos);
     }
 
     private void setBlockLightAt(WorldPosition pos, int level, LightingEngineUpdateParameters chunks) {
         if (isOutOfRange(pos, chunks)) return;
 
-        world.setBlockLightAt(pos.x(), pos.y(), pos.z(), level);
+        world.setBlockLightAt(pos, level);
     }
 
     private record LightingUpdate(WorldPosition pos, int lightLevel) implements Comparable<LightingUpdate> {
@@ -140,5 +140,4 @@ public class LightingEngine {
             return lightLevel - o2.lightLevel;
         }
     }
-
 }

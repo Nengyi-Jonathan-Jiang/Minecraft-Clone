@@ -7,7 +7,9 @@ import app.block.model.BlockModel;
 import app.block.model.BlockModel.FaceDirection;
 import app.block.model.PartialMesh;
 import app.block.model.PartialMeshVertex;
+import app.world.util.IVec3i;
 import app.world.util.PositionInChunk;
+import app.world.util.Vec3i;
 import app.world.util.WorldPosition;
 import app.world.World;
 import app.world.lighting.AOData;
@@ -28,11 +30,10 @@ public class ChunkMeshBuilder {
 
     private final ArrayConcatenator<Integer> indices = new ArrayConcatenator<>();
 
-    private boolean shouldShowFace(int x, int y, int z, int id, int[][][] data) {
-        if (x >= World.CHUNK_SIZE || y >= World.CHUNK_HEIGHT || z >= World.CHUNK_SIZE || x < 0 || y < 0 || z < 0)
-            return true;
+    private boolean shouldShowFace(Vec3i pos, int id, int[] data) {
+        if (!Chunk.isInRange(pos)) return true;
 
-        int otherID = data[x][y][z];
+        int otherID = data[IVec3i.copy(pos, new PositionInChunk()).getBits()];
 
         if (otherID == 0) return true;
         if (otherID == id) return false;
@@ -73,8 +74,8 @@ public class ChunkMeshBuilder {
             );
 
             for (FaceDirection direction : FaceDirection.OUTER_FACES) {
-                WorldPosition newPos = pos.add(direction.direction, new WorldPosition());
-                if (shouldShowFace(newPos.x(), newPos.y(), newPos.z(), blockID, chunk.data)) {
+                Vec3i newPos = pos.add(direction.direction, new Vec3i());
+                if (shouldShowFace(newPos, blockID, chunk.data)) {
                     hasVisibleFace = true;
                     currIndex += addFace(currIndex, texOffset, pos, blockModel, direction, aoData);
                 }

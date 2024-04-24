@@ -16,7 +16,7 @@ float interpolate(float a, float b, float t) {
     return (a + b) / 2 + (b - a) * cubic_interpolation(t);
 }
 
-const bool whiteWorld = false;
+const bool whiteWorld = true;
 
 void main()
 {

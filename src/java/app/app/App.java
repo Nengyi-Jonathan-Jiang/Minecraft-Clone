@@ -27,7 +27,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class App implements IAppLogic {
@@ -127,59 +126,12 @@ public class App implements IAppLogic {
         world.getLoadedChunks().forEach(Chunk::getMesh);
         System.out.println("Running...");
 
-        window.addMouseListener((button, action) -> {
-            if (action == GLFW_PRESS) {
-                if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                    WorldPosition pos = null;
-                    {
-                        var cast = new CubeRaycaster().cast(player.getCamera());
-                        for (int i = 0; i < 100; i++) {
-                            pos = cast.next();
-                            if (!world.isBlockLoaded(pos.x(), pos.y(), pos.z()) ||
-                                    player.getPosition().distance(pos.toVector3f()) > 10
-                            ) {
-                                pos = null;
-                                break;
-                            }
-                            if (world.getBlockIDAt(pos.x(), pos.y(), pos.z()) != 0) {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (pos != null) {
-                        world.setBlockIDAt(pos.x(), pos.y(), pos.z(), 0);
-                    }
-                } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                    WorldPosition pos = null;
-                    {
-                        var cast = new CubeRaycaster().cast(player.getCamera());
-                        for (int i = 0; i < 100; i++) {
-                            var n = cast.next();
-                            if (!world.isBlockLoaded(n.x(), n.y(), n.z()) ||
-                                    player.getPosition().distance(n.toVector3f()) > 10
-                            ) {
-                                pos = null;
-                                break;
-                            }
-                            if (world.getBlockIDAt(n.x(), n.y(), n.z()) != 0) {
-                                break;
-                            }
-                            pos = n;
-                        }
-                    }
-
-                    if (pos != null) {
-                        world.setBlockIDAt(pos.x(), pos.y(), pos.z(), BlockRegistry.getBlockID("iron_ore"));
-                    }
-                }
-            }
-        });
+        window.addMouseListener(this::onMouseDown);
 
         world.getOrLoadChunk(0, 0);
         for(int y = 0; y < World.CHUNK_HEIGHT; y++) {
             player.setPosition(new Vector3f(0, y, 0));
-            if(world.getBlockIDAt(0, y, 0) == 0) break;
+            if(world.getBlockIDAt(new WorldPosition(0, y, 0)) == 0) break;
         }
     }
 
@@ -221,13 +173,13 @@ public class App implements IAppLogic {
 
     @Override
     public void update(Window window, long deltaTime) {
-        if(!world.isBlockLoaded((int) player.getPosition().x, 0, (int)player.getPosition().z)) {
-            WorldPosition position = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
+        WorldPosition playerPos = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
+        if(!world.isBlockLoaded(playerPos)) {
 
-            world.getOrLoadChunk(position);
-            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(world.getOrLoadChunk(
-                    position
-            ))));
+            world.loadChunk(playerPos);
+            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(
+                world.getOrLoadChunkAtPos(playerPos)
+            )));
         }
     }
 
@@ -296,11 +248,11 @@ public class App implements IAppLogic {
             for (int i = 0; i < 100; i++) {
                 var castPos = cast.next();
                 pos = castPos.toVector3f();
-                if (!world.isBlockLoaded(castPos.x(), castPos.y(), castPos.z()) || player.getPosition().distance(pos) > 10) {
+                if (!world.isBlockLoaded(castPos) || player.getPosition().distance(pos) > 10) {
                     pos = null;
                     break;
                 }
-                if (world.getBlockIDAt(castPos.x(), castPos.y(), castPos.z()) != 0) {
+                if (world.getBlockIDAt(castPos) != 0) {
                     break;
                 }
             }
@@ -368,5 +320,54 @@ public class App implements IAppLogic {
     @Override
     public void resize(int width, int height) {
         projection.updateProjectionMatrix(width, height);
+    }
+
+    private void onMouseDown(int button, int action) {
+        if (action == GLFW_PRESS) {
+            if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                WorldPosition pos = null;
+                {
+                    var cast = new CubeRaycaster().cast(player.getCamera());
+                    for (int i = 0; i < 100; i++) {
+                        pos = cast.next();
+                        if (!world.isBlockLoaded(pos) ||
+                                player.getPosition().distance(pos.toVector3f()) > 10
+                        ) {
+                            pos = null;
+                            break;
+                        }
+                        if (world.getBlockIDAt(pos) != 0) {
+                            break;
+                        }
+                    }
+                }
+
+                if (pos != null) {
+                    world.setBlockIDAt(pos, 0);
+                }
+            } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+                WorldPosition pos = null;
+                {
+                    var cast = new CubeRaycaster().cast(player.getCamera());
+                    for (int i = 0; i < 100; i++) {
+                        var n = cast.next();
+                        if (!world.isBlockLoaded(n) ||
+                                player.getPosition().distance(n.toVector3f()) > 10
+                        ) {
+                            pos = null;
+                            break;
+                        }
+                        if (world.getBlockIDAt(n) != 0) {
+                            break;
+                        }
+                        pos = n;
+                    }
+                }
+
+                if (pos != null) {
+                    world.setBlockIDAt(pos, BlockRegistry.getBlockID("iron_ore"));
+                }
+            }
+        }
     }
 }

@@ -15,7 +15,11 @@ public class LightingUpdateQueue {
 
     Queue<LightingUpdate> queue = new LinkedList<>();
 
-    private static class LightingUpdateChunk {
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+    public static class LightingUpdateChunk {
         private final boolean[] needsUpdate = new boolean[World.BLOCKS_PER_CHUNK];
         private final Chunk chunk;
 
@@ -47,14 +51,20 @@ public class LightingUpdateQueue {
 
     }
 
-    public LightingUpdateQueue(Collection<Chunk> chunksToUpdate) {
-        for(var chunk : chunksToUpdate) {
-            chunks.put(chunk.getChunkOffset(), new LightingUpdateChunk(chunk));
+    public LightingUpdateQueue(Set<Chunk> chunksToUpdate) {
+        for(var c : chunksToUpdate) {
+            LightingUpdateChunk chunk = new LightingUpdateChunk(c);
+            chunks.put(c.getChunkOffset(), chunk);
+
+            for (WorldPosition worldPosition : c.getLightingData().getDirtyBlocks()) {
+                chunk.setDirty(worldPosition.getPositionInChunk());
+                queue.offer(new LightingUpdate(chunk, worldPosition));
+            }
         }
     }
 
     public boolean isOutOfRange(WorldPosition pos) {
-        return chunks.containsKey(pos.getChunkOffset());
+        return !chunks.containsKey(pos.getChunkOffset()) || !Chunk.isYInRange(pos.y());
     }
 
     public void offer(WorldPosition position) {

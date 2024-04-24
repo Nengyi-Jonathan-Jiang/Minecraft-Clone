@@ -21,7 +21,6 @@ public class LightingEngineUpdateParameters {
     }
 
     public boolean isOutOfRange(WorldPosition pos) {
-        return !updateChunkPositions
-                .contains(ChunkOffset.fromAbsolutePosition(pos));
+        return !updateChunkPositions.contains(ChunkOffset.fromAbsolutePosition(pos));
     }
 }

@@ -21,6 +21,11 @@ public interface IVec3i extends Comparable<IVec3i> {
         return dest;
     }
 
+    static <T extends IVec3i> T copy(IVec3i v, T dest) {
+        dest.set(v.x(), v.y(), v.z());
+        return dest;
+    }
+
     default <T extends IVec3i> T add(int x, int y, int z, T dest) {
         dest.set(x() + x, y() + y, z() + z);
         return dest;

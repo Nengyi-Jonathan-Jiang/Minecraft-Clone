@@ -11,6 +11,10 @@ public class PositionInChunk implements IVec3i {
         this.bits = bits;
     }
 
+    public PositionInChunk() {
+        this.bits = 0;
+    }
+
     @Override
     public int x() {
         return bits & 15;

@@ -3,6 +3,7 @@ package app.world.chunk;
 import app.block.Block;
 import app.block.BlockRegistry;
 import app.world.util.ChunkOffset;
+import app.world.util.IVec3i;
 import app.world.util.PositionInChunk;
 import app.world.World;
 import app.world.lighting.LightingData;
@@ -12,7 +13,7 @@ import java.util.Iterator;
 
 public class Chunk {
     public final World world;
-    final int[][][] data;
+    final int[] data = new int[World.BLOCKS_PER_CHUNK];
     private final LightingData lightingData;
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private final ChunkOffset chunkOffset;
@@ -40,7 +41,6 @@ public class Chunk {
     public Chunk(ChunkOffset chunkOffset, World world) {
         this.chunkOffset = chunkOffset;
         this.world = world;
-        data = new int[World.CHUNK_SIZE][World.CHUNK_HEIGHT][World.CHUNK_SIZE];
         lightingData = new LightingData(chunkOffset);
     }
 
@@ -60,6 +60,10 @@ public class Chunk {
         return isXInRange(x) && isYInRange(y) && isZInRange(z);
     }
 
+    public static boolean isInRange(IVec3i pos) {
+        return isInRange(pos.x(), pos.y(), pos.z());
+    }
+
     private void rebuildMesh() {
         mesh = chunkMeshBuilder.build(world, this);
         shouldRebuildMesh = false;
@@ -76,29 +80,17 @@ public class Chunk {
         shouldRebuildMesh = true;
     }
 
-    public void setBlockAt(int x, int y, int z, int id) {
-        data[x][y][z] = id;
+    public void setBlockAt(PositionInChunk pos, int id) {
+        data[pos.getBits()] = id;
         shouldRebuildMesh = true;
     }
 
-    public void setBlockAt(PositionInChunk pos, int id) {
-        setBlockAt(pos.x(), pos.y(), pos.z(), id);
-    }
-
-    public int getBlockIDAt(int x, int y, int z) {
-        return data[x][y][z];
-    }
-
     public int getBlockIDAt(PositionInChunk pos) {
-        return getBlockIDAt(pos.x(), pos.y(), pos.z());
-    }
-
-    public Block getBlockAt(int x, int y, int z) {
-        return BlockRegistry.getBlock(getBlockIDAt(x, y, z));
+        return data[pos.getBits()];
     }
 
     public Block getBlockAt(PositionInChunk pos) {
-        return getBlockAt(pos.x(), pos.y(), pos.z());
+        return BlockRegistry.getBlock(getBlockIDAt(pos));
     }
 
     public ChunkOffset getChunkOffset() {
