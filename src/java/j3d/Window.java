@@ -145,7 +145,7 @@ public class Window {
         }
     }
 
-    public void update() {
+    public void updateScreen() {
         glfwSwapBuffers(windowHandle);
     }
 

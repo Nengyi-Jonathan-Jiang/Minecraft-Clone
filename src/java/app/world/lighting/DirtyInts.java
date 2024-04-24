@@ -38,7 +38,7 @@ public class DirtyInts implements Set<Integer> {
 
     public void markAllDirty() {
         nextValue[capacity] = 0;
-        for(int i = 0; i < capacity-  1; i++) {
+        for(int i = 0; i < capacity - 1; i++) {
             nextValue[i] = i + 1;
         }
         nextValue[capacity - 1] = NO_NEXT_VALUE;

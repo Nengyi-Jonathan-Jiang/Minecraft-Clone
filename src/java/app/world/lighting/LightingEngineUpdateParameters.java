@@ -7,6 +7,7 @@ import app.world.chunk.Chunk;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class LightingEngineUpdateParameters {
@@ -15,10 +16,12 @@ public class LightingEngineUpdateParameters {
 
     public LightingEngineUpdateParameters(Collection<Chunk> chunksToUpdate) {
         this.chunksToUpdate = new HashSet<>(chunksToUpdate);
-        this.updateChunkPositions = chunksToUpdate.stream().map(Chunk::getChunkOffset).collect(Collectors.toSet());
+        this.updateChunkPositions = chunksToUpdate.stream().map(Chunk::getChunkOffset)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     public boolean isOutOfRange(WorldPosition pos) {
-        return !updateChunkPositions.contains(ChunkOffset.fromAbsolutePosition(pos));
+        return !updateChunkPositions
+                .contains(ChunkOffset.fromAbsolutePosition(pos));
     }
 }

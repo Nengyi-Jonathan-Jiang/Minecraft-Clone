@@ -67,7 +67,7 @@ public class Engine {
             if (targetFps <= 0 || deltaFps >= 1) {
                 appLogic.draw(window);
                 deltaFps--;
-                window.update();
+                window.updateScreen();
             }
             initialTime = now;
         }

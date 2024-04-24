@@ -4,13 +4,17 @@ import app.world.util.ChunkOffset;
 import app.world.util.PositionInChunk;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.util.WorldPosition;
 import util.MathUtil;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class LightingData {
     private final int[][][] blockLight;
     private final ChunkOffset chunkOffset;
+
+    private final DirtyInts dirtyBlocks = new DirtyInts(World.BLOCKS_PER_CHUNK);
 
     public LightingData(ChunkOffset chunkOffset) {
         this.chunkOffset = chunkOffset;
@@ -19,6 +23,7 @@ public class LightingData {
 
     public void clear() {
         for (int[][] i : blockLight) for (int[] j : i) Arrays.fill(j, 0);
+        dirtyBlocks.clear();
     }
 
     public int getBlockLightAt(PositionInChunk pos) {
@@ -33,5 +38,33 @@ public class LightingData {
 
     public void setBlockLightAt(PositionInChunk pos, int level) {
         blockLight[pos.x()][pos.y()][pos.z()] = level;
+    }
+
+    public void markBlockDirty(PositionInChunk pos) {
+        dirtyBlocks.markDirty(pos.getBits());
+    }
+
+    public void markAllDirty() {
+        dirtyBlocks.markAllDirty();
+    }
+
+    public void clearDirtyBlocks() {
+        dirtyBlocks.clear();
+    }
+
+    public Iterable<WorldPosition> getDirtyBlocks(){
+        return () -> new Iterator<>() {
+            final Iterator<Integer> it = dirtyBlocks.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public WorldPosition next() {
+                return new PositionInChunk(it.next()).getAbsolutePosition(chunkOffset);
+            }
+        };
     }
 }

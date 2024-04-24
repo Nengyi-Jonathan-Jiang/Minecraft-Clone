@@ -85,8 +85,6 @@ public class ChunkMeshBuilder {
             }
         }
 
-        System.out.println("Regenerated chunk mesh at " + chunk.getChunkOffset() + ": " + positions.size() / 3 + " vertices, " + indices.size() + " indices");
-
         return toMesh();
     }
 

@@ -1,9 +1,6 @@
 package util;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class UniqueQueue<T> {
@@ -14,9 +11,9 @@ public class UniqueQueue<T> {
         this(HashSet::new);
     }
 
-    public UniqueQueue(Supplier<Set<T>> container) {
+    public UniqueQueue(Supplier<Set<T>> containerSupplier) {
         backingQueue = new ArrayDeque<>();
-        elements = container.get();
+        elements = containerSupplier.get();
     }
 
     public void offer(T element) {

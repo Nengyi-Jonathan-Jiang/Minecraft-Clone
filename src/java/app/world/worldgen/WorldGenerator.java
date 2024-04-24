@@ -8,6 +8,7 @@ import app.world.util.ChunkOffset;
 import app.world.World;
 import app.world.chunk.Chunk;
 
+// TODO: run on GPU
 public class WorldGenerator {
     public INoise noiseGenerator = new FastNoiseLiteSimplexNoise();
     

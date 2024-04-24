@@ -13,4 +13,8 @@ public class WorldPosition extends Vec3i {
     public String toString() {
         return "WorldPosition" + super.toString();
     }
+
+    public PositionInChunk getPositionInChunk() {
+        return new PositionInChunk(x(), y(), z());
+    }
 }

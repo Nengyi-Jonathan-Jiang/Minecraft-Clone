@@ -27,6 +27,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class App implements IAppLogic {
@@ -112,7 +113,8 @@ public class App implements IAppLogic {
         world = new World(new WorldGenerator());
 
         System.out.println("Generating world...");
-        int loadRange = 0;
+        int loadRange = 63;
+//        int loadRange = 15;
         for (int x = -loadRange; x <= loadRange; x++) {
             for (int z = -loadRange; z <= loadRange; z++) {
                 world.getOrLoadChunk(x, z);
@@ -257,6 +259,8 @@ public class App implements IAppLogic {
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDisable(GL_CULL_FACE);
+        glEnable(GL_COLOR_LOGIC_OP);
+        glLogicOp(GL_XOR);
 
         uiShader.bind();
 
@@ -280,6 +284,8 @@ public class App implements IAppLogic {
 
         glBindVertexArray(0);
         outlineShader.unbind();
+
+        glDisable(GL_COLOR_LOGIC_OP);
     }
 
     private void drawSelectedPosition() {

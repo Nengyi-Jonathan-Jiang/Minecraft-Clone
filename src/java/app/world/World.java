@@ -18,7 +18,7 @@ public class World {
 
     public static int BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
-    private final Map<ChunkOffset, Chunk> loadedChunks = new HashMap<>();
+    private final Map<ChunkOffset, Chunk> loadedChunks = new TreeMap<>();
     private final WorldGenerator worldGenerator;
     private final LightingEngine lightingEngine;
 
