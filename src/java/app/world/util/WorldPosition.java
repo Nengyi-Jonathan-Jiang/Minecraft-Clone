@@ -17,4 +17,8 @@ public class WorldPosition extends Vec3i {
     public PositionInChunk getPositionInChunk() {
         return new PositionInChunk(x(), y(), z());
     }
+
+    public ChunkOffset getChunkOffset() {
+        return new ChunkOffset(x(), z());
+    }
 }
