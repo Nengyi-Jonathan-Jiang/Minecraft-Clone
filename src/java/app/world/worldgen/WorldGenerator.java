@@ -20,7 +20,7 @@ public class WorldGenerator {
 
         Chunk result = new Chunk(chunkOffset, world);
 
-        addTerrainLayer(chunkOffsetX, chunkOffsetZ, result);
+        addTerrainLayer(result);
         convertTopLayersToGrass(result);
         addBedrockLayer(result);
 
@@ -49,15 +49,19 @@ public class WorldGenerator {
         }
     }
 
-    private void addTerrainLayer(int chunkOffsetX, int chunkOffsetZ, Chunk chunk) {
+    private void addTerrainLayer(Chunk chunk) {
         for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
             WorldPosition truePos = pos.getAbsolutePosition(chunk.getChunkOffset());
 
             float perturb_size = 30f;
 
-            float perturbX = noiseGenerator.getNoise(truePos.x() / 50f, truePos.y() / 50f, truePos.z() / 50f);
-            float perturbY = noiseGenerator.getNoise(truePos.x() / 50f + 9.2f, truePos.y() / 50f - 2.432f, truePos.z() / 50f + 3.52f);
-            float perturbZ = noiseGenerator.getNoise(truePos.x() / 50f + 2.34f, truePos.y() / 50f + 4.37f, truePos.z() / 50f + 9.84f);
+//            float perturbX = noiseGenerator.getNoise(truePos.x() / 50f, truePos.y() / 50f, truePos.z() / 50f);
+//            float perturbY = noiseGenerator.getNoise(truePos.x() / 50f + 9.2f, truePos.y() / 50f - 2.432f, truePos.z() / 50f + 3.52f);
+//            float perturbZ = noiseGenerator.getNoise(truePos.x() / 50f + 2.34f, truePos.y() / 50f + 4.37f, truePos.z() / 50f + 9.84f);
+            float perturbX = 0;
+            float perturbY = 0;
+            float perturbZ = 0;
+
 
             float xx = truePos.x() + perturbX * perturb_size;
             float yy = truePos.y() + perturbY * perturb_size;

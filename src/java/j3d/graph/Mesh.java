@@ -11,7 +11,7 @@ import java.util.List;
 import static org.lwjgl.opengl.GL30.*;
 
 public class Mesh {
-    private final int numIndices;
+    private int numIndices;
     private final int vaoId;
     private final List<Integer> vboIdList;
 
@@ -37,7 +37,6 @@ public class Mesh {
 
         // TODO: make this better code.
         for(int idx = 0; idx < data.length; idx++) {
-
             MeshAttributeData dat = data[idx];
             if(dat instanceof FloatAttributeData d) {
                 vboId = glGenBuffers();

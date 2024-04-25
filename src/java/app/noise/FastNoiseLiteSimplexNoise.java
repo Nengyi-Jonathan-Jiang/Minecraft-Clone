@@ -11,11 +11,14 @@ public class FastNoiseLiteSimplexNoise implements INoise {
 
     public FastNoiseLiteSimplexNoise(int seed) {
         this.noise = new FastNoiseLite(seed);
-        noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
+        noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
         noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+
         noise.SetFractalOctaves(3);
         noise.SetFractalLacunarity(2f);
         noise.SetFractalGain(0.5f);
+//        noise.SetDomainWarpType(FastNoiseLite.DomainWarpType.OpenSimplex2Reduced);
+//        noise.SetDomainWarpAmp(20.0f);
         noise.SetFrequency(1);
     }
 
