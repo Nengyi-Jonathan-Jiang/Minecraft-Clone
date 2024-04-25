@@ -128,7 +128,7 @@ public class App implements IAppLogic {
         }
         System.out.println("Precalculating lighting");
         world.invalidateLightingForAllVisibleChunks();
-        world.updateLighting();
+        updateLighting();
         System.out.println("Preloading meshes");
         world.getLoadedChunks().forEach(Chunk::getMesh);
         System.out.println("Running...");
@@ -140,6 +140,10 @@ public class App implements IAppLogic {
             player.setPosition(new Vector3f(0, y, 0));
             if(world.getBlockIDAt(new WorldPosition(0, y, 0)) == 0) break;
         }
+    }
+
+    private void updateLighting() {
+        world.updateLighting(player);
     }
 
     @Override
@@ -203,7 +207,7 @@ public class App implements IAppLogic {
 
     @Override
     public void draw(Window window) {
-        world.updateLighting();
+        updateLighting();
 
         startRender(window);
 

@@ -15,8 +15,6 @@ public class WorldGenerator {
     public INoise noiseGenerator = new FastNoiseLiteSimplexNoise();
     
     public Chunk generateChunk(ChunkOffset chunkOffset, World world) {
-        int chunkOffsetX = chunkOffset.x();
-        int chunkOffsetZ = chunkOffset.z();
 
         Chunk result = new Chunk(chunkOffset, world);
 
@@ -25,6 +23,8 @@ public class WorldGenerator {
         addBedrockLayer(result);
 
         result.getLightingData().markAllDirty();
+
+
 
         return result;
     }

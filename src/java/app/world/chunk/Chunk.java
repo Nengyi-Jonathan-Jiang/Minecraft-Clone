@@ -18,6 +18,7 @@ public class Chunk {
     private final ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
     private final ChunkOffset chunkOffset;
     private boolean shouldRebuildMesh = true;
+    private boolean shouldUpdateLighting = true;
     private Mesh mesh = new Mesh(new int[0]);
 
     public static Iterable<PositionInChunk> allPositionsInChunk() {
@@ -69,6 +70,10 @@ public class Chunk {
         shouldRebuildMesh = false;
     }
 
+    public boolean shouldUpdateLighting(){
+        return shouldUpdateLighting;
+    }
+
     public Mesh getMesh() {
         if (shouldRebuildMesh) {
             rebuildMesh();
@@ -89,6 +94,7 @@ public class Chunk {
         shouldRebuildMesh = true;
 
         if(updateLighting) {
+            shouldUpdateLighting = true;
             world.getLightingEngine().markChunkAsDirty(this);
             lightingData.markBlockDirty(pos);
         }

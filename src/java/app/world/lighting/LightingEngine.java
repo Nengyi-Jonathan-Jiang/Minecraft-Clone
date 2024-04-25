@@ -1,6 +1,7 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
+import app.player.Player;
 import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.util.Vec3i;
@@ -18,24 +19,21 @@ public class LightingEngine {
         this.world = world;
     }
 
-    public void markPositionAsDirty(WorldPosition pos) {
-        Chunk chunk = world.getOrLoadChunkAtPos(pos);
-        chunk.getLightingData().markBlockDirty(pos.getPositionInChunk());
-        dirtyChunks.addAll(world.getLoadedNeighbors(chunk));
-    }
-
     public void markChunkAsDirty(Chunk c){
-        dirtyChunks.addAll(world.getLoadedNeighbors(c));
+        dirtyChunks.add(c);
     }
 
     public boolean needsUpdate() {
         return !dirtyChunks.isEmpty();
     }
 
-    public void updateLighting() {
+    public void updateLighting(Player player) {
+
         if(!needsUpdate()) return;
 
         System.out.println("Updating " + dirtyChunks.size() + " chunks");
+
+        new ArrayList<>(dirtyChunks).stream().map(world::getLoadedNeighbors).forEach(dirtyChunks::addAll);
 
         LightingUpdateQueue lightingUpdates = new LightingUpdateQueue(dirtyChunks);
 
