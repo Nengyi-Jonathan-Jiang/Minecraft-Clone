@@ -66,6 +66,7 @@ public class World {
 
     public void setBlockIDAt(WorldPosition pos, int id) {
         getOrLoadChunk(pos.getChunkOffset()).setBlockAt(pos.getPositionInChunk(), id);
+        lightingEngine.markPositionAsDirty(pos);
     }
 
     public int getBlockLightAt(WorldPosition pos) {

@@ -13,6 +13,7 @@ import app.world.lighting.LightingEngineUpdateParameters;
 import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
+import j3d.OpenGLWindow;
 import j3d.Window;
 import j3d.graph.Mesh;
 import j3d.graph.ShaderProgram;
@@ -136,7 +137,7 @@ public class App implements IAppLogic {
     }
 
     @Override
-    public void input(Window window, long deltaTime) {
+    public void input(OpenGLWindow window, long deltaTime) {
         float move = deltaTime * MOVEMENT_SPEED;
         if (window.isKeyPressed(GLFW_KEY_W)) {
             player.move(new Vector3f(0, 0, -1).rotateY(-player.getRotation().y).mul(move));

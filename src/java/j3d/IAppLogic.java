@@ -5,7 +5,7 @@ public interface IAppLogic {
 
     void init(Window window);
 
-    void input(Window window, long deltaTime);
+    void input(OpenGLWindow window, long deltaTime);
 
     void update(Window window, long deltaTime);
 

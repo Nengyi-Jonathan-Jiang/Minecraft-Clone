@@ -3,7 +3,7 @@ package j3d;
 import j3d.ogl.OpenGLEngine;
 
 public abstract class Engine {
-    protected final Window window;
+    protected final OpenGLWindow window;
     protected boolean running;
     public static final int targetFps = 60;
     public static final int targetUps = 60;
@@ -16,10 +16,10 @@ public abstract class Engine {
 
     protected abstract void update(Window window, long elapsedTime);
 
-    protected abstract void input(Window window, long elapsedTime);
+    protected abstract void input(OpenGLWindow window, long elapsedTime);
 
     protected Engine(String windowTitle) {
-        window = new Window(windowTitle, () -> {
+        window = new OpenGLWindow(windowTitle, () -> {
             resize();
             return null;
         });

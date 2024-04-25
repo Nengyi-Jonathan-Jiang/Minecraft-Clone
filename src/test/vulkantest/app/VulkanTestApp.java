@@ -1,6 +1,7 @@
 package vulkantest.app;
 
 import j3d.IAppLogic;
+import j3d.OpenGLWindow;
 import j3d.Window;
 
 public class VulkanTestApp implements IAppLogic {
@@ -15,7 +16,7 @@ public class VulkanTestApp implements IAppLogic {
     }
 
     @Override
-    public void input(Window window, long deltaTime) {
+    public void input(OpenGLWindow window, long deltaTime) {
 
     }
 

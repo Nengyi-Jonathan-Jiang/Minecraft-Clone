@@ -3,6 +3,7 @@ package j3d.ogl;
 
 import j3d.IAppLogic;
 import j3d.Engine;
+import j3d.OpenGLWindow;
 import j3d.Window;
 import org.lwjgl.opengl.GL;
 
@@ -46,7 +47,7 @@ public class OpenGLEngine extends Engine {
     }
 
     @Override
-    protected void input(Window window, long elapsedTime) {
+    protected void input(OpenGLWindow window, long elapsedTime) {
         appLogic.input(window, elapsedTime);
     }
 }
