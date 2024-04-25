@@ -1,13 +1,14 @@
 package app.world;
 
-import app.world.util.ChunkOffset;
-import app.world.util.WorldPosition;
 import app.world.chunk.Chunk;
 import app.world.lighting.LightingEngine;
-import app.world.lighting.LightingEngineUpdateParameters;
+import app.world.util.ChunkOffset;
+import app.world.util.WorldPosition;
 import app.world.worldgen.WorldGenerator;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +46,7 @@ public class World {
     }
 
     public void invalidateLightingForAllVisibleChunks() {
-        lightingEngine.invalidateLighting(new LightingEngineUpdateParameters(getLoadedChunks()));
+        lightingEngine.invalidateLighting(getLoadedChunks());
     }
 
     public void updateLighting() {

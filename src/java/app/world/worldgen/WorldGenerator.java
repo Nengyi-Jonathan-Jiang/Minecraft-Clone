@@ -4,9 +4,9 @@ import app.block.Block;
 import app.block.BlockRegistry;
 import app.noise.FastNoiseLiteSimplexNoise;
 import app.noise.INoise;
-import app.world.util.ChunkOffset;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.util.ChunkOffset;
 import app.world.util.PositionInChunk;
 import app.world.util.WorldPosition;
 
@@ -61,7 +61,6 @@ public class WorldGenerator {
             float perturbX = 0;
             float perturbY = 0;
             float perturbZ = 0;
-
 
             float xx = truePos.x() + perturbX * perturb_size;
             float yy = truePos.y() + perturbY * perturb_size;

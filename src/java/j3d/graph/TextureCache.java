@@ -1,6 +1,7 @@
 package j3d.graph;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TextureCache {
 

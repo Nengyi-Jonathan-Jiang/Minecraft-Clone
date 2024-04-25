@@ -1,6 +1,8 @@
 package j3d.scene;
 
-import org.joml.*;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 public class Camera {
     private final Vector3f position;

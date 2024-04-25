@@ -16,7 +16,7 @@ float interpolate(float a, float b, float t) {
     return (a + b) / 2 + (b - a) * cubic_interpolation(t);
 }
 
-const bool whiteWorld = true;
+const bool whiteWorld = false;
 
 void main()
 {
@@ -30,6 +30,6 @@ void main()
         fragColor = texture(txtSampler, outUV) * 0.0000000001 + lightLevel;
     }
     else {
-        fragColor = texture(txtSampler, outUV) * (lightLevel * 0.8 + 0.2);
+        fragColor = texture(txtSampler, outUV) * (lightLevel * lightLevel * 0.8 + 0.2);
     }
 }

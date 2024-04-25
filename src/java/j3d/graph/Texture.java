@@ -3,7 +3,8 @@ package j3d.graph;
 import org.lwjgl.system.MemoryStack;
 import util.FileReader;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.stb.STBImage.*;

@@ -5,8 +5,10 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
-import java.nio.*;
-import java.util.*;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.HashSet;
+import java.util.Set;
 
 import static j3d.vulkan.VulkanUtils.vkCheck;
 import static org.lwjgl.vulkan.KHRPortabilitySubset.VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME;

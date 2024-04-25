@@ -1,5 +1,5 @@
 import app.app.App;
-import j3d.ogl.OpenGLEngine;
+import j3d.opengl.OpenGLEngine;
 
 public class Main {
     public static void main(String[] args) {

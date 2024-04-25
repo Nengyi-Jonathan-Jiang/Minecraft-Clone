@@ -1,6 +1,5 @@
 package vulkantest;
 
-import j3d.ogl.OpenGLEngine;
 import j3d.vulkan.VulkanEngine;
 import vulkantest.app.VulkanTestApp;
 

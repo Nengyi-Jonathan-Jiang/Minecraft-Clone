@@ -1,7 +1,6 @@
 package app.block;
 
 import app.block.model.BlockModel;
-import app.block.model.PartialMesh;
 import util.DenseIntMap;
 
 import java.util.HashMap;

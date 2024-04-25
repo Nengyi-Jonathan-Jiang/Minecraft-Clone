@@ -3,7 +3,8 @@ package j3d.graph;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
 

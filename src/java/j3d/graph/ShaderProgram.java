@@ -3,7 +3,8 @@ package j3d.graph;
 import org.lwjgl.opengl.GL30;
 import util.FileReader;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL30.*;
 

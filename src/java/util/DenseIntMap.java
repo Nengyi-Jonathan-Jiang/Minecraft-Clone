@@ -1,9 +1,5 @@
 package util;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
 public class DenseIntMap<T> {
     @SuppressWarnings("unchecked")
     private T[] items = (T[]) new Object[16];

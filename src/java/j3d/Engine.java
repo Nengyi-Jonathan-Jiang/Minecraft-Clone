@@ -1,6 +1,6 @@
 package j3d;
 
-import j3d.ogl.OpenGLEngine;
+import j3d.opengl.OpenGLEngine;
 
 public abstract class Engine {
     protected final OpenGLWindow window;

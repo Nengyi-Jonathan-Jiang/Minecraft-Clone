@@ -1,10 +1,10 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel.FaceDirection;
-import app.world.util.Vec3i;
-import app.world.util.WorldPosition;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.util.Vec3i;
+import app.world.util.WorldPosition;
 
 import java.util.*;
 
@@ -16,11 +16,6 @@ public class LightingEngine {
 
     public LightingEngine(World world) {
         this.world = world;
-    }
-
-    private static boolean isOutOfRange(WorldPosition pos, LightingEngineUpdateParameters parameters) {
-        if (parameters.isOutOfRange(pos)) return true;
-        return !Chunk.isYInRange(pos.y());
     }
 
     public void markPositionAsDirty(WorldPosition pos) {
@@ -38,13 +33,7 @@ public class LightingEngine {
 
         System.out.println("Updating " + dirtyChunks.size() + " chunks");
 
-//        UniqueQueue<WorldPosition> lightingUpdates = new UniqueQueue<>();
-
         LightingUpdateQueue lightingUpdates = new LightingUpdateQueue(dirtyChunks);
-
-//        for(var c : dirtyChunks) {
-//            c.getLightingData().getDirtyBlocks().forEach(lightingUpdates::offer);
-//        }
 
         //While update queue is not empty
         long lightingStep;
@@ -111,33 +100,14 @@ public class LightingEngine {
         return new AOData(world, pos);
     }
 
-    public void invalidateLighting(LightingEngineUpdateParameters parameters) {
-        System.out.println("Invalidating lighting for " + parameters.chunksToUpdate.size() + " chunks");
-        for (Chunk chunk : parameters.chunksToUpdate) {
+    public void invalidateLighting(Collection<Chunk> chunksToUpdate) {
+        System.out.println("Invalidating lighting for " + chunksToUpdate.size() + " chunks");
+        for (Chunk chunk : chunksToUpdate) {
             Collection<Chunk> loadedNeighbors = world.getLoadedNeighbors(chunk);
 
             dirtyChunks.addAll(loadedNeighbors);
 
             chunk.getLightingData().markAllDirty();
-        }
-    }
-
-    public int getBlockLightAt(WorldPosition pos, LightingEngineUpdateParameters chunks) {
-        if (isOutOfRange(pos, chunks)) return 15;
-
-        return world.getBlockLightAt(pos);
-    }
-
-    private void setBlockLightAt(WorldPosition pos, int level, LightingEngineUpdateParameters chunks) {
-        if (isOutOfRange(pos, chunks)) return;
-
-        world.setBlockLightAt(pos, level);
-    }
-
-    private record LightingUpdate(WorldPosition pos, int lightLevel) implements Comparable<LightingUpdate> {
-        @Override
-        public int compareTo(LightingUpdate o2) {
-            return lightLevel - o2.lightLevel;
         }
     }
 }

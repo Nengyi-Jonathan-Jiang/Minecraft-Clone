@@ -1,8 +1,8 @@
-package j3d.ogl;
+package j3d.opengl;
 
 
-import j3d.IAppLogic;
 import j3d.Engine;
+import j3d.IAppLogic;
 import j3d.OpenGLWindow;
 import j3d.Window;
 import org.lwjgl.opengl.GL;

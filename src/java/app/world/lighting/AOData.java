@@ -1,8 +1,8 @@
 package app.world.lighting;
 
 import app.block.model.BlockModel;
-import app.world.util.WorldPosition;
 import app.world.World;
+import app.world.util.WorldPosition;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;

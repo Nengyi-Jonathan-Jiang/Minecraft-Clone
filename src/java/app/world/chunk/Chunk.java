@@ -2,11 +2,11 @@ package app.world.chunk;
 
 import app.block.Block;
 import app.block.BlockRegistry;
+import app.world.World;
+import app.world.lighting.LightingData;
 import app.world.util.ChunkOffset;
 import app.world.util.IVec3i;
 import app.world.util.PositionInChunk;
-import app.world.World;
-import app.world.lighting.LightingData;
 import j3d.graph.Mesh;
 
 import java.util.Iterator;

@@ -3,7 +3,8 @@ package j3d;
 import java.util.concurrent.Callable;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_FALSE;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 
 public class OpenGLWindow extends Window {
 

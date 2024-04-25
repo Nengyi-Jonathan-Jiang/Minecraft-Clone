@@ -7,9 +7,7 @@ import app.world.util.PositionInChunk;
 import app.world.util.WorldPosition;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-// Cursed data structure
 public class LightingUpdateQueue {
     private final Map<ChunkOffset, LightingUpdateChunk> chunks = new TreeMap<>();
 
@@ -66,6 +64,8 @@ public class LightingUpdateQueue {
     public boolean isOutOfRange(WorldPosition pos) {
         return !chunks.containsKey(pos.getChunkOffset()) || !Chunk.isYInRange(pos.y());
     }
+
+    // First recalculate sky light
 
     public void offer(WorldPosition position) {
         LightingUpdateChunk chunk = chunks.get(position.getChunkOffset());

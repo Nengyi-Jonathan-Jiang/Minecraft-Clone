@@ -1,11 +1,9 @@
 package util;
 
 import javax.imageio.ImageIO;
-import java.awt.Image;
-import java.io.IOException;
+import java.awt.*;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.TreeMap;
 
 /**

@@ -3,9 +3,10 @@ package j3d.vulkan.queue;
 import j3d.vulkan.device.LogicalDevice;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.*;
+import org.lwjgl.vulkan.VkQueue;
 
-import static org.lwjgl.vulkan.VK11.*;
+import static org.lwjgl.vulkan.VK11.vkGetDeviceQueue;
+import static org.lwjgl.vulkan.VK11.vkQueueWaitIdle;
 
 public class VulkanQueue {
 

@@ -3,13 +3,12 @@ package app.app;
 import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
 import app.player.Player;
-import app.world.util.ChunkOffset;
-import app.world.util.IVec3i;
-import app.world.util.WorldPosition;
 import app.world.CubeRaycaster;
 import app.world.World;
 import app.world.chunk.Chunk;
-import app.world.lighting.LightingEngineUpdateParameters;
+import app.world.util.ChunkOffset;
+import app.world.util.IVec3i;
+import app.world.util.WorldPosition;
 import app.world.worldgen.WorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
@@ -19,9 +18,11 @@ import j3d.graph.Mesh;
 import j3d.graph.ShaderProgram;
 import j3d.graph.TextureCache;
 import j3d.scene.Projection;
-import org.joml.*;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
-import java.lang.Math;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -178,9 +179,9 @@ public class App implements IAppLogic {
         if(!world.isBlockLoaded(playerPos)) {
 
             world.loadChunk(playerPos);
-            world.getLightingEngine().invalidateLighting(new LightingEngineUpdateParameters(List.of(
+            world.getLightingEngine().invalidateLighting(List.of(
                 world.getOrLoadChunkAtPos(playerPos)
-            )));
+            ));
         }
     }
 
