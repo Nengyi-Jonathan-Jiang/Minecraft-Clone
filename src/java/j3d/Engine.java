@@ -1,46 +1,34 @@
 package j3d;
 
+import j3d.ogl.OpenGLEngine;
 
-import org.lwjgl.opengl.GL;
+public abstract class Engine {
+    protected final Window window;
+    protected boolean running;
+    public static final int targetFps = 60;
+    public static final int targetUps = 60;
 
-import static org.lwjgl.opengl.GL11.*;
+    public abstract void cleanup();
 
-public class Engine {
-    private final IAppLogic appLogic;
-    private final Window window;
-    private boolean running;
-    private static final int targetFps = 60;
-    private static final int targetUps = 60;
+    public abstract void resize();
 
-    public Engine(String windowTitle, IAppLogic appLogic) {
+    protected abstract void draw(Window window);
+
+    protected abstract void update(Window window, long elapsedTime);
+
+    protected abstract void input(Window window, long elapsedTime);
+
+    protected Engine(String windowTitle) {
         window = new Window(windowTitle, () -> {
             resize();
             return null;
         });
-        this.appLogic = appLogic;
-
-        GL.createCapabilities();
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
-
-        appLogic.init(window);
-        running = true;
     }
 
-    private void cleanup() {
-        appLogic.cleanup();
-        window.cleanup();
-    }
-
-    private void resize() {
-        appLogic.resize(window.getWidth(), window.getHeight());
-    }
-
-    private void run() {
+    public final void run() {
         long initialTime = System.currentTimeMillis();
-        float timeU = 1000.0f / targetUps;
-        float timeR = targetFps > 0 ? 1000.0f / targetFps : 0;
+        float timeU = 1000.0f / OpenGLEngine.targetUps;
+        float timeR = OpenGLEngine.targetFps > 0 ? 1000.0f / OpenGLEngine.targetFps : 0;
         float deltaUpdate = 0;
         float deltaFps = 0;
 
@@ -52,20 +40,20 @@ public class Engine {
             deltaUpdate += (now - initialTime) / timeU;
             deltaFps += (now - initialTime) / timeR;
 
-            if (targetFps <= 0 || deltaFps >= 1) {
+            if (OpenGLEngine.targetFps <= 0 || deltaFps >= 1) {
                 window.getMouseInput().input();
-                appLogic.input(window, now - initialTime);
+                input(window, now - initialTime);
             }
 
             if (deltaUpdate >= 1) {
                 long diffTimeMillis = now - updateTime;
-                appLogic.update(window, diffTimeMillis);
+                update(window, diffTimeMillis);
                 updateTime = now;
                 deltaUpdate--;
             }
 
-            if (targetFps <= 0 || deltaFps >= 1) {
-                appLogic.draw(window);
+            if (OpenGLEngine.targetFps <= 0 || deltaFps >= 1) {
+                draw(window);
                 deltaFps--;
                 window.updateScreen();
             }
@@ -75,12 +63,12 @@ public class Engine {
         cleanup();
     }
 
-    public void start() {
+    public final void start() {
         running = true;
         run();
     }
 
-    public void stop() {
+    public final void stop() {
         running = false;
     }
 }

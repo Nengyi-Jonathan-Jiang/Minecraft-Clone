@@ -19,8 +19,13 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl/lwjgl-opengl-javadoc.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl/lwjgl-stb-natives-windows.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl/lwjgl-opengl.jar!/" />
+      <root url="file://$PROJECT_DIR$/lib/lwjgl" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/lib/lwjgl" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/lib/lwjgl" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/lwjgl" recursive="false" type="SOURCES" />
   </library>
 </component>
