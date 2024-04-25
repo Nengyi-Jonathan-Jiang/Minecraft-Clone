@@ -131,6 +131,8 @@ public abstract class Window {
         return glfwWindowShouldClose(windowHandle);
     }
 
+    public abstract boolean isMouseButtonDown(int button);
+
     public interface KeyListener {
         void onKeyEvent(int keyCode, int action);
     }

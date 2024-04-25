@@ -24,6 +24,8 @@ public class WorldGenerator {
         convertTopLayersToGrass(result);
         addBedrockLayer(result);
 
+        result.getLightingData().markAllDirty();
+
         return result;
     }
 
@@ -35,15 +37,7 @@ public class WorldGenerator {
 
             if (thisBlock.getName().equals("dirt")) {
                 if (pos.y() == World.CHUNK_HEIGHT - 1 || result.getBlockIDAt(pos.add(0, 1, 0, new PositionInChunk())) == 0) {
-                    result.setBlockAt(pos, BlockRegistry.getBlockID("grass"));
-                }
-            }
-        }
-
-        for (int x = 0; x < World.CHUNK_SIZE; x++) {
-            for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
-
+                    result.setBlockAt(pos, BlockRegistry.getBlockID("grass"), false);
                 }
             }
         }
@@ -70,11 +64,11 @@ public class WorldGenerator {
             float height = noise * 5f + 64f;
 
             if (yy < height - 3) {
-                chunk.setBlockAt(pos, BlockRegistry.getBlockID("stone"));
+                chunk.setBlockAt(pos, BlockRegistry.getBlockID("stone"), false);
             }
 
             if (height - 3 <= yy && yy < height) {
-                chunk.setBlockAt(pos, BlockRegistry.getBlockID("dirt"));
+                chunk.setBlockAt(pos, BlockRegistry.getBlockID("dirt"), false);
             }
         }
     }
@@ -82,7 +76,7 @@ public class WorldGenerator {
     private void addBedrockLayer(Chunk chunk) {
         for (int x = 0; x < World.CHUNK_SIZE; x++) {
             for (int z = 0; z < World.CHUNK_SIZE; z++) {
-                chunk.setBlockAt(new PositionInChunk(x, 0, z), BlockRegistry.getBlockID("bedrock"));
+                chunk.setBlockAt(new PositionInChunk(x, 0, z), BlockRegistry.getBlockID("bedrock"), false);
             }
         }
     }

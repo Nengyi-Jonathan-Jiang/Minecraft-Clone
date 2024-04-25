@@ -21,7 +21,7 @@ import org.joml.Vector4f;
 import util.ArrayConcatenator;
 import util.ArrayUtil;
 
-public class ChunkMeshBuilder {
+class ChunkMeshBuilder {
     private final ArrayConcatenator<Float> positions = new ArrayConcatenator<>(), uvs = new ArrayConcatenator<>();
 
     // AO and lighting data should be passed as a vec4 (corner AO values) + 1 vec2 (for interpolation)

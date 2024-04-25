@@ -31,4 +31,9 @@ public class OpenGLWindow extends Window {
     public boolean isKeyPressed(int keyCode) {
         return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
+
+    @Override
+    public boolean isMouseButtonDown(int button) {
+        return glfwGetMouseButton(windowHandle, button) == GLFW_PRESS;
+    }
 }

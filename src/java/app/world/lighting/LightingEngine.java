@@ -24,6 +24,10 @@ public class LightingEngine {
         dirtyChunks.addAll(world.getLoadedNeighbors(chunk));
     }
 
+    public void markChunkAsDirty(Chunk c){
+        dirtyChunks.addAll(world.getLoadedNeighbors(c));
+    }
+
     public boolean needsUpdate() {
         return !dirtyChunks.isEmpty();
     }

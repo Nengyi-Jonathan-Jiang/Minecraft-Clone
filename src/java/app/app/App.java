@@ -2,6 +2,7 @@ package app.app;
 
 import app.atlas.TextureAtlas;
 import app.block.BlockRegistry;
+import app.player.Cooldown;
 import app.player.Player;
 import app.world.CubeRaycaster;
 import app.world.World;
@@ -47,6 +48,10 @@ public class App implements IAppLogic {
     private TextureCache textureCache;
     private Window window;
     private Mesh crossHairMesh;
+
+    private final Cooldown
+        placeBlockCooldown = new Cooldown(100),
+        deleteBlockCooldown = new Cooldown(100);
 
     private static void startRender(Window window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,6 +145,7 @@ public class App implements IAppLogic {
     @Override
     public void input(OpenGLWindow window, long deltaTime) {
         float move = deltaTime * MOVEMENT_SPEED;
+
         if (window.isKeyPressed(GLFW_KEY_W)) {
             player.move(new Vector3f(0, 0, -1).rotateY(-player.getRotation().y).mul(move));
         }
@@ -175,6 +181,16 @@ public class App implements IAppLogic {
 
     @Override
     public void update(Window window, long deltaTime) {
+        placeBlockCooldown.update((int) deltaTime);
+        deleteBlockCooldown.update((int) deltaTime);
+
+        if(window.isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT)) {
+            deleteBlock();
+        }
+        else if(window.isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT)) {
+            placeBlock();
+        }
+
         WorldPosition playerPos = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
         if(!world.isBlockLoaded(playerPos)) {
 
@@ -327,49 +343,69 @@ public class App implements IAppLogic {
     private void onMouseDown(int button, int action) {
         if (action == GLFW_PRESS) {
             if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                WorldPosition pos = null;
-                {
-                    var cast = new CubeRaycaster().cast(player.getCamera());
-                    for (int i = 0; i < 100; i++) {
-                        pos = cast.next();
-                        if (!world.isBlockLoaded(pos) ||
-                                player.getPosition().distance(pos.toVector3f()) > 10
-                        ) {
-                            pos = null;
-                            break;
-                        }
-                        if (world.getBlockIDAt(pos) != 0) {
-                            break;
-                        }
-                    }
-                }
-
-                if (pos != null) {
-                    world.setBlockIDAt(pos, 0);
+                if(deleteBlockCooldown.isFinished()){
+                    deleteBlock();
+                    deleteBlockCooldown.reset(300);
                 }
             } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                WorldPosition pos = null;
-                {
-                    var cast = new CubeRaycaster().cast(player.getCamera());
-                    for (int i = 0; i < 100; i++) {
-                        var n = cast.next();
-                        if (!world.isBlockLoaded(n) ||
-                                player.getPosition().distance(n.toVector3f()) > 10
-                        ) {
-                            pos = null;
-                            break;
-                        }
-                        if (world.getBlockIDAt(n) != 0) {
-                            break;
-                        }
-                        pos = n;
-                    }
-                }
-
-                if (pos != null) {
-                    world.setBlockIDAt(pos, BlockRegistry.getBlockID("iron_ore"));
+                if(placeBlockCooldown.isFinished()){
+                    placeBlock();
+                    placeBlockCooldown.reset(300);
                 }
             }
+        }
+    }
+
+    private void placeBlock() {
+        if(!placeBlockCooldown.isFinished()) return;
+        placeBlockCooldown.reset();
+
+        WorldPosition pos = null;
+        {
+            var cast = new CubeRaycaster().cast(player.getCamera());
+            for (int i = 0; i < 100; i++) {
+                var n = cast.next();
+                if (!world.isBlockLoaded(n) ||
+                        player.getPosition().distance(n.toVector3f()) > 10
+                ) {
+                    pos = null;
+                    break;
+                }
+                if (world.getBlockIDAt(n) != 0) {
+                    break;
+                }
+                pos = n;
+            }
+        }
+
+        if (pos != null) {
+            world.setBlockIDAt(pos, BlockRegistry.getBlockID("iron_ore"));
+        }
+    }
+
+    private void deleteBlock() {
+        if(!deleteBlockCooldown.isFinished()) return;
+        deleteBlockCooldown.reset();
+
+        WorldPosition pos = null;
+        {
+            var cast = new CubeRaycaster().cast(player.getCamera());
+            for (int i = 0; i < 100; i++) {
+                pos = cast.next();
+                if (!world.isBlockLoaded(pos) ||
+                        player.getPosition().distance(pos.toVector3f()) > 10
+                ) {
+                    pos = null;
+                    break;
+                }
+                if (world.getBlockIDAt(pos) != 0) {
+                    break;
+                }
+            }
+        }
+
+        if (pos != null) {
+            world.setBlockIDAt(pos, 0);
         }
     }
 }

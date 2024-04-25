@@ -81,8 +81,17 @@ public class Chunk {
     }
 
     public void setBlockAt(PositionInChunk pos, int id) {
+        setBlockAt(pos, id, true);
+    }
+
+    public void setBlockAt(PositionInChunk pos, int id, boolean updateLighting) {
         data[pos.getBits()] = id;
         shouldRebuildMesh = true;
+
+        if(updateLighting) {
+            world.getLightingEngine().markChunkAsDirty(this);
+            lightingData.markBlockDirty(pos);
+        }
     }
 
     public int getBlockIDAt(PositionInChunk pos) {
