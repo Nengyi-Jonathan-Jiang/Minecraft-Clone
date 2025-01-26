@@ -48,7 +48,7 @@ public class App implements IAppLogic {
 
     @Override
     public void freeResources() {
-        // Nothing to be done yet
+        world.freeResources();
     }
 
     @Override
