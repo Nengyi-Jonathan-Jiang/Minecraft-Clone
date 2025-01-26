@@ -8,6 +8,7 @@ layout (location = 3) in vec2 lightLevelInterpolator;
 out vec2 outUV;
 out vec4 outLightLevels;
 out vec2 outLightLevelInterpolator;
+out vec3 outRealWorldPos;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -16,6 +17,7 @@ uniform mat4 modelMatrix;
 void main()
 {
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+    outRealWorldPos = (viewMatrix * modelMatrix * vec4(position, 1.0)).xyz;
     outUV = uv;
     outLightLevels = lightLevels;
     outLightLevelInterpolator = lightLevelInterpolator;

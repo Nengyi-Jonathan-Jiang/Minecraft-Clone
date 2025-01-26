@@ -14,8 +14,8 @@ public class BlockRegistry {
     private BlockRegistry() {}
 
     public static void registerBlock(Block block) {
-        blocks.put(block.getID(), block);
-        blockIDs.put(block.getName(), block.getID());
+        blocks.put(block.id, block);
+        blockIDs.put(block.name, block.id);
     }
 
     public static void registerModel(String name, BlockModel model) {

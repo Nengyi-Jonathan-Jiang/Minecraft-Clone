@@ -1,5 +1,6 @@
 package app.world.lighting;
 
+import app.block.BlockRegistry;
 import app.block.model.BlockModel;
 import app.world.World;
 import app.world.util.WorldPosition;
@@ -20,8 +21,14 @@ public class AOData {
 
     private int getLightAtIfLoadedOrDefault(WorldPosition p, int defaultValue) {
         return world.isBlockLoaded(p)
-                ? world.getBlockLightAt(p)
-                : defaultValue;
+            ? world.getBlockLightAt(p)
+            : defaultValue;
+    }
+
+    private int getOpacityIfLoadedOrDefault(WorldPosition p, int defaultValue) {
+        return world.isBlockLoaded(p)
+            ? BlockRegistry.getBlock(world.getBlockIDAt(p)).opacity
+            : defaultValue;
     }
 
     public Vector4f getAOForPoint(BlockModel.FaceDirection faceDirection) {
@@ -33,8 +40,6 @@ public class AOData {
 
         int baseBlockLight = world.getBlockLightAt(adjacentPos);
         float lightMultiplier = faceDirection.lightMultiplier;
-
-        if (!LightingEngine.useAO) return new Vector4f(baseBlockLight * lightMultiplier / 15f);
 
         // Light levels for corners
         int l_xy = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.t1, faceDirection.t2), baseBlockLight);
@@ -49,18 +54,18 @@ public class AOData {
         int l_Y = getLightAtIfLoadedOrDefault(addAll(new WorldPosition(), adjacentPos, faceDirection.T2), baseBlockLight);
 
         return new Vector4f(
-                calculateWeightedAOValue(
-                        baseBlockLight, l_x, l_y, l_xy
-                ),
-                calculateWeightedAOValue(
-                        baseBlockLight, l_X, l_y, l_Xy
-                ),
-                calculateWeightedAOValue(
-                        baseBlockLight, l_x, l_Y, l_xY
-                ),
-                calculateWeightedAOValue(
-                        baseBlockLight, l_X, l_Y, l_XY
-                )
+            calculateWeightedAOValue(
+                baseBlockLight, l_x, l_y, l_xy
+            ),
+            calculateWeightedAOValue(
+                baseBlockLight, l_X, l_y, l_Xy
+            ),
+            calculateWeightedAOValue(
+                baseBlockLight, l_x, l_Y, l_xY
+            ),
+            calculateWeightedAOValue(
+                baseBlockLight, l_X, l_Y, l_XY
+            )
         ).mul(lightMultiplier / 15f);
     }
 
@@ -76,8 +81,13 @@ public class AOData {
         return new Vector2f(x, y);
     }
 
-    private float calculateWeightedAOValue(float current, float side1, float side2, float corner) {
-//        return (current + side1 + side2 + corner) / 4f;
+    private float calculateWeightedAOValue(
+        float current,
+        float side1,
+        float side2,
+        float corner
+    ) {
+        // Use quadratic mean for more shadow
         return (float) Math.sqrt(
             current * current + side1 * side1 + side2 * side2 + corner * corner
         ) / 2;

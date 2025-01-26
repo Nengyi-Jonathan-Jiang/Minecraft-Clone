@@ -1,13 +1,13 @@
 package j3d;
 
-public interface IAppLogic {
-    void cleanup();
+import util.Resource;
 
+public interface IAppLogic extends Resource {
     void init(Window window);
 
-    void input(OpenGLWindow window, long deltaTime);
+    void input(Window window, int deltaTime);
 
-    void update(Window window, long deltaTime);
+    void update(Window window, int deltaTime);
 
     void draw(Window window);
 

@@ -1,28 +1,24 @@
 package j3d;
 
 import j3d.opengl.OpenGLEngine;
+import util.Resource;
 
-public abstract class Engine {
-    protected final OpenGLWindow window;
+public abstract class Engine implements Resource {
+    protected final Window window;
     protected boolean running;
     public static final int targetFps = 60;
     public static final int targetUps = 60;
-
-    public abstract void cleanup();
 
     public abstract void resize();
 
     protected abstract void draw(Window window);
 
-    protected abstract void update(Window window, long elapsedTime);
+    protected abstract void update(Window window, int elapsedTimeMillis);
 
-    protected abstract void input(OpenGLWindow window, long elapsedTime);
+    protected abstract void input(Window window, int elapsedTimeMillis);
 
-    protected Engine(String windowTitle) {
-        window = new OpenGLWindow(windowTitle, () -> {
-            resize();
-            return null;
-        });
+    protected Engine(String windowTitle, Window.WindowConstructor windowConstructor) {
+        window = windowConstructor.call(windowTitle, this::resize);
     }
 
     public final void run() {
@@ -42,11 +38,11 @@ public abstract class Engine {
 
             if (OpenGLEngine.targetFps <= 0 || deltaFps >= 1) {
                 window.getMouseInput().input();
-                input(window, now - initialTime);
+                input(window, (int) (now - initialTime));
             }
 
             if (deltaUpdate >= 1) {
-                long diffTimeMillis = now - updateTime;
+                int diffTimeMillis = (int) (now - updateTime);
                 update(window, diffTimeMillis);
                 updateTime = now;
                 deltaUpdate--;
@@ -60,7 +56,7 @@ public abstract class Engine {
             initialTime = now;
         }
 
-        cleanup();
+        freeResources();
     }
 
     public final void start() {

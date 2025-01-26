@@ -3,25 +3,30 @@ package j3d;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryUtil;
+import util.Resource;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public abstract class Window {
+public abstract class Window implements Resource {
     protected final long windowHandle;
     protected final Dimension dimensions;
     protected final MouseInput mouseInput;
-    protected final Callable<Void> resizeFunc;
+    protected final Runnable resizeFunc;
     protected final List<KeyListener> keyListeners = new ArrayList<>();
     protected final List<MouseListener> mouseListeners = new ArrayList<>();
 
-    public Window(Callable<Void> resizeFunc, String title) {
+    public interface WindowConstructor {
+        Window call(String title, Runnable resizeFunc);
+    }
+
+    @SuppressWarnings("resource")
+    protected Window(String title, Runnable resizeFunc) {
         this.resizeFunc = resizeFunc;
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -41,14 +46,14 @@ public abstract class Window {
         glfwSetFramebufferSizeCallback(windowHandle, (window, w, h) -> onResize(w, h));
 
         glfwSetErrorCallback((int errorCode, long msgPtr) ->
-                System.out.printf("Error code [%s], msg [%s]%n", errorCode, MemoryUtil.memUTF8(msgPtr))
+            System.out.printf("Error code [%s], msg [%s]%n", errorCode, MemoryUtil.memUTF8(msgPtr))
         );
 
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
             keyCallBack(key, action);
             keyListeners.forEach(listener -> listener.onKeyEvent(key, action));
         });
-        glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods)-> {
+        glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods) -> {
             mouseListeners.forEach(listener -> listener.onMouseEvent(button, action));
         });
 
@@ -77,7 +82,7 @@ public abstract class Window {
         this.mouseListeners.add(mouseListener);
     }
 
-    public void cleanup() {
+    public void freeResources() {
         glfwFreeCallbacks(windowHandle);
         glfwDestroyWindow(windowHandle);
         glfwTerminate();
@@ -117,7 +122,7 @@ public abstract class Window {
         this.dimensions.width = width;
         this.dimensions.height = height;
         try {
-            resizeFunc.call();
+            resizeFunc.run();
         } catch (Exception e) {
             System.out.println("Error calling resize callback" + e);
         }
@@ -130,6 +135,8 @@ public abstract class Window {
     public boolean windowShouldClose() {
         return glfwWindowShouldClose(windowHandle);
     }
+
+    public abstract boolean isKeyPressed(int keyCode);
 
     public abstract boolean isMouseButtonDown(int button);
 

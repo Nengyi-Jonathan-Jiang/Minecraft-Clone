@@ -3,17 +3,17 @@ package j3d.opengl;
 
 import j3d.Engine;
 import j3d.IAppLogic;
-import j3d.OpenGLWindow;
 import j3d.Window;
 import org.lwjgl.opengl.GL;
+import util.Resource;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class OpenGLEngine extends Engine {
+public class OpenGLEngine extends Engine implements Resource {
     private final IAppLogic appLogic;
 
     public OpenGLEngine(String windowTitle, IAppLogic appLogic) {
-        super(windowTitle);
+        super(windowTitle, OpenGLWindow::new);
         this.appLogic = appLogic;
 
         GL.createCapabilities();
@@ -26,9 +26,9 @@ public class OpenGLEngine extends Engine {
     }
 
     @Override
-    public void cleanup() {
-        appLogic.cleanup();
-        window.cleanup();
+    public void freeResources() {
+        appLogic.freeResources();
+        window.freeResources();
     }
 
     @Override
@@ -42,12 +42,12 @@ public class OpenGLEngine extends Engine {
     }
 
     @Override
-    protected void update(Window window, long elapsedTime) {
-        appLogic.update(window, elapsedTime);
+    protected void update(Window window, int elapsedTimeMillis) {
+        appLogic.update(window, elapsedTimeMillis);
     }
 
     @Override
-    protected void input(OpenGLWindow window, long elapsedTime) {
-        appLogic.input(window, elapsedTime);
+    protected void input(Window window, int elapsedTimeMillis) {
+        appLogic.input(window, elapsedTimeMillis);
     }
 }

@@ -11,45 +11,46 @@ public class BlockBuilder {
     private final String model;
     private final Vector2i texOffset;
     private final List<String> tags;
+    private final int opacity;
 
     public BlockBuilder() {
-        this(null, null, null, null, Collections.emptyList());
+        this(null, null, null, null, 15, Collections.emptyList());
     }
 
-    private BlockBuilder(String name, String displayName, String model, Vector2i texOffset, List<String> tags) {
+    private BlockBuilder(String name, String displayName, String model, Vector2i texOffset, int opacity, List<String> tags) {
         this.name = name;
         this.displayName = displayName;
         this.model = model;
         this.texOffset = texOffset;
+        this.opacity = opacity;
         this.tags = tags;
     }
 
     public BlockBuilder name(String name) {
-        return new BlockBuilder(name, displayName, model, texOffset, tags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, tags);
     }
-
 
     public BlockBuilder name(String name, String displayName) {
-        return new BlockBuilder(name, displayName, model, texOffset, tags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, tags);
     }
 
-
     public BlockBuilder displayName(String displayName) {
-        return new BlockBuilder(name, displayName, model, texOffset, tags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, tags);
     }
 
     public BlockBuilder model(String model) {
-        return new BlockBuilder(name, displayName, model, texOffset, tags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, tags);
     }
 
     public BlockBuilder texOffset(Vector2i texOffset) {
-        return new BlockBuilder(name, displayName, model, texOffset, tags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, tags);
     }
 
     public BlockBuilder withTag(String tag) {
         List<String> newTags = Stream.concat(tags.stream(), Stream.of(tag)).toList();
-        return new BlockBuilder(name, displayName, model, texOffset, newTags);
+        return new BlockBuilder(name, displayName, model, texOffset, opacity, newTags);
     }
+
 
     public Block getResult() {
         if (name == null || texOffset == null || model == null) {
@@ -57,11 +58,12 @@ public class BlockBuilder {
         }
 
         return new Block(
-                name,
-                displayName == null ? name : displayName,
-                BlockRegistry.getModel(model),
-                texOffset,
-                tags
+            name,
+            displayName == null ? name : displayName,
+            BlockRegistry.getModel(model),
+            texOffset,
+            opacity,
+            tags
         );
     }
 }

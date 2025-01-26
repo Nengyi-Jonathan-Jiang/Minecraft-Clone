@@ -1,41 +1,51 @@
 package app.world.lighting;
 
+import app.block.BlockRegistry;
 import app.block.model.BlockModel.FaceDirection;
-import app.player.Player;
 import app.world.World;
 import app.world.chunk.Chunk;
+import app.world.lighting.LightingUpdateQueue.LightingUpdateChunk;
+import app.world.util.ChunkOffset;
 import app.world.util.Vec3i;
 import app.world.util.WorldPosition;
 
 import java.util.*;
 
 public class LightingEngine {
-    public static final boolean useAO = true;
 
     private final World world;
-    private final Set<Chunk> dirtyChunks = new HashSet<>();
+    private final Map<ChunkOffset, LightingUpdateChunk> dirtyChunks = new HashMap<>();
 
     public LightingEngine(World world) {
         this.world = world;
     }
 
-    public void markChunkAsDirty(Chunk c){
-        dirtyChunks.add(c);
+    public synchronized void markChunkAsDirty(Chunk c) {
+        LightingUpdateChunk chunk = dirtyChunks.computeIfAbsent(
+            c.getChunkOffset(),
+            (__) -> new LightingUpdateChunk(c)
+        );
     }
 
-    public boolean needsUpdate() {
+    public synchronized boolean needsUpdate() {
         return !dirtyChunks.isEmpty();
     }
 
-    public void updateLighting(Player player) {
+    public synchronized void updateLighting() {
 
-        if(!needsUpdate()) return;
+        if (!needsUpdate()) return;
 
-        System.out.println("Updating " + dirtyChunks.size() + " chunks");
+        dirtyChunks
+            .values().stream().toList()
+            .stream()
+            .map(LightingUpdateChunk::getChunk)
+            .map(world::getLoadedNeighbors)
+            .flatMap(Collection::stream)
+            .forEach(this::markChunkAsDirty);
 
-        new ArrayList<>(dirtyChunks).stream().map(world::getLoadedNeighbors).forEach(dirtyChunks::addAll);
+        LightingUpdateQueue lightingUpdates = new LightingUpdateQueue(dirtyChunks.values());
 
-        LightingUpdateQueue lightingUpdates = new LightingUpdateQueue(dirtyChunks);
+        System.out.println("Updating " + lightingUpdates.size() + " blocks in " + dirtyChunks.size() + " chunks");
 
         //While update queue is not empty
         long lightingStep;
@@ -49,9 +59,8 @@ public class LightingEngine {
         }
         System.out.println("Updated lighting in " + lightingStep + " steps");
 
-        dirtyChunks.forEach(Chunk::markMeshAsDirty);
-
-        for(var i : dirtyChunks) i.getLightingData().clearDirtyBlocks();
+        dirtyChunks.values().stream().map(LightingUpdateChunk::getChunk).forEach(Chunk::invalidateMesh);
+        dirtyChunks.values().stream().map(LightingUpdateChunk::getChunk).map(Chunk::getLightingData).forEach(LightingData::clearDirtyBlocks);
 
         dirtyChunks.clear();
     }
@@ -60,7 +69,7 @@ public class LightingEngine {
         var update = lightingUpdates.poll();
         WorldPosition pos = update.worldPosition();
 
-        LightingUpdateQueue.LightingUpdateChunk lightingChunk = update.containingChunk();
+        LightingUpdateChunk lightingChunk = update.containingChunk();
         Chunk chunk = lightingChunk.getChunk();
 
         int oldBlockLight = chunk.getLightingData().getBlockLightAt(pos.getPositionInChunk());
@@ -68,24 +77,23 @@ public class LightingEngine {
         int newBlockLight = 0;
         List<WorldPosition> neighbors = new ArrayList<>();
 
-        int opacity = chunk.getBlockIDAt(pos.getPositionInChunk()) == 0 ? 0 : 15;
+        int blockIDAtPos = chunk.getBlockIDAt(pos.getPositionInChunk());
+        int opacity = blockIDAtPos == 0 ? 0 : BlockRegistry.getBlock(blockIDAtPos).opacity;
 
-        if(pos.y() == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
+        if (pos.y() == World.CHUNK_HEIGHT - 1) newBlockLight = Math.max(15 - opacity, 0);
 
         for (var face : FaceDirection.OUTER_FACES) {
             Vec3i offset = face.direction;
             WorldPosition newPos = pos.add(offset, new WorldPosition());
 
-            if (lightingUpdates.isOutOfRange(newPos)) {
-                continue;
-            }
+            Chunk neighborChunk = lightingUpdates.getChunkAtPos(newPos);
+            if (neighborChunk == null) continue;
 
-            Chunk neighborChunk = world.getOrLoadChunkAtPos(newPos);
             int neighborLight = neighborChunk.getLightingData().getBlockLightAt(newPos.getPositionInChunk());
             int neighborOpacity = neighborChunk.getBlockAt(newPos.getPositionInChunk()) == null ? 0 : 15;
 
             int propagatedLight = face == FaceDirection.TOP && neighborLight == 15 ? 15 - opacity :
-                    neighborLight - opacity - neighborOpacity - 1;
+                neighborLight - opacity - neighborOpacity - 1;
             newBlockLight = Math.max(newBlockLight, propagatedLight);
 
             neighbors.add(newPos);
@@ -102,14 +110,13 @@ public class LightingEngine {
         return new AOData(world, pos);
     }
 
-    public void invalidateLighting(Collection<Chunk> chunksToUpdate) {
-        System.out.println("Invalidating lighting for " + chunksToUpdate.size() + " chunks");
+    public synchronized void invalidateLighting(Collection<Chunk> chunksToUpdate) {
         for (Chunk chunk : chunksToUpdate) {
             Collection<Chunk> loadedNeighbors = world.getLoadedNeighbors(chunk);
 
-            dirtyChunks.addAll(loadedNeighbors);
+            loadedNeighbors.forEach(c -> dirtyChunks.computeIfAbsent(c.getChunkOffset(), (__) -> new LightingUpdateChunk(c)));
 
-            chunk.getLightingData().markAllDirty();
+            chunk.getLightingData().invalidateAll();
         }
     }
 }

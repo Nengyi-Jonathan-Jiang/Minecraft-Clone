@@ -1,6 +1,6 @@
-package j3d;
+package j3d.opengl;
 
-import java.util.concurrent.Callable;
+import j3d.Window;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
@@ -23,8 +23,8 @@ public class OpenGLWindow extends Window {
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     }
 
-    public OpenGLWindow(String title, Callable<Void> resizeFunc) {
-        super(resizeFunc, title);
+    public OpenGLWindow(String title, Runnable resizeFunc) {
+        super(title, resizeFunc);
         glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 

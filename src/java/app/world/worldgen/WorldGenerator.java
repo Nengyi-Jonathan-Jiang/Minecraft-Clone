@@ -22,7 +22,7 @@ public class WorldGenerator {
         convertTopLayersToGrass(result);
         addBedrockLayer(result);
 
-        result.getLightingData().markAllDirty();
+        result.getLightingData().invalidateAll();
 
 
 
@@ -35,7 +35,7 @@ public class WorldGenerator {
 
             if (thisBlock == null) continue;
 
-            if (thisBlock.getName().equals("dirt")) {
+            if (thisBlock.name.equals("dirt")) {
                 if (pos.y() == World.CHUNK_HEIGHT - 1 || result.getBlockIDAt(pos.add(0, 1, 0, new PositionInChunk())) == 0) {
                     result.setBlockAt(pos, BlockRegistry.getBlockID("grass"), false);
                 }
@@ -47,21 +47,21 @@ public class WorldGenerator {
         for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
             WorldPosition truePos = pos.getAbsolutePosition(chunk.getChunkOffset());
 
-            float perturb_size = 30f;
+            float perturb_size = 60f;
 
-//            float perturbX = noiseGenerator.getNoise(truePos.x() / 50f, truePos.y() / 50f, truePos.z() / 50f);
-//            float perturbY = noiseGenerator.getNoise(truePos.x() / 50f + 9.2f, truePos.y() / 50f - 2.432f, truePos.z() / 50f + 3.52f);
-//            float perturbZ = noiseGenerator.getNoise(truePos.x() / 50f + 2.34f, truePos.y() / 50f + 4.37f, truePos.z() / 50f + 9.84f);
-            float perturbX = 0;
-            float perturbY = 0;
-            float perturbZ = 0;
+            float perturbX = noiseGenerator.getNoise(truePos.x() / 50f, truePos.y() / 50f, truePos.z() / 50f);
+            float perturbY = noiseGenerator.getNoise(truePos.x() / 50f + 9.2f, truePos.y() / 50f - 2.432f, truePos.z() / 50f + 3.52f);
+            float perturbZ = noiseGenerator.getNoise(truePos.x() / 50f + 2.34f, truePos.y() / 50f + 4.37f, truePos.z() / 50f + 9.84f);
+//            float perturbX = 0;
+//            float perturbY = 0;
+//            float perturbZ = 0;
 
             float xx = truePos.x() + perturbX * perturb_size;
             float yy = truePos.y() + perturbY * perturb_size;
             float zz = truePos.z() + perturbZ * perturb_size;
 
-            float noise = 4 * noiseGenerator.getNoise(xx / 20f, zz / 20f);
-            float height = noise * 5f + 64f;
+            float noise = noiseGenerator.getNoise(xx / 50f, zz / 50f);
+            float height = noise * 30f + 64f;
 
             if (yy < height - 3) {
                 chunk.setBlockAt(pos, BlockRegistry.getBlockID("stone"), false);

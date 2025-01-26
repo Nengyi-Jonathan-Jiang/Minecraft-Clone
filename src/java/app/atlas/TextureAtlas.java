@@ -1,11 +1,10 @@
 package app.atlas;
 
 import j3d.graph.Texture;
-import j3d.graph.TextureCache;
 
 public class TextureAtlas {
     private static TextureAtlas instance;
-    private static Texture texture = new TextureCache().getTexture(TextureCache.DEFAULT_TEXTURE);
+    private static Texture texture = Texture.DEFAULT_TEXTURE;
 
     private TextureAtlas() {
     }

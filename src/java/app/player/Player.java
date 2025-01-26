@@ -8,8 +8,17 @@ public class Player {
     private final Camera camera;
     private Vector3f velocity;
 
+    public final Cooldown
+        placeBlockCooldown = new Cooldown(100),
+        deleteBlockCooldown = new Cooldown(100);
+
     public Player() {
         this.camera = new Camera();
+    }
+
+    public void update(int elapsedTimeMillis) {
+        placeBlockCooldown.update(elapsedTimeMillis);
+        deleteBlockCooldown.update(elapsedTimeMillis);
     }
 
     public Vector3f getPosition() {

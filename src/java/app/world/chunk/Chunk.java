@@ -19,7 +19,7 @@ public class Chunk {
     private final ChunkOffset chunkOffset;
     private boolean shouldRebuildMesh = true;
     private boolean shouldUpdateLighting = true;
-    private Mesh mesh = new Mesh(new int[0]);
+    private Mesh mesh = null;
 
     public static Iterable<PositionInChunk> allPositionsInChunk() {
         return () -> new Iterator<>() {
@@ -42,7 +42,7 @@ public class Chunk {
     public Chunk(ChunkOffset chunkOffset, World world) {
         this.chunkOffset = chunkOffset;
         this.world = world;
-        lightingData = new LightingData(chunkOffset);
+        lightingData = new LightingData(this);
     }
 
     public static boolean isYInRange(int y) {
@@ -70,7 +70,7 @@ public class Chunk {
         shouldRebuildMesh = false;
     }
 
-    public boolean shouldUpdateLighting(){
+    public boolean shouldUpdateLighting() {
         return shouldUpdateLighting;
     }
 
@@ -81,7 +81,7 @@ public class Chunk {
         return mesh;
     }
 
-    public void markMeshAsDirty() {
+    public void invalidateMesh() {
         shouldRebuildMesh = true;
     }
 
@@ -93,7 +93,7 @@ public class Chunk {
         data[pos.getBits()] = id;
         shouldRebuildMesh = true;
 
-        if(updateLighting) {
+        if (updateLighting) {
             shouldUpdateLighting = true;
             world.getLightingEngine().markChunkAsDirty(this);
             lightingData.markBlockDirty(pos);
@@ -120,6 +120,6 @@ public class Chunk {
     public String toString() {
         return "Chunk{" +
             "chunkOffset=" + chunkOffset +
-        '}';
+            '}';
     }
 }

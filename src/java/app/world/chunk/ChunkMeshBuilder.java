@@ -18,17 +18,17 @@ import j3d.graph.Mesh.MeshAttributeData;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector4f;
-import util.ArrayConcatenator;
-import util.ArrayUtil;
+import util.ArrayBuilder.FloatArrayBuilder;
+import util.ArrayBuilder.IntArrayBuilder;
 
 class ChunkMeshBuilder {
-    private final ArrayConcatenator<Float> positions = new ArrayConcatenator<>(), uvs = new ArrayConcatenator<>();
+    private final FloatArrayBuilder
+        positions = new FloatArrayBuilder(),
+        uvs = new FloatArrayBuilder(),
+        cornerAO = new FloatArrayBuilder(),
+        aoInterpolation = new FloatArrayBuilder();
 
-    // AO and lighting data should be passed as a vec4 (corner AO values) + 1 vec2 (for interpolation)
-    private final ArrayConcatenator<Float> cornerAO = new ArrayConcatenator<>(),
-            aoInterpolation = new ArrayConcatenator<>();
-
-    private final ArrayConcatenator<Integer> indices = new ArrayConcatenator<>();
+    private final IntArrayBuilder indices = new IntArrayBuilder();
 
     private boolean shouldShowFace(Vec3i pos, int id, int[] data) {
         if (!Chunk.isInRange(pos)) return true;
@@ -40,7 +40,7 @@ class ChunkMeshBuilder {
 
         Block block = BlockRegistry.getBlock(otherID);
 
-        return block.getTags().contains("transparent");
+        return block.hasTag("transparent");
     }
 
     public Mesh build(World world, Chunk chunk) {
@@ -52,7 +52,7 @@ class ChunkMeshBuilder {
 
         int currIndex = 0;
 
-        for(PositionInChunk pos : Chunk.allPositionsInChunk()) {
+        for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
             int blockID = chunk.getBlockIDAt(pos);
 
             // Don't generate a mesh for air blocks
@@ -60,17 +60,17 @@ class ChunkMeshBuilder {
 
             Block block = BlockRegistry.getBlock(blockID);
 
-            BlockModel blockModel = block.getModel();
-            Vector2i texOffset = block.getTexOffset();
+            BlockModel blockModel = block.model;
+            Vector2i texOffset = block.texOffset;
 
             boolean hasVisibleFace = false;
 
             AOData aoData = world.getLightingEngine().getAOData(
-                    pos.add(new WorldPosition(
-                            chunk.getChunkOffset().x(),
-                            0,
-                            chunk.getChunkOffset().z()
-                    ), new WorldPosition())
+                pos.add(new WorldPosition(
+                    chunk.getChunkOffset().x(),
+                    0,
+                    chunk.getChunkOffset().z()
+                ), new WorldPosition())
             );
 
             for (FaceDirection direction : FaceDirection.OUTER_FACES) {
@@ -90,11 +90,11 @@ class ChunkMeshBuilder {
     }
 
     private Mesh toMesh() {
-        int[] indexData = ArrayUtil.unbox(this.indices.get(Integer[]::new));
-        MeshAttributeData positionData = MeshAttributeData.create(3, ArrayUtil.unbox(positions.get(Float[]::new)));
-        MeshAttributeData uvData = MeshAttributeData.create(2, ArrayUtil.unbox(uvs.get(Float[]::new)));
-        MeshAttributeData cornerAOData = MeshAttributeData.create(4, ArrayUtil.unbox(cornerAO.get(Float[]::new)));
-        MeshAttributeData aoInterpolationData = MeshAttributeData.create(2, ArrayUtil.unbox(aoInterpolation.get(Float[]::new)));
+        int[] indexData = this.indices.get();
+        MeshAttributeData positionData = toMeshAttributeData(3, positions);
+        MeshAttributeData uvData = toMeshAttributeData(2, uvs);
+        MeshAttributeData cornerAOData = toMeshAttributeData(4, cornerAO);
+        MeshAttributeData aoInterpolationData = toMeshAttributeData(2, aoInterpolation);
 
         positions.clear();
         uvs.clear();
@@ -103,11 +103,17 @@ class ChunkMeshBuilder {
         indices.clear();
 
         return new Mesh(
-                indexData,
-                positionData,
-                uvData,
-                cornerAOData,
-                aoInterpolationData);
+            indexData,
+            positionData,
+            uvData,
+            cornerAOData,
+            aoInterpolationData
+        );
+    }
+
+    private MeshAttributeData toMeshAttributeData(int elementSize, FloatArrayBuilder data) {
+        float[] arr = data.get();
+        return MeshAttributeData.create(elementSize, arr);
     }
 
     private int addFace(int currIndex, Vector2i texOffset, PositionInChunk chunkPosition, BlockModel model, FaceDirection direction, AOData aoData) {
@@ -119,13 +125,13 @@ class ChunkMeshBuilder {
 
         for (PartialMeshVertex vertex : vertices) {
             positions.addAll(
-                    vertex.x() + chunkPosition.x(),
-                    vertex.y() + chunkPosition.y(),
-                    vertex.z() + chunkPosition.z()
+                vertex.x() + chunkPosition.x(),
+                vertex.y() + chunkPosition.y(),
+                vertex.z() + chunkPosition.z()
             );
             uvs.addAll(
-                    (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
-                    (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
+                (texOffset.x + vertex.tx()) * TextureAtlas.scaleFactorX(),
+                (texOffset.y + vertex.ty()) * TextureAtlas.scaleFactorY()
             );
 
             Vector2f aoInterpolator = aoData.getInterpolatorForPoint(vertex.pos(), direction);

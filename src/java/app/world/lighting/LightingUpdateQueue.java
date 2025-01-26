@@ -21,7 +21,7 @@ public class LightingUpdateQueue {
         private final boolean[] needsUpdate = new boolean[World.BLOCKS_PER_CHUNK];
         private final Chunk chunk;
 
-        private LightingUpdateChunk(Chunk chunk) {
+        public LightingUpdateChunk(Chunk chunk) {
             this.chunk = chunk;
         }
 
@@ -45,33 +45,37 @@ public class LightingUpdateQueue {
     public record LightingUpdate(
         LightingUpdateChunk containingChunk,
         WorldPosition worldPosition
-    ){
+    ) {
 
     }
 
-    public LightingUpdateQueue(Set<Chunk> chunksToUpdate) {
-        for(var c : chunksToUpdate) {
-            LightingUpdateChunk chunk = new LightingUpdateChunk(c);
-            chunks.put(c.getChunkOffset(), chunk);
+    public LightingUpdateQueue(Collection<LightingUpdateChunk> chunksToUpdate) {
+        for (var chunk : chunksToUpdate) {
+            chunks.put(chunk.getChunk().getChunkOffset(), chunk);
 
-            for (WorldPosition worldPosition : c.getLightingData().getDirtyBlocks()) {
+            for (WorldPosition worldPosition : chunk.getChunk().getLightingData().getDirtyBlocks()) {
                 chunk.setDirty(worldPosition.getPositionInChunk());
                 queue.offer(new LightingUpdate(chunk, worldPosition));
             }
         }
     }
 
-    public boolean isOutOfRange(WorldPosition pos) {
-        return !chunks.containsKey(pos.getChunkOffset()) || !Chunk.isYInRange(pos.y());
+    public int size() {
+        return queue.size();
     }
 
-    // First recalculate sky light
+    public Chunk getChunkAtPos(WorldPosition pos) {
+        if (!Chunk.isYInRange(pos.y())) return null;
+        LightingUpdateChunk lightingChunk = chunks.get(pos.getChunkOffset());
+        if (lightingChunk == null) return null;
+        return lightingChunk.getChunk();
+    }
 
     public void offer(WorldPosition position) {
         LightingUpdateChunk chunk = chunks.get(position.getChunkOffset());
-        if(chunk == null) return;
+        if (chunk == null) return;
         // We already have this update in queue
-        if(chunk.isDirty(position.getPositionInChunk())) return;
+        if (chunk.isDirty(position.getPositionInChunk())) return;
 
         chunk.setDirty(position.getPositionInChunk());
         queue.offer(new LightingUpdate(chunk, position));
@@ -79,7 +83,9 @@ public class LightingUpdateQueue {
 
     public LightingUpdate poll() {
         LightingUpdate res = queue.poll();
-        res.containingChunk().setNotDirty(res.worldPosition().getPositionInChunk());
+        res.containingChunk().setNotDirty(
+            res.worldPosition().getPositionInChunk()
+        );
         return res;
     }
 }

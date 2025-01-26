@@ -11,7 +11,7 @@ public class FastNoiseLiteSimplexNoise implements INoise {
 
     public FastNoiseLiteSimplexNoise(int seed) {
         this.noise = new FastNoiseLite(seed);
-        noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+        noise.SetNoiseType(FastNoiseLite.NoiseType.Value);
         noise.SetFractalType(FastNoiseLite.FractalType.FBm);
 
         noise.SetFractalOctaves(3);

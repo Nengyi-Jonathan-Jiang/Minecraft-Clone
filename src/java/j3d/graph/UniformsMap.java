@@ -10,20 +10,20 @@ import static org.lwjgl.opengl.GL20.*;
 
 public class UniformsMap {
 
-    private final int programId;
+    private final int programID;
     private final Map<String, Integer> uniforms;
 
-    public UniformsMap(int programId) {
-        this.programId = programId;
+    public UniformsMap(int programID) {
+        this.programID = programID;
         uniforms = new HashMap<>();
     }
 
     private int getUniformLocation(String uniformName) {
         if(!uniforms.containsKey(uniformName)) {
-            int uniformLocation = glGetUniformLocation(programId, uniformName);
+            int uniformLocation = glGetUniformLocation(programID, uniformName);
             if (uniformLocation < 0) {
                 throw new RuntimeException("Could not find uniform [" + uniformName + "] in shader program [" +
-                        programId + "]");
+                        programID + "]");
             }
             uniforms.put(uniformName, uniformLocation);
         }
