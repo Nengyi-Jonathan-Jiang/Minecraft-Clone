@@ -11,6 +11,7 @@ import java.util.*;
 public class ChunkLoader implements Resource {
     private final World world;
     private final Thread thread;
+    private final Comparator<ChunkOffset> priority;
 
     private int nextWaitingChunkId;
     private final Map<Integer, ChunkLoaderTask> waitingChunks;
@@ -18,32 +19,36 @@ public class ChunkLoader implements Resource {
     public ChunkLoader(World world, Comparator<ChunkOffset> priority) {
         this.world = world;
         this.waitingChunks = new HashMap<>();
+        this.priority = priority;
 
-        thread = new Thread(() -> {
-            while (true) {
-                ChunkLoaderTask task;
-                synchronized (waitingChunks) {
-                    Optional<ChunkLoaderTask> optionalTask = waitingChunks.values().stream().min((a, b) -> priority.compare(a.offset, b.offset));
-                    if (optionalTask.isEmpty()) {
-                        continue;
-                    }
-                    task = optionalTask.get();
-                    waitingChunks.remove(task.id);
-                }
+        thread = new Thread(this::runChunkLoaderThread);
+        thread.start();
+    }
 
-                synchronized (task) {
-                    doTask(task);
-                }
-
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    break;
-                }
+    private void runChunkLoaderThread() {
+        while (true) {
+            // Need this to catch interrupts in main thread.
+            try {
+                //noinspection BusyWait
+                Thread.sleep(0);
+            } catch (InterruptedException e) {
+                break;
             }
-        });
 
-        this.thread.start();
+            ChunkLoaderTask task;
+            synchronized (waitingChunks) {
+                Optional<ChunkLoaderTask> optionalTask = waitingChunks.values().stream().min((a, b) -> priority.compare(a.offset, b.offset));
+                if (optionalTask.isEmpty()) {
+                    continue;
+                }
+                task = optionalTask.get();
+                waitingChunks.remove(task.id);
+            }
+
+            synchronized (task) {
+                doTask(task);
+            }
+        }
     }
 
     public ChunkLoaderTask requestChunk(ChunkOffset offset) {

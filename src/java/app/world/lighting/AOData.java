@@ -39,6 +39,11 @@ public class AOData {
             return new Vector4f(0);
 
         int baseBlockLight = world.getBlockLightAt(adjacentPos);
+
+        if (true) {
+            return new Vector4f(faceDirection.lightMultiplier * baseBlockLight / 15f);
+        }
+
         float lightMultiplier = faceDirection.lightMultiplier;
 
         // Light levels for corners

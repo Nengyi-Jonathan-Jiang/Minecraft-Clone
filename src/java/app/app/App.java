@@ -22,6 +22,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL30.*;
 import static util.MiscUtil.boolToInt;
@@ -40,6 +43,8 @@ public class App implements IAppLogic {
     private World world;
     private Window window;
     private Mesh crossHairMesh;
+    private static final int renderDistance = 100;
+    private static final int loadDistance = 80;
 
     private static void startRender(Window window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -161,8 +166,9 @@ public class App implements IAppLogic {
         WorldPosition playerPos = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
 
         // Load chunks around the player
-        for (int dx = -63; dx <= 63; dx++) {
-            for (int dz = -63; dz <= 63; dz++) {
+        for (int dx = -loadDistance; dx <= loadDistance; dx++) {
+            for (int dz = -loadDistance; dz <= loadDistance; dz++) {
+                if (dx * dx + dz * dz > loadDistance * loadDistance) continue;
                 world.getOrLoadChunkAtPos(
                     new WorldPosition(playerPos.x() + dx, 0, playerPos.z() + dz),
                     false
@@ -285,9 +291,21 @@ public class App implements IAppLogic {
         // Render stuff
         TextureAtlas.get().bind();
 
-        for (Chunk chunk : world.getLoadedChunks()) {
-            ChunkOffset chunkOffset = chunk.getChunkOffset();
+        WorldPosition playerPos = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
+        HashMap<ChunkOffset, Chunk> chunksToRender = new HashMap<>();
+        for (int dx = -renderDistance; dx <= renderDistance; dx++) {
+            for (int dz = -renderDistance; dz <= renderDistance; dz++) {
+                if (dx * dx + dz * dz > renderDistance * renderDistance) continue;
+                chunksToRender.computeIfAbsent(
+                    new WorldPosition(playerPos.x() + dx, 0, playerPos.z() + dz).getChunkOffset(),
+                    offset -> world.getOrLoadChunk(offset, false)
+                );
+            }
+        }
 
+        for (Map.Entry<ChunkOffset, Chunk> entry : chunksToRender.entrySet()) {
+            ChunkOffset chunkOffset = entry.getKey();
+            Chunk chunk = entry.getValue();
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
                 new Vector3f(chunkOffset.x(), 0, chunkOffset.z()),
                 new Quaternionf(), 1

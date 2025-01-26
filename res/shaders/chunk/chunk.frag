@@ -46,5 +46,5 @@ void main()
     }
 
     // Apply fog
-    fragColor = lerp(fragColor, fogColor, 1. - clamped_cubic_interpolation((160. - length(outRealWorldPos)) / 40.));
+    fragColor = lerp(fragColor, fogColor, 1. - clamped_cubic_interpolation((64. - length(outRealWorldPos)) / 40.));
 }
