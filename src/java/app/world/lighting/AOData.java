@@ -2,7 +2,7 @@ package app.world.lighting;
 
 import app.block.BlockRegistry;
 import app.block.model.BlockModel;
-import app.world.World;
+import app.world.chunk.ChunkNeighborhood;
 import app.world.util.WorldPosition;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -11,23 +11,23 @@ import org.joml.Vector4f;
 import static util.MathUtil.addAll;
 
 public class AOData {
-    private final World world;
     private final WorldPosition position;
+    private final ChunkNeighborhood neighborhood;
 
-    public AOData(World world, WorldPosition position) {
-        this.world = world;
+    public AOData(WorldPosition position, ChunkNeighborhood neighborhood) {
         this.position = position;
+        this.neighborhood = neighborhood;
     }
 
     private int getLightAtIfLoadedOrDefault(WorldPosition p, int defaultValue) {
-        return world.isBlockLoaded(p)
-            ? world.getBlockLightAt(p)
+        return neighborhood.contains(p)
+            ? neighborhood.getChunkFor(p).getLightingData().getBlockLightAt(p.getPositionInChunk())
             : defaultValue;
     }
 
     private int getOpacityIfLoadedOrDefault(WorldPosition p, int defaultValue) {
-        return world.isBlockLoaded(p)
-            ? BlockRegistry.getBlock(world.getBlockIDAt(p)).opacity
+        return neighborhood.contains(p)
+            ? BlockRegistry.getBlock(neighborhood.getChunkFor(p).getBlockIDAt(p.getPositionInChunk())).opacity
             : defaultValue;
     }
 
@@ -35,14 +35,10 @@ public class AOData {
         // The block adjacent to this face.
         WorldPosition adjacentPos = position.add(faceDirection.direction, new WorldPosition());
 
-        if (!world.isBlockLoaded(adjacentPos))
+        if (!neighborhood.contains(adjacentPos))
             return new Vector4f(0);
 
-        int baseBlockLight = world.getBlockLightAt(adjacentPos);
-
-        if (true) {
-            return new Vector4f(faceDirection.lightMultiplier * baseBlockLight / 15f);
-        }
+        int baseBlockLight = neighborhood.getChunkFor(adjacentPos).getLightingData().getBlockLightAt(adjacentPos.getPositionInChunk());
 
         float lightMultiplier = faceDirection.lightMultiplier;
 

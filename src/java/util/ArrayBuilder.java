@@ -64,8 +64,13 @@ public abstract class ArrayBuilder<T> {
     }
 
     public void clear() {
-        arr = createArray(16);
-        capacity = 16;
+        clear(16);
+    }
+
+    public void clear(int newCapacity) {
+        if (newCapacity <= 0) throw new IllegalArgumentException("Capacity of ArrayBuilder must be at least 1");
+        arr = createArray(newCapacity);
+        capacity = newCapacity;
         size = 0;
     }
 
@@ -73,15 +78,19 @@ public abstract class ArrayBuilder<T> {
         return size;
     }
 
+    public void growToCapacity(int capacity) {
+        if (capacity >= this.capacity) {
+            int targetCapacity = this.capacity;
+            while (capacity >= targetCapacity) targetCapacity *= 2;
+            T newArr = createArray(targetCapacity);
+            System.arraycopy(arr, 0, newArr, 0, this.capacity);
+            arr = newArr;
+            this.capacity = targetCapacity;
+        }
+    }
+
     private void growBy(int growSize) {
         size += growSize;
-        if (size >= capacity) {
-            int targetCapacity = capacity;
-            while (size >= targetCapacity) targetCapacity *= 2;
-            T newArr = createArray(targetCapacity);
-            System.arraycopy(arr, 0, newArr, 0, capacity);
-            arr = newArr;
-            capacity = targetCapacity;
-        }
+        growToCapacity(size);
     }
 }

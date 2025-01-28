@@ -106,10 +106,6 @@ public class LightingEngine {
         }
     }
 
-    public AOData getAOData(WorldPosition pos) {
-        return new AOData(world, pos);
-    }
-
     public synchronized void invalidateLighting(Collection<Chunk> chunksToUpdate) {
         for (Chunk chunk : chunksToUpdate) {
             Collection<Chunk> loadedNeighbors = world.getLoadedNeighbors(chunk);

@@ -9,8 +9,6 @@ import app.world.util.IVec3i;
 import app.world.util.PositionInChunk;
 import j3d.graph.Mesh;
 
-import java.util.Iterator;
-
 public class Chunk {
     public final World world;
     final int[] data = new int[World.BLOCKS_PER_CHUNK];
@@ -20,24 +18,6 @@ public class Chunk {
     private boolean shouldRebuildMesh = true;
     private boolean shouldUpdateLighting = true;
     private Mesh mesh = null;
-
-    public static Iterable<PositionInChunk> allPositionsInChunk() {
-        return () -> new Iterator<>() {
-            PositionInChunk current = new PositionInChunk(0);
-
-            @Override
-            public boolean hasNext() {
-                return current.getBits() != 0x10000;
-            }
-
-            @Override
-            public PositionInChunk next() {
-                PositionInChunk res = new PositionInChunk(current.getBits());
-                current = new PositionInChunk(current.getBits() + 1);
-                return res;
-            }
-        };
-    }
 
     public Chunk(ChunkOffset chunkOffset, World world) {
         this.chunkOffset = chunkOffset;
@@ -66,6 +46,9 @@ public class Chunk {
     }
 
     private void rebuildMesh() {
+        if (mesh != null) {
+            mesh.freeResources();
+        }
         mesh = chunkMeshBuilder.build(world, this);
         shouldRebuildMesh = false;
     }

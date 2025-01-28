@@ -38,6 +38,7 @@ public interface IVec3i extends Comparable<IVec3i> {
         dest.set(x() - x, y() - y, z() - z);
         return dest;
     }
+
     default <T extends IVec3i> T sub(IVec3i value, T dest) {
         return sub(value.x(), value.y(), value.z(), dest);
     }

@@ -4,6 +4,7 @@ import app.player.Player;
 import app.world.chunk.Chunk;
 import app.world.chunk.ChunkLoader;
 import app.world.chunk.ChunkLoader.ChunkLoaderTask;
+import app.world.chunk.ChunkNeighborhood;
 import app.world.lighting.LightingEngine;
 import app.world.util.ChunkOffset;
 import app.world.util.WorldPosition;
@@ -11,8 +12,6 @@ import app.world.worldgen.WorldGenerator;
 import util.Resource;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class World implements Resource {
     public static int CHUNK_HEIGHT = 256;
@@ -36,11 +35,7 @@ public class World implements Resource {
         ));
     }
 
-    public Chunk getOrLoadChunkAtPos(WorldPosition position, boolean forceImmediate) {
-        return getOrLoadChunk(position.getChunkOffset(), forceImmediate);
-    }
-
-    public Chunk getOrLoadChunk(ChunkOffset chunkPosition, boolean forceImmediate) {
+    public Chunk requestChunk(ChunkOffset chunkPosition, boolean forceImmediate) {
         ChunkLoaderTask task = loadedChunks.get(chunkPosition);
         if (task != null) {
             if (!task.hasResult() && forceImmediate) {
@@ -51,6 +46,12 @@ public class World implements Resource {
             loadedChunks.put(chunkPosition, task);
         }
 
+        return task.get();
+    }
+
+    public Chunk getChunkIfLoaded(ChunkOffset chunkPosition) {
+        ChunkLoaderTask task = loadedChunks.get(chunkPosition);
+        if (task == null) return null;
         return task.get();
     }
 
@@ -76,16 +77,16 @@ public class World implements Resource {
     }
 
     public int getBlockIDAt(WorldPosition pos) {
-        return getOrLoadChunk(pos.getChunkOffset(), true)
+        return requestChunk(pos.getChunkOffset(), true)
             .getBlockIDAt(pos.getPositionInChunk());
     }
 
     public void setBlockIDAt(WorldPosition pos, int id) {
-        getOrLoadChunk(pos.getChunkOffset(), true).setBlockAt(pos.getPositionInChunk(), id);
+        requestChunk(pos.getChunkOffset(), true).setBlockAt(pos.getPositionInChunk(), id);
     }
 
     public int getBlockLightAt(WorldPosition pos) {
-        return getOrLoadChunkAtPos(pos, true).getLightingData().getBlockLightAt(pos.getPositionInChunk());
+        return requestChunk(pos.getChunkOffset(), true).getLightingData().getBlockLightAt(pos.getPositionInChunk());
     }
 
     public void setBlockLightAt(WorldPosition pos, int level) {
@@ -93,7 +94,7 @@ public class World implements Resource {
     }
 
     public void setBlockLightAt(WorldPosition pos, int level, boolean markMeshesAsDirty) {
-        Chunk chunk = getOrLoadChunkAtPos(pos, true);
+        Chunk chunk = requestChunk(pos.getChunkOffset(), true);
         chunk.getLightingData().setBlockLightAt(pos.getPositionInChunk(), level);
 
         if (markMeshesAsDirty) {
@@ -101,7 +102,7 @@ public class World implements Resource {
         }
     }
 
-    public Collection<Chunk> getLoadedNeighbors(Chunk chunk) {
+    public ChunkNeighborhood getLoadedNeighbors(Chunk chunk) {
         ChunkOffset chunkOffset = chunk.getChunkOffset();
         return getLoadedNeighbors(chunkOffset);
     }
@@ -111,23 +112,18 @@ public class World implements Resource {
         return task != null && task.get() != null;
     }
 
-    public Collection<Chunk> getLoadedNeighbors(ChunkOffset chunkPos) {
-        return Stream.of(
-                chunkPos.add(-16, 0, -16, new ChunkOffset()),
-                chunkPos.add(-16, 0, 0, new ChunkOffset()),
-                chunkPos.add(-16, 0, 16, new ChunkOffset()),
-                chunkPos.add(0, 0, -16, new ChunkOffset()),
-                chunkPos.add(0, 0, 0, new ChunkOffset()),
-                chunkPos.add(0, 0, 16, new ChunkOffset()),
-                chunkPos.add(16, 0, -16, new ChunkOffset()),
-                chunkPos.add(16, 0, 0, new ChunkOffset()),
-                chunkPos.add(16, 0, 16, new ChunkOffset())
-            )
-            .map(loadedChunks::get)
-            .filter(Objects::nonNull)
-            .map(ChunkLoaderTask::get)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+    public ChunkNeighborhood getLoadedNeighbors(ChunkOffset chunkPos) {
+        return new ChunkNeighborhood(
+            getChunkIfLoaded(chunkPos.add(-16, 0, -16, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(-16, 0, 0, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(-16, 0, 16, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(0, 0, -16, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(0, 0, 0, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(0, 0, 16, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(16, 0, -16, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(16, 0, 0, new ChunkOffset())),
+            getChunkIfLoaded(chunkPos.add(16, 0, 16, new ChunkOffset()))
+        );
     }
 
     public LightingEngine getLightingEngine() {

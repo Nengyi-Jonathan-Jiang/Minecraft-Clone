@@ -12,7 +12,6 @@ import app.world.lighting.AOData;
 import app.world.util.IVec3i;
 import app.world.util.PositionInChunk;
 import app.world.util.Vec3i;
-import app.world.util.WorldPosition;
 import j3d.graph.Mesh;
 import j3d.graph.Mesh.MeshAttributeData;
 import org.joml.Vector2f;
@@ -43,16 +42,20 @@ class ChunkMeshBuilder {
         return block.hasTag("transparent");
     }
 
+    private static final int num_estimated_vertices = World.CHUNK_SIZE * World.CHUNK_SIZE * World.CHUNK_HEIGHT / 2;
+
     public Mesh build(World world, Chunk chunk) {
-        positions.clear();
-        uvs.clear();
-        cornerAO.clear();
-        aoInterpolation.clear();
-        indices.clear();
+        positions.clear(num_estimated_vertices * 3);
+        uvs.clear(num_estimated_vertices * 2);
+        cornerAO.clear(num_estimated_vertices * 4);
+        aoInterpolation.clear(num_estimated_vertices * 2);
+        indices.clear(num_estimated_vertices);
+
+        ChunkNeighborhood chunkNeighborhood = world.getLoadedNeighbors(chunk);
 
         int currIndex = 0;
 
-        for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
+        for (PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
             int blockID = chunk.getBlockIDAt(pos);
 
             // Don't generate a mesh for air blocks
@@ -65,12 +68,9 @@ class ChunkMeshBuilder {
 
             boolean hasVisibleFace = false;
 
-            AOData aoData = world.getLightingEngine().getAOData(
-                pos.add(new WorldPosition(
-                    chunk.getChunkOffset().x(),
-                    0,
-                    chunk.getChunkOffset().z()
-                ), new WorldPosition())
+            var aoData = new AOData(
+                pos.getWorldPosition(chunk.getChunkOffset()),
+                chunkNeighborhood
             );
 
             for (FaceDirection direction : FaceDirection.OUTER_FACES) {
@@ -112,8 +112,7 @@ class ChunkMeshBuilder {
     }
 
     private MeshAttributeData toMeshAttributeData(int elementSize, FloatArrayBuilder data) {
-        float[] arr = data.get();
-        return MeshAttributeData.create(elementSize, arr);
+        return MeshAttributeData.create(elementSize, data.get());
     }
 
     private int addFace(int currIndex, Vector2i texOffset, PositionInChunk chunkPosition, BlockModel model, FaceDirection direction, AOData aoData) {

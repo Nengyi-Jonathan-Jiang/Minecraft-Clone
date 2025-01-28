@@ -3,23 +3,31 @@ package app.world.chunk;
 import app.world.World;
 import app.world.util.ChunkOffset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import util.Resource;
+import util.TaskManager;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChunkLoader implements Resource {
     private final World world;
     private final Thread thread;
-    private final Comparator<ChunkOffset> priority;
 
     private int nextWaitingChunkId;
-    private final Map<Integer, ChunkLoaderTask> waitingChunks;
+    private final TaskManager<ChunkLoaderTask, Map<Integer, ChunkLoaderTask>> waitingChunks;
 
     public ChunkLoader(World world, Comparator<ChunkOffset> priority) {
         this.world = world;
-        this.waitingChunks = new HashMap<>();
-        this.priority = priority;
+        this.waitingChunks = new TaskManager<>(
+            new HashMap<>(),
+            (c, task) -> c.put(task.id, task),
+            (c) -> {
+                ChunkLoaderTask result = Collections.min(c.values(), (a, b) -> priority.compare(a.offset, b.offset));
+                c.remove(result.id);
+                return result;
+            },
+            Map::isEmpty
+        );
 
         thread = new Thread(this::runChunkLoaderThread);
         thread.start();
@@ -27,35 +35,18 @@ public class ChunkLoader implements Resource {
 
     private void runChunkLoaderThread() {
         while (true) {
-            // Need this to catch interrupts in main thread.
             try {
-                //noinspection BusyWait
-                Thread.sleep(0);
+                ChunkLoaderTask task = waitingChunks.take();
+                doTask(task);
             } catch (InterruptedException e) {
                 break;
-            }
-
-            ChunkLoaderTask task;
-            synchronized (waitingChunks) {
-                Optional<ChunkLoaderTask> optionalTask = waitingChunks.values().stream().min((a, b) -> priority.compare(a.offset, b.offset));
-                if (optionalTask.isEmpty()) {
-                    continue;
-                }
-                task = optionalTask.get();
-                waitingChunks.remove(task.id);
-            }
-
-            synchronized (task) {
-                doTask(task);
             }
         }
     }
 
     public ChunkLoaderTask requestChunk(ChunkOffset offset) {
         ChunkLoaderTask task = createChunkLoaderTask(offset);
-        synchronized (waitingChunks) {
-            waitingChunks.put(task.id, task);
-        }
+        waitingChunks.offer(task);
         return task;
     }
 
@@ -66,7 +57,8 @@ public class ChunkLoader implements Resource {
     }
 
     private void doTask(ChunkLoaderTask task) {
-        Chunk chunk = task.result = world.getWorldGenerator().generateChunk(task.offset, world);
+        Chunk chunk = world.getWorldGenerator().generateChunk(task.offset, world);
+        task.result.set(chunk);
         world.getLightingEngine().invalidateLighting(List.of(chunk));
     }
 
@@ -88,7 +80,7 @@ public class ChunkLoader implements Resource {
         private final ChunkOffset offset;
         private final ChunkLoader loader;
 
-        private @Nullable Chunk result;
+        private final AtomicReference<Chunk> result = new AtomicReference<>();
 
         private ChunkLoaderTask(int id, ChunkOffset offset, ChunkLoader loader) {
             this.id = id;
@@ -97,11 +89,11 @@ public class ChunkLoader implements Resource {
         }
 
         public boolean hasResult() {
-            return result != null;
+            return result.get() != null;
         }
 
-        public @Nullable Chunk get() {
-            return result;
+        public Chunk get() {
+            return result.get();
         }
 
         public void doImmediately() {
@@ -110,9 +102,7 @@ public class ChunkLoader implements Resource {
         }
 
         public void cancel() {
-            synchronized (loader.waitingChunks) {
-                loader.waitingChunks.remove(id);
-            }
+            loader.waitingChunks.doOperation(c -> c.remove(id));
         }
     }
 }

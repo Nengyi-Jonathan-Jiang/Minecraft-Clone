@@ -56,7 +56,7 @@ public class LightingData {
         }
 
         // Mark all non-solid (completely opaque) blocks as dirty
-        for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
+        for (PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
             Block block = chunk.getBlockAt(pos);
             // We already handled this block in sky light propagation
             if (blockLight[pos.getBits()] != 0) continue;
@@ -87,7 +87,7 @@ public class LightingData {
 
             @Override
             public WorldPosition next() {
-                return new PositionInChunk(it.next()).getAbsolutePosition(chunk.getChunkOffset());
+                return new PositionInChunk(it.next()).getWorldPosition(chunk.getChunkOffset());
             }
         };
     }

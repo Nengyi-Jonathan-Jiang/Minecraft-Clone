@@ -112,7 +112,7 @@ public class App implements IAppLogic {
 
         window.addMouseListener(this::onMouseDown);
 
-        world.getOrLoadChunk(new ChunkOffset(0, 0), true);
+        world.requestChunk(new ChunkOffset(0, 0), true);
         for (int y = 0; y < World.CHUNK_HEIGHT; y++) {
             player.setPosition(new Vector3f(0, y, 0));
             if (world.getBlockIDAt(new WorldPosition(0, y, 0)) == 0) break;
@@ -169,8 +169,8 @@ public class App implements IAppLogic {
         for (int dx = -loadDistance; dx <= loadDistance; dx++) {
             for (int dz = -loadDistance; dz <= loadDistance; dz++) {
                 if (dx * dx + dz * dz > loadDistance * loadDistance) continue;
-                world.getOrLoadChunkAtPos(
-                    new WorldPosition(playerPos.x() + dx, 0, playerPos.z() + dz),
+                world.requestChunk(
+                    new WorldPosition(playerPos.x() + dx, 0, playerPos.z() + dz).getChunkOffset(),
                     false
                 );
             }
@@ -224,10 +224,8 @@ public class App implements IAppLogic {
 
         // Render stuff
 
-        glBindVertexArray(crossHairMesh.getVaoID());
-        glDrawElements(GL_TRIANGLES, crossHairMesh.getNumIndices(), GL_UNSIGNED_INT, 0);
+        crossHairMesh.draw();
 
-        glBindVertexArray(0);
         outlineShader.unbind();
 
         glDisable(GL_COLOR_LOGIC_OP);
@@ -269,8 +267,8 @@ public class App implements IAppLogic {
 
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(pos, new Quaternionf(), 1);
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
-            glBindVertexArray(blockOutlineMesh.getVaoID());
-            glDrawElements(GL_TRIANGLES, blockOutlineMesh.getNumIndices(), GL_UNSIGNED_INT, 0);
+
+            blockOutlineMesh.draw();
 
             glBindVertexArray(0);
             outlineShader.unbind();
@@ -292,28 +290,34 @@ public class App implements IAppLogic {
         TextureAtlas.get().bind();
 
         WorldPosition playerPos = IVec3i.fromVector3f(player.getPosition(), new WorldPosition());
-        HashMap<ChunkOffset, Chunk> chunksToRender = new HashMap<>();
+        HashMap<ChunkOffset, Mesh> chunksToRender = new HashMap<>();
         for (int dx = -renderDistance; dx <= renderDistance; dx++) {
             for (int dz = -renderDistance; dz <= renderDistance; dz++) {
                 if (dx * dx + dz * dz > renderDistance * renderDistance) continue;
                 chunksToRender.computeIfAbsent(
                     new WorldPosition(playerPos.x() + dx, 0, playerPos.z() + dz).getChunkOffset(),
-                    offset -> world.getOrLoadChunk(offset, false)
+                    offset -> {
+                        Chunk chunk = world.requestChunk(offset, false);
+                        if (chunk == null) return null;
+                        return chunk.getMesh();
+                    }
                 );
             }
         }
 
-        for (Map.Entry<ChunkOffset, Chunk> entry : chunksToRender.entrySet()) {
+        for (Map.Entry<ChunkOffset, Mesh> entry : chunksToRender.entrySet()) {
             ChunkOffset chunkOffset = entry.getKey();
-            Chunk chunk = entry.getValue();
+            Mesh mesh = entry.getValue();
+
+            if (mesh == null) return;
+
             Matrix4f modelMatrix = new Matrix4f().translationRotateScale(
                 new Vector3f(chunkOffset.x(), 0, chunkOffset.z()),
                 new Quaternionf(), 1
             );
 
             worldShader.uniforms().setUniform("modelMatrix", modelMatrix);
-            glBindVertexArray(chunk.getMesh().getVaoID());
-            glDrawElements(GL_TRIANGLES, chunk.getMesh().getNumIndices(), GL_UNSIGNED_INT, 0);
+            mesh.draw();
         }
 
         glBindVertexArray(0);

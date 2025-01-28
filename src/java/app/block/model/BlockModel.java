@@ -34,10 +34,10 @@ public record BlockModel(
 
     public enum FaceDirection {
         TOP(new Vec3i(0, 1, 0), 1),
-        FRONT(new Vec3i(0, 0, 1), .7f),
+        FRONT(new Vec3i(0, 0, 1), .8f),
         RIGHT(new Vec3i(1, 0, 0), .7f),
         BOTTOM(new Vec3i(0, -1, 0), .5f),
-        BACK(new Vec3i(0, 0, -1), .7f),
+        BACK(new Vec3i(0, 0, -1), .8f),
         LEFT(new Vec3i(-1, 0, 0), .7f),
         INNER(new Vec3i(0, 0, 0), .6f);
 

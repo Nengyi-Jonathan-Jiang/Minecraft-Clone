@@ -30,7 +30,7 @@ public class WorldGenerator {
     }
 
     private void convertTopLayersToGrass(Chunk result) {
-        for(PositionInChunk pos : Chunk.allPositionsInChunk()) {
+        for(PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
             Block thisBlock = result.getBlockAt(pos);
 
             if (thisBlock == null) continue;
@@ -44,8 +44,10 @@ public class WorldGenerator {
     }
 
     private void addTerrainLayer(Chunk chunk) {
-        for (PositionInChunk pos : Chunk.allPositionsInChunk()) {
-            WorldPosition truePos = pos.getAbsolutePosition(chunk.getChunkOffset());
+
+
+        for (PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
+            WorldPosition truePos = pos.getWorldPosition(chunk.getChunkOffset());
 
             float perturb_size = 60f;
 
