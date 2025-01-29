@@ -1,33 +1,20 @@
 package j3d.graph;
 
-import j3d.graph.buffers.ArrayBuffer;
+import j3d.graph.GPUBuffer.BufferType;
 import util.Resource;
 
 import java.util.Arrays;
 
-import static j3d.graph.buffers.ArrayBuffer.BufferType;
-import static j3d.graph.buffers.ArrayBuffer.BufferUsage;
-import static org.lwjgl.opengl.GL30.*;
+import static j3d.graph.GPUBuffer.BufferUsage;
 
 public class Mesh implements Resource {
     private final int numIndices;
 
     // TODO: un-mix the levels of abstraction here. vaoID (low level) should not be mixed with
     //  ArrayBuffer (medium level)
-    private final int vaoID;
-    private final ArrayBuffer[] arrayBuffers;
-    private final PrimitiveType primitiveType;
-
-    public enum PrimitiveType {
-        Points(GL_POINTS), LineStrip(GL_LINE_STRIP), LineLoop(GL_LINE_LOOP), Lines(GL_LINES),
-        TriangleStrip(GL_TRIANGLE_STRIP), TriangleFan(GL_TRIANGLE_FAN), Triangles(GL_TRIANGLES);
-
-        private final int value;
-
-        PrimitiveType(int value) {
-            this.value = value;
-        }
-    }
+    private final VertexArrayObject vertexArrayObject;
+    private final GPUBuffer[] buffers;
+    private final VertexArrayObject.ShapePrimitiveType shapePrimitiveType;
 
     public sealed interface MeshAttributeData permits FloatAttributeData, IntAttributeData {
         static MeshAttributeData create(int elementSize, float[] data) {
@@ -38,80 +25,80 @@ public class Mesh implements Resource {
             return new IntAttributeData(elementSize, data);
         }
 
-        void writeToBuffer(ArrayBuffer buffer);
+        void writeToBuffer(GPUBuffer.BufferAccess access);
 
-        void configureVertexArray(int attributeIndex);
+        void configureVertexArray(VertexArrayObject.VertexArrayObjectAccess vao, int attributeIndex, GPUBuffer.BufferAccess buffer);
     }
 
     public record FloatAttributeData(int elementSize, float[] data) implements MeshAttributeData {
         @Override
-        public void writeToBuffer(ArrayBuffer buffer) {
-            buffer.setData(data);
+        public void writeToBuffer(GPUBuffer.BufferAccess access) {
+            access.setData(data);
         }
 
         @Override
-        public void configureVertexArray(int attributeIndex) {
-            glEnableVertexAttribArray(attributeIndex);
-            glVertexAttribPointer(attributeIndex, elementSize, GL_FLOAT, false, 0, 0);
+        public void configureVertexArray(VertexArrayObject.VertexArrayObjectAccess vao, int attributeIndex, GPUBuffer.BufferAccess buffer) {
+            vao.setAttributePointer(buffer, attributeIndex, GPUPrimitiveType.ScalarType.Float, elementSize);
         }
     }
 
     public record IntAttributeData(int elementSize, int[] data) implements MeshAttributeData {
         @Override
-        public void writeToBuffer(ArrayBuffer buffer) {
-            buffer.setData(data);
+        public void writeToBuffer(GPUBuffer.BufferAccess access) {
+            access.setData(data);
         }
 
         @Override
-        public void configureVertexArray(int attributeIndex) {
-            glEnableVertexAttribArray(attributeIndex);
-            glVertexAttribPointer(attributeIndex, elementSize, GL_INT, false, 0, 0);
+        public void configureVertexArray(VertexArrayObject.VertexArrayObjectAccess vao, int attributeIndex, GPUBuffer.BufferAccess buffer) {
+            vao.setAttributePointer(buffer, attributeIndex, GPUPrimitiveType.ScalarType.Int, elementSize);
         }
     }
 
     public Mesh(int[] indices, MeshAttributeData... attributeData) {
-        this(PrimitiveType.Triangles, indices, attributeData);
+        this(VertexArrayObject.ShapePrimitiveType.Triangles, indices, attributeData);
     }
 
-    public Mesh(PrimitiveType primitiveType, int[] indices, MeshAttributeData... attributeData) {
+    public Mesh(VertexArrayObject.ShapePrimitiveType shapePrimitiveType, int[] indices, MeshAttributeData... attributeData) {
         numIndices = indices.length;
-        this.primitiveType = primitiveType;
-        arrayBuffers = new ArrayBuffer[attributeData.length + 1];
+        this.shapePrimitiveType = shapePrimitiveType;
+        buffers = new GPUBuffer[attributeData.length + 1];
 
         // Create VAO
-        vaoID = glGenVertexArrays();
-        glBindVertexArray(vaoID);
+        vertexArrayObject = new VertexArrayObject();
 
-        // Create VBOs
-        int index;
-        for (index = 0; index < attributeData.length; index++) {
-            MeshAttributeData dat = attributeData[index];
-            ArrayBuffer buffer = arrayBuffers[index] = new ArrayBuffer(BufferType.VertexBuffer, BufferUsage.DynamicDraw);
+        try (var vaoAccess = vertexArrayObject.bind()) {
 
-            dat.writeToBuffer(buffer);
-            dat.configureVertexArray(index);
+            // Create VBOs
+            int index;
+            for (index = 0; index < attributeData.length; index++) {
+                MeshAttributeData dat = attributeData[index];
+                GPUBuffer buffer = buffers[index] = new GPUBuffer(BufferType.ArrayBuffer, BufferUsage.DynamicDraw);
+
+                try (var bufferAccess = buffer.bind()) {
+                    dat.writeToBuffer(bufferAccess);
+                    dat.configureVertexArray(vaoAccess, index, bufferAccess);
+                }
+            }
+
+            // Create index buffer
+            GPUBuffer indexBuffer = buffers[index] = new GPUBuffer(BufferType.IndexBuffer, BufferUsage.DynamicDraw);
+
+            try (var bufferAccess = indexBuffer.bind()) {
+                bufferAccess.setData(indices);
+            }
+
+            vaoAccess.setIndexBuffer(indexBuffer);
         }
-
-        // Create index buffer
-        ArrayBuffer indexBuffer = arrayBuffers[index] = new ArrayBuffer(BufferType.IndexBuffer, BufferUsage.DynamicDraw);
-        indexBuffer.setData(indices);
     }
 
     public void freeResources() {
-        Arrays.stream(arrayBuffers).forEach(ArrayBuffer::freeResources);
-        glDeleteVertexArrays(vaoID);
-    }
-
-    public int getNumIndices() {
-        return numIndices;
-    }
-
-    public final int getVaoID() {
-        return vaoID;
+        Arrays.stream(buffers).forEach(GPUBuffer::freeResources);
+        vertexArrayObject.freeResources();
     }
 
     public void draw() {
-        glBindVertexArray(vaoID);
-        glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+        try (var access = vertexArrayObject.bind()) {
+            access.drawIndexed(shapePrimitiveType, numIndices);
+        }
     }
 }

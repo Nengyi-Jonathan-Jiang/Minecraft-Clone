@@ -1,23 +1,36 @@
 package j3d.graph;
 
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL43;
 import util.FileReader;
 import util.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public class Shader implements Resource {
 
     private final int programID;
-    private final UniformsMap uniforms;
+    private final ShaderData uniforms;
+
+    public enum ShaderType {
+        Vertex(GL_VERTEX_SHADER), Fragment(GL_FRAGMENT_SHADER),
+        Geometry(GL_GEOMETRY_SHADER),
+        Compute(GL_COMPUTE_SHADER);
+
+
+        private final int glEnumValue;
+
+        ShaderType(int glEnumValue) {
+            this.glEnumValue = glEnumValue;
+        }
+    }
 
     public static Shader createBasicShader(String vertexShaderPath, String fragmentShaderPath) {
         return new Shader(
-            new ShaderModuleData(vertexShaderPath, GL_VERTEX_SHADER),
-            new ShaderModuleData(fragmentShaderPath, GL_FRAGMENT_SHADER)
+            new ShaderModuleData(vertexShaderPath, ShaderType.Vertex),
+            new ShaderModuleData(fragmentShaderPath, ShaderType.Fragment)
         );
     }
 
@@ -30,13 +43,13 @@ public class Shader implements Resource {
         List<Integer> shaderIDs = new ArrayList<>();
         for (ShaderModuleData s : shaderModuleDataList) {
             shaderIDs.add(
-                createShader(FileReader.readAsString(s.shaderFile), s.shaderType)
+                createShader(FileReader.readAsString(s.shaderFile), s.shaderType.glEnumValue)
             );
         }
 
         link(shaderIDs);
 
-        uniforms = new UniformsMap(programID);
+        uniforms = new ShaderData(programID);
     }
 
     public void bind() {
@@ -76,16 +89,16 @@ public class Shader implements Resource {
         }
 
         shaderModules.forEach(s -> glDetachShader(programID, s));
-        shaderModules.forEach(GL30::glDeleteShader);
+        shaderModules.forEach(GL43::glDeleteShader);
     }
 
     public void unbind() {
         glUseProgram(0);
     }
 
-    public record ShaderModuleData(String shaderFile, int shaderType) {}
+    public record ShaderModuleData(String shaderFile, ShaderType shaderType) {}
 
-    public UniformsMap uniforms() {
+    public ShaderData uniforms() {
         return uniforms;
     }
 }

@@ -10,7 +10,7 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL43.*;
 import static org.lwjgl.stb.STBImage.*;
 
 @SuppressWarnings("unused")

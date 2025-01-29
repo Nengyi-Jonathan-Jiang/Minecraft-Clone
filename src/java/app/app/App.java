@@ -9,7 +9,8 @@ import app.world.chunk.Chunk;
 import app.world.util.ChunkOffset;
 import app.world.util.IVec3i;
 import app.world.util.WorldPosition;
-import app.world.worldgen.WorldGenerator;
+import app.world.worldgen.DefaultWorldGenerator;
+import app.world.worldgen.GPUWorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;
 import j3d.Window;
@@ -26,38 +27,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL43.*;
 import static util.MiscUtil.boolToInt;
 
 public class App implements IAppLogic {
     private static final float MOUSE_SENSITIVITY = 0.5f;
     private static final float MOVEMENT_SPEED = 0.015f;
 
-    private Player player;
-    private Projection projection;
-    private Mesh blockOutlineMesh;
+    private final Player player;
+    private final Projection projection;
+    private final Mesh blockOutlineMesh;
 
-    private Shader worldShader;
-    private Shader outlineShader;
-    private Shader uiShader;
-    private World world;
-    private Window window;
+    private final Shader worldShader;
+    private final Shader outlineShader;
+    private final Shader uiShader;
+    private final World world;
+    private final Window window;
     private Mesh crossHairMesh;
     private static final int renderDistance = 100;
     private static final int loadDistance = 80;
 
-    private static void startRender(Window window) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, window.getWidth(), window.getHeight());
-    }
-
-    @Override
-    public void freeResources() {
-        world.freeResources();
-    }
-
-    @Override
-    public void init(Window window) {
+    public App(Window window) {
         this.window = window;
         projection = new Projection(this.window.getWidth(), window.getHeight());
 
@@ -106,7 +96,7 @@ public class App implements IAppLogic {
 
         DefaultBlocksInitializer.run();
 
-        world = new World(new WorldGenerator(), player);
+        world = new World(new GPUWorldGenerator(), player);
 
         System.out.println("Running...");
 
@@ -117,6 +107,16 @@ public class App implements IAppLogic {
             player.setPosition(new Vector3f(0, y, 0));
             if (world.getBlockIDAt(new WorldPosition(0, y, 0)) == 0) break;
         }
+    }
+
+    private static void startRender(Window window) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.getWidth(), window.getHeight());
+    }
+
+    @Override
+    public void freeResources() {
+        world.freeResources();
     }
 
     private void updateLighting() {

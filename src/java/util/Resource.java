@@ -8,4 +8,5 @@ public interface Resource {
      * Frees the resources associated with this object
      */
     void freeResources();
+
 }

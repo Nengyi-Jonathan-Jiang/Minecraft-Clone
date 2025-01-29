@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 in vec2 outUV;
 in vec4 outLightLevels;
@@ -25,7 +25,7 @@ vec4 lerp(vec4 a, vec4 b, float t) {
     return a + (b - a) * t;
 }
 
-const bool whiteWorld = false;
+const bool whiteWorld = true;
 const vec4 fogColor = vec4(.7, .93, 1., 1.);
 const float fogStrength = 0.02;
 

@@ -8,24 +8,30 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 import util.Resource;
 
+import java.util.function.Function;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.WGL.wglGetCurrentContext;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class OpenGLEngine extends Engine implements Resource {
     private final IAppLogic appLogic;
 
-    public OpenGLEngine(String windowTitle, IAppLogic appLogic) {
+    public OpenGLEngine(String windowTitle, Function<Window, IAppLogic> appLogicConstructor) {
         super(windowTitle, OpenGLWindow::new);
-        this.appLogic = appLogic;
 
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CW);
 
-        appLogic.init(window);
+        appLogic = appLogicConstructor.apply(window);
         running = true;
+    }
+
+    public static boolean isGLInitialized() {
+        return wglGetCurrentContext() != 0;
     }
 
     public static void initializeHeadless() {
@@ -38,7 +44,7 @@ public class OpenGLEngine extends Engine implements Resource {
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);

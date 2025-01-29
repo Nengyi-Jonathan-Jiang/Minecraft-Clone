@@ -8,12 +8,12 @@ import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
 
-public class UniformsMap {
+public class ShaderData {
 
     private final int programID;
     private final Map<String, Integer> uniforms;
 
-    public UniformsMap(int programID) {
+    public ShaderData(int programID) {
         this.programID = programID;
         uniforms = new HashMap<>();
     }
