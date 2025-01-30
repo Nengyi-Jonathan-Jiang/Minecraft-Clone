@@ -25,12 +25,10 @@ public class DefaultWorldGenerator implements WorldGenerator {
 
         result.getLightingData().invalidateAll();
 
-
-
         return result;
     }
 
-    private void convertTopLayersToGrass(Chunk result) {
+    protected void convertTopLayersToGrass(Chunk result) {
         for(PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
             Block thisBlock = result.getBlockAt(pos);
 
@@ -44,8 +42,7 @@ public class DefaultWorldGenerator implements WorldGenerator {
         }
     }
 
-    private void addTerrainLayer(Chunk chunk) {
-
+    protected void addTerrainLayer(Chunk chunk) {
 
         for (PositionInChunk pos : PositionInChunk.allPositionsInChunk()) {
             WorldPosition truePos = pos.getWorldPosition(chunk.getChunkOffset());
@@ -76,7 +73,7 @@ public class DefaultWorldGenerator implements WorldGenerator {
         }
     }
 
-    private void addBedrockLayer(Chunk chunk) {
+    protected void addBedrockLayer(Chunk chunk) {
         for (int x = 0; x < World.CHUNK_SIZE; x++) {
             for (int z = 0; z < World.CHUNK_SIZE; z++) {
                 chunk.setBlockAt(new PositionInChunk(x, 0, z), BlockRegistry.getBlockID("bedrock"), false);

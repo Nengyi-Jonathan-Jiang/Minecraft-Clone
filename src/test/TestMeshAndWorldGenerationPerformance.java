@@ -4,6 +4,7 @@ import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.util.ChunkOffset;
 import app.world.worldgen.DefaultWorldGenerator;
+import app.world.worldgen.GPUWorldGenerator;
 import j3d.opengl.OpenGLEngine;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ public class TestMeshAndWorldGenerationPerformance {
         System.out.println("Registering Blocks");
         DefaultBlocksInitializer.run();
 
-        World world = new World(new DefaultWorldGenerator(), new Player());
+        World world = new World(new GPUWorldGenerator(), new Player());
 
         System.out.println("Generating Chunks");
         for (int x = 0; x < numChunks; x++) {

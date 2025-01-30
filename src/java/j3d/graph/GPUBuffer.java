@@ -8,8 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL15.GL_STATIC_COPY;
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL44.*;
 
 public final class GPUBuffer implements Resource {
     public final int id;
@@ -81,6 +80,18 @@ public final class GPUBuffer implements Resource {
         public void copyDataTo(ByteBuffer data, int byteOffset) {
             if (!data.isDirect()) throw new IllegalStateException("Buffers passed to OpenGL must be direct");
             glGetBufferSubData(bufferType.glEnumValue, byteOffset, data);
+        }
+
+        public static class ImmutableStorageAccessFlags {
+            public static final int Read = GL_MAP_READ_BIT;
+            public static final int Write = GL_MAP_WRITE_BIT;
+            public static final int SubData = GL_DYNAMIC_STORAGE_BIT;
+            public static final int Persistent = GL_MAP_PERSISTENT_BIT;
+            public static final int Coherent = GL_MAP_COHERENT_BIT;
+        }
+
+        public void allocateImmutably(int numBytes, int flags) {
+            glBufferStorage(bufferType.glEnumValue, numBytes, flags);
         }
 
         public void setData(IntBuffer data) {
