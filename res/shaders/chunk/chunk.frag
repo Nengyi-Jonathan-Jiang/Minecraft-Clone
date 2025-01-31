@@ -25,7 +25,7 @@ vec4 lerp(vec4 a, vec4 b, float t) {
     return a + (b - a) * t;
 }
 
-const bool whiteWorld = true;
+const bool whiteWorld = false;
 const vec4 fogColor = vec4(.7, .93, 1., 1.);
 const float fogStrength = 0.02;
 

@@ -69,7 +69,6 @@ public class LightingData {
                 dirtyBlocks.markDirty(pos.getBits());
             }
         }
-//        dirtyBlocks.markAllDirty();
     }
 
     public void clearDirtyBlocks() {

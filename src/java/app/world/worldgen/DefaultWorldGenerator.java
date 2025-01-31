@@ -20,8 +20,8 @@ public class DefaultWorldGenerator implements WorldGenerator {
         Chunk result = new Chunk(chunkOffset, world);
 
         addTerrainLayer(result);
-        convertTopLayersToGrass(result);
-        addBedrockLayer(result);
+//        convertTopLayersToGrass(result);
+//        addBedrockLayer(result);
 
         result.getLightingData().invalidateAll();
 
