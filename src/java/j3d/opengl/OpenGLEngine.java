@@ -8,6 +8,9 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 import util.Resource;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -30,18 +33,21 @@ public class OpenGLEngine extends Engine implements Resource {
         running = true;
     }
 
+    private static final Queue<AtomicLong> awaitingContexts = new ArrayDeque<>();
+    public static long mainThreadID;
+
     public static boolean isGLInitialized() {
         return wglGetCurrentContext() != 0;
     }
 
-    public static void initializeHeadless() {
+    private static long initializeGLFWHeadless() {
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
@@ -54,15 +60,35 @@ public class OpenGLEngine extends Engine implements Resource {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
-        glfwSetErrorCallback((int errorCode, long msgPtr) ->
-            System.out.printf("Error code [%s], msg [%s]%n", errorCode, MemoryUtil.memUTF8(msgPtr))
-        );
+        glfwSetErrorCallback((int errorCode, long msgPtr) -> System.out.printf("Error code [%s], msg [%s]%n", errorCode, MemoryUtil.memUTF8(msgPtr)));
+
+        return windowHandle;
+    }
+
+    public static void initializeHeadless() {
+        if (isGLInitialized()) {
+            return;
+        }
+
+        long windowHandle;
+        if (Thread.currentThread().threadId() == mainThreadID) {
+            System.out.println("Initializing Headless OpenGL on main thread");
+            windowHandle = initializeGLFWHeadless();
+        } else {
+            System.out.println("Initializing Headless OpenGL on thread " + Thread.currentThread().threadId());
+            AtomicLong atomicWindowHandle = new AtomicLong(-1);
+            synchronized (awaitingContexts) {
+                awaitingContexts.offer(atomicWindowHandle);
+            }
+            while (atomicWindowHandle.get() == -1) {
+                Thread.onSpinWait();
+            }
+            windowHandle = atomicWindowHandle.get();
+            System.out.println("Done initializing Headless OpenGL thread " + Thread.currentThread().threadId());
+        }
         glfwMakeContextCurrent(windowHandle);
 
         GL.createCapabilities();
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
     }
 
     @Override
@@ -83,6 +109,15 @@ public class OpenGLEngine extends Engine implements Resource {
 
     @Override
     protected void update(Window window, int elapsedTimeMillis) {
+        if (Thread.currentThread().threadId() == mainThreadID) {
+            synchronized (awaitingContexts) {
+                while (!awaitingContexts.isEmpty()) {
+                    AtomicLong awaitingContext = awaitingContexts.poll();
+                    long windowHandle = initializeGLFWHeadless();
+                    awaitingContext.set(windowHandle);
+                }
+            }
+        }
         appLogic.update(window, elapsedTimeMillis);
     }
 

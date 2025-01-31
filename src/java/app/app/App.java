@@ -9,7 +9,6 @@ import app.world.chunk.Chunk;
 import app.world.util.ChunkOffset;
 import app.world.util.IVec3i;
 import app.world.util.WorldPosition;
-import app.world.worldgen.DefaultWorldGenerator;
 import app.world.worldgen.GPUWorldGenerator;
 import j3d.IAppLogic;
 import j3d.MouseInput;

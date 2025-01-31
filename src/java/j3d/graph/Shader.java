@@ -42,8 +42,24 @@ public class Shader implements Resource {
 
         List<Integer> shaderIDs = new ArrayList<>();
         for (ShaderModuleData s : shaderModuleDataList) {
+            String shaderCode = FileReader.readAsString(s.shaderFile);
+            String[] inputLines = shaderCode.split("\n");
+            ArrayList<String> outputLines = new ArrayList<>();
+            for (String line : inputLines) {
+                if (line.matches("#include\\s+\"[\\w/.]+\"\\s*")) {
+                    String libraryName = line.split("\\s+")[1];
+                    libraryName = libraryName.substring(1, libraryName.length() - 1);
+                    String librarySource = FileReader.readAsString(libraryName);
+                    outputLines.add(librarySource);
+                }
+                else {
+                    outputLines.add(line);
+                }
+            }
+
+            shaderCode = String.join("\n", outputLines);
             shaderIDs.add(
-                createShader(FileReader.readAsString(s.shaderFile), s.shaderType.glEnumValue)
+                createShader(shaderCode, s.shaderType.glEnumValue)
             );
         }
 
@@ -97,6 +113,8 @@ public class Shader implements Resource {
     }
 
     public record ShaderModuleData(String shaderFile, ShaderType shaderType) {}
+
+    public record ShaderLibraryFileEntry(String file, String name) {}
 
     public ShaderData uniforms() {
         return uniforms;

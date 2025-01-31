@@ -1,6 +1,5 @@
 package j3d;
 
-import j3d.opengl.OpenGLEngine;
 import util.Resource;
 
 public abstract class Engine implements Resource {
@@ -23,8 +22,8 @@ public abstract class Engine implements Resource {
 
     public final void run() {
         long initialTime = System.currentTimeMillis();
-        float timeU = 1000.0f / OpenGLEngine.targetUps;
-        float timeR = OpenGLEngine.targetFps > 0 ? 1000.0f / OpenGLEngine.targetFps : 0;
+        float timeU = 1000.0f / targetUps;
+        float timeR = targetFps > 0 ? 1000.0f / targetFps : 0;
         float deltaUpdate = 0;
         float deltaFps = 0;
 
@@ -36,7 +35,7 @@ public abstract class Engine implements Resource {
             deltaUpdate += (now - initialTime) / timeU;
             deltaFps += (now - initialTime) / timeR;
 
-            if (OpenGLEngine.targetFps <= 0 || deltaFps >= 1) {
+            if (targetFps <= 0 || deltaFps >= 1) {
                 window.getMouseInput().input();
                 input(window, (int) (now - initialTime));
             }
@@ -48,7 +47,7 @@ public abstract class Engine implements Resource {
                 deltaUpdate--;
             }
 
-            if (OpenGLEngine.targetFps <= 0 || deltaFps >= 1) {
+            if (targetFps <= 0 || deltaFps >= 1) {
                 draw(window);
                 deltaFps--;
                 window.updateScreen();

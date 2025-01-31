@@ -28,8 +28,8 @@ public class LightingEngine {
     }
 
     public synchronized boolean needsUpdate() {
-        return false;
-//        return !dirtyChunks.isEmpty();
+//        return false;
+        return !dirtyChunks.isEmpty();
     }
 
     public synchronized void updateLighting() {

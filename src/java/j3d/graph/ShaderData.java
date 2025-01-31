@@ -1,5 +1,6 @@
 package j3d.graph;
 
+import app.world.util.IVec3i;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
@@ -19,11 +20,11 @@ public class ShaderData {
     }
 
     private int getUniformLocation(String uniformName) {
-        if(!uniforms.containsKey(uniformName)) {
+        if (!uniforms.containsKey(uniformName)) {
             int uniformLocation = glGetUniformLocation(programID, uniformName);
             if (uniformLocation < 0) {
                 throw new RuntimeException("Could not find uniform [" + uniformName + "] in shader program [" +
-                        programID + "]");
+                    programID + "]");
             }
             uniforms.put(uniformName, uniformLocation);
         }
@@ -38,14 +39,18 @@ public class ShaderData {
     public void setUniform(String uniformName, int value) {
         try {
             glUniform1i(getUniformLocation(uniformName), value);
-        }
-        catch (Exception ignored) {}
+        } catch (Exception ignored) {}
+    }
+
+    public void setUniform(String uniformName, IVec3i value) {
+        try {
+            glUniform3i(getUniformLocation(uniformName), value.x(), value.y(), value.z());
+        } catch (Exception ignored) {}
     }
 
     public void setUniform(String uniformName, Matrix4f value) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             glUniformMatrix4fv(getUniformLocation(uniformName), false, value.get(stack.mallocFloat(16)));
-        }
-        catch (Exception ignored) {}
+        } catch (Exception ignored) {}
     }
 }

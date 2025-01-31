@@ -1,9 +1,11 @@
 package util;
 
+import java.util.Arrays;
+
 public class DenseIntMap<T> {
+    private int capacity = 256;
     @SuppressWarnings("unchecked")
-    private T[] items = (T[]) new Object[16];
-    private int capacity = 16;
+    private T[] items = (T[]) new Object[capacity];
 
     public DenseIntMap() {}
 
@@ -18,13 +20,10 @@ public class DenseIntMap<T> {
     }
 
     private void allocateSpace(int key) {
-        if(key >= capacity) {
+        if (key >= capacity) {
             int targetCapacity = capacity;
-            while(key >= targetCapacity) targetCapacity *= 2;
-            //noinspection unchecked
-            T[] newItems = (T[]) new Object[targetCapacity];
-            System.arraycopy(items, 0, newItems, 0, capacity);
-            items = newItems;
+            while (key >= targetCapacity) targetCapacity *= 2;
+            items = Arrays.copyOf(items, targetCapacity);
             capacity = targetCapacity;
         }
     }
