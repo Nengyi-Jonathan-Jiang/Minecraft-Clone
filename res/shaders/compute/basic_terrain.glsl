@@ -15,7 +15,7 @@ void main() {
     uvec3 positionInChunk = gl_GlobalInvocationID.xyz;
     ivec3 worldPos = chunkOffset + ivec3(positionInChunk);
 
-    float height = simplex_noise(vec2(worldPos.xz) * 0.02) * 0.1 + 64.0;
+    float height = simplex_noise(vec2(worldPos.xz) * 0.02) * 30.0 + 64.0;
     if (worldPos.y < height - 3) {
         result = 3;
     }
