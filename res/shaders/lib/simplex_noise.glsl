@@ -40,18 +40,18 @@ float simplex_noise(vec2 xy) {
     // x + y + 1 (but perm)
     // x + y + 2 (but perm)
 
-    uint gi0 = permMod12[ii + perm[jj]];
-    uint gi1 = permMod12[ii + ij1.x + perm[jj + ij1.y]];
-    uint gi2 = permMod12[ii + 1 + perm[jj + 1]];
+    ivec3 g0 = grad3[permMod12[ii + perm[jj]]];
+    ivec3 g1 = grad3[permMod12[ii + ij1.x + perm[jj + ij1.y]]];
+    ivec3 g2 = grad3[permMod12[ii + 1 + perm[jj + 1]]];
 
     float t0 = max(0.0, 0.5 - dot(xy0, xy0));
-    float n0 = (t0 * t0) * (t0 * t0) * _dot(grad3[gi0], xy0);
+    float n0 = (t0 * t0) * (t0 * t0) * _dot(g0, xy0);
 
     float t1 = max(0.0, 0.5 - dot(xy1, xy1));
-    float n1 = (t1 * t1) * (t1 * t1) * _dot(grad3[gi1], xy1);
+    float n1 = (t1 * t1) * (t1 * t1) * _dot(g1, xy1);
 
     float t2 = max(0.0, 0.5 - dot(xy2, xy2));
-    float n2 = (t2 * t2) * (t2 * t2) * _dot(grad3[gi2], xy2);
+    float n2 = (t2 * t2) * (t2 * t2) * _dot(g2, xy2);
 
     return 70.0 * (n0 + n1 + n2);
 }
