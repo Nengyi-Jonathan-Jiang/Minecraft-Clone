@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class TaskManager<T, C> {
+public class TaskPool<T, C> {
     private final C tasks;
     private final Function<C, T> take;
     private final BiConsumer<C, T> supply;
@@ -16,7 +16,7 @@ public class TaskManager<T, C> {
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition notEmpty = lock.newCondition();
 
-    public TaskManager(C tasks, BiConsumer<C, T> supply, Function<C, T> take, Predicate<C> isEmpty) {
+    public TaskPool(C tasks, BiConsumer<C, T> supply, Function<C, T> take, Predicate<C> isEmpty) {
         this.tasks = tasks;
         this.supply = supply;
         this.take = take;

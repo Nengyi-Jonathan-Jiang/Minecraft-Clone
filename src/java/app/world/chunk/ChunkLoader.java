@@ -4,7 +4,7 @@ import app.world.World;
 import app.world.util.ChunkOffset;
 import org.jetbrains.annotations.NotNull;
 import util.Resource;
-import util.TaskManager;
+import util.TaskPool;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,11 +14,11 @@ public class ChunkLoader implements Resource {
     private final Thread thread;
 
     private int nextWaitingChunkId;
-    private final TaskManager<ChunkLoaderTask, Map<Integer, ChunkLoaderTask>> waitingChunks;
+    private final TaskPool<ChunkLoaderTask, Map<Integer, ChunkLoaderTask>> waitingChunks;
 
     public ChunkLoader(World world, Comparator<ChunkOffset> priority) {
         this.world = world;
-        this.waitingChunks = new TaskManager<>(
+        this.waitingChunks = new TaskPool<>(
             new HashMap<>(),
             (c, task) -> c.put(task.id, task),
             (c) -> {

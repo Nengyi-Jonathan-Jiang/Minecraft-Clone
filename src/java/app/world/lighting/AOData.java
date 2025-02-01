@@ -20,9 +20,10 @@ public class AOData {
     }
 
     private int getLightAtIfLoadedOrDefault(WorldPosition p, int defaultValue) {
-        return neighborhood.contains(p)
-            ? neighborhood.getChunkFor(p).getLightingData().getBlockLightAt(p.getPositionInChunk())
-            : defaultValue;
+        return p.y() >= 256 ? 15 :
+            neighborhood.contains(p)
+                ? neighborhood.getChunkFor(p).getLightingData().getBlockLightAt(p.getPositionInChunk())
+                : defaultValue;
     }
 
     private int getOpacityIfLoadedOrDefault(WorldPosition p, int defaultValue) {
