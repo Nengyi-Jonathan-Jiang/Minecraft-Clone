@@ -22,11 +22,12 @@ float simplex_noise(vec2 xy) {
     // Transform xy to lie on a squashed hypercubic honeycomb lattice, such that
     //   dist(T(0, 0), T(1, 1)) = dist(T(0, 0), T(0, 1)) = dist(T(0, 0), T(1, 0))
     vec2 xy_transformed = xy + dot(xy, vec2(F2));
-    // Figure out which cell the transformed point is in.
-    vec2 ij = floor(xy_transformed);
-    float t = dot(ij, vec2(G2));
 
-    vec2 XY0 = ij - t;
+    // Figure out which hypercube the transformed point is in.
+    vec2 ij = floor(xy_transformed);
+
+    // Magic to figure out the three vertices of the containing simplex
+    vec2 XY0 = ij - dot(ij, vec2(G2));
     vec2 xy0 = xy - XY0;
     uvec2 ij1 = xy0.x > xy0.y ? ivec2(1, 0) : ivec2(0, 1);
     vec2 xy1 = xy0 - ij1 + G2;
@@ -35,10 +36,6 @@ float simplex_noise(vec2 xy) {
     uvec2 iijj = ivec2(ij) & 0xff;
     uint ii = iijj.x;
     uint jj = iijj.y;
-
-    // x + y (but perm)
-    // x + y + 1 (but perm)
-    // x + y + 2 (but perm)
 
     uint gi0 = permMod12[ii + perm[jj]];
     uint gi1 = permMod12[ii + ij1.x + perm[jj + ij1.y]];
