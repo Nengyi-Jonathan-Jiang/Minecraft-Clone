@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestMeshAndWorldGenerationPerformance {
-    @Test
-    void test() {
+    public static void main(String[] args) {
         System.out.println("Initializing OpenGL");
         OpenGLEngine.mainThreadID = Thread.currentThread().threadId();
         OpenGLEngine.initializeHeadless();
@@ -40,5 +39,7 @@ public class TestMeshAndWorldGenerationPerformance {
         }
 
         System.out.println("Done");
+
+        world.freeResources();
     }
 }

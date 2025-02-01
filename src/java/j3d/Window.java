@@ -86,10 +86,6 @@ public abstract class Window implements Resource {
         glfwFreeCallbacks(windowHandle);
         glfwDestroyWindow(windowHandle);
         glfwTerminate();
-        GLFWErrorCallback callback = glfwSetErrorCallback(null);
-        if (callback != null) {
-            callback.free();
-        }
     }
 
     public int getHeight() {

@@ -47,7 +47,6 @@ public class OpenGLEngine extends Engine implements Resource {
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
@@ -91,6 +90,10 @@ public class OpenGLEngine extends Engine implements Resource {
         GL.createCapabilities();
     }
 
+    public static void terminateAll() {
+        glfwTerminate();
+    }
+
     @Override
     public void freeResources() {
         appLogic.freeResources();
@@ -108,7 +111,7 @@ public class OpenGLEngine extends Engine implements Resource {
     }
 
     @Override
-    protected void update(Window window, int elapsedTimeMillis) {
+    protected void always() {
         if (Thread.currentThread().threadId() == mainThreadID) {
             synchronized (awaitingContexts) {
                 while (!awaitingContexts.isEmpty()) {
@@ -118,6 +121,10 @@ public class OpenGLEngine extends Engine implements Resource {
                 }
             }
         }
+    }
+
+    @Override
+    protected void update(Window window, int elapsedTimeMillis) {
         appLogic.update(window, elapsedTimeMillis);
     }
 

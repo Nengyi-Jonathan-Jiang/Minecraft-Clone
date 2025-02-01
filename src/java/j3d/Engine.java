@@ -16,6 +16,9 @@ public abstract class Engine implements Resource {
 
     protected abstract void input(Window window, int elapsedTimeMillis);
 
+    protected void always() {
+    }
+
     protected Engine(String windowTitle, Window.WindowConstructor windowConstructor) {
         window = windowConstructor.call(windowTitle, this::resize);
     }
@@ -29,6 +32,8 @@ public abstract class Engine implements Resource {
 
         long updateTime = initialTime;
         while (running && !window.windowShouldClose()) {
+            always();
+
             window.pollEvents();
 
             long now = System.currentTimeMillis();
