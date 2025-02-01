@@ -1,15 +1,20 @@
 package j3d.graph;
 
 import org.lwjgl.BufferUtils;
+import util.NotThreadSafe;
 import util.Resource;
 import util.SimpleAutoCloseable;
 
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL44.*;
 
+@NotThreadSafe
 public final class GPUBuffer implements Resource {
     public final int id;
     public final BufferType bufferType;
@@ -29,7 +34,9 @@ public final class GPUBuffer implements Resource {
 
         public final int glEnumValue;
 
-        BufferType(int glEnumValue) {this.glEnumValue = glEnumValue;}
+        BufferType(int glEnumValue) {
+            this.glEnumValue = glEnumValue;
+        }
     }
 
     public enum BufferUsage {
@@ -125,9 +132,13 @@ public final class GPUBuffer implements Resource {
         }
 
         public void setData(int[] data) {
-            IntBuffer buffer = BufferUtils.createIntBuffer(data.length);
-            buffer.put(0, data);
-            setData(buffer);
+            synchronized (temporaryBuffer) {
+                if (temporaryBuffer == null || data.length * 4 >= temporaryBuffer.capacity()) {
+                    temporaryBuffer = BufferUtils.createByteBuffer(data.length * 4);
+                }
+                temporaryBuffer.asIntBuffer().put(0, data);
+                setData(temporaryBuffer.slice(0, data.length));
+            }
         }
 
         public void setData(float[] data) {
@@ -179,6 +190,7 @@ public final class GPUBuffer implements Resource {
             }
         }
 
+        private static final AtomicReference<ByteBuffer> temporaryBuffer = new AtomicReference<>(null);
     }
 
     public BufferAccess bind() {
@@ -187,7 +199,8 @@ public final class GPUBuffer implements Resource {
 
     public SimpleAutoCloseable bindToShader(int bindingIndex) {
         switch (bufferType) {
-            case UniformBuffer, ShaderStorageBuffer -> {}
+            case UniformBuffer, ShaderStorageBuffer -> {
+            }
             default -> throw new IllegalArgumentException(
                 "Only uniform buffers or shader storage buffers may be bound to a shader"
             );
