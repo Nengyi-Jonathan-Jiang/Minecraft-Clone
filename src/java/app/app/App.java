@@ -48,6 +48,9 @@ public class App implements IAppLogic {
 
     public App(Window window) {
         this.window = window;
+
+        glfwSetInputMode(window.getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
         projection = new Projection(this.window.getWidth(), window.getHeight());
 
         blockOutlineMesh = new Mesh(

@@ -25,7 +25,6 @@ public class OpenGLWindow extends Window {
 
     public OpenGLWindow(String title, Runnable resizeFunc) {
         super(title, resizeFunc);
-        glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     public boolean isKeyPressed(int keyCode) {
