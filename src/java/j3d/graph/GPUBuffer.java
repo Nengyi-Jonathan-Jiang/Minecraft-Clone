@@ -5,11 +5,12 @@ import util.NotThreadSafe;
 import util.Resource;
 import util.SimpleAutoCloseable;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL44.*;
@@ -131,24 +132,42 @@ public final class GPUBuffer implements Resource {
             glBufferSubData(bufferType.glEnumValue, byteOffset, data);
         }
 
-        public void setData(int[] data) {
-            synchronized (temporaryBuffer) {
-                if (temporaryBuffer == null || data.length * 4 >= temporaryBuffer.capacity()) {
-                    temporaryBuffer = BufferUtils.createByteBuffer(data.length * 4);
-                }
-                temporaryBuffer.asIntBuffer().put(0, data);
-                setData(temporaryBuffer.slice(0, data.length));
+        private ByteBuffer getTemporaryBuffer(int capacityInBytes) {
+            AtomicReference<ByteBuffer> bufferReference;
+            synchronized (temporaryBuffers) {
+                bufferReference = temporaryBuffers.computeIfAbsent(
+                    Thread.currentThread().threadId(), i -> new AtomicReference<>(null)
+                );
             }
+            ByteBuffer buffer = bufferReference.get();
+
+            if (buffer == null || capacityInBytes > buffer.capacity()) {
+                buffer = BufferUtils.createByteBuffer(capacityInBytes);
+                bufferReference.set(buffer);
+            }
+
+            // The buffer returned by ByteBuffer.slice() is big endian by default, but we need it to be native.l
+            return buffer.slice(0, capacityInBytes).order(ByteOrder.nativeOrder());
+        }
+
+        public void setData(int[] data) {
+            var buffer = getTemporaryBuffer(data.length * 4).asIntBuffer();
+
+//            var buffer = BufferUtils.createIntBuffer(data.length);
+
+            buffer.put(0, data);
+            setData(buffer);
         }
 
         public void setData(float[] data) {
-            FloatBuffer buffer = BufferUtils.createFloatBuffer(data.length);
+//            var buffer = getTemporaryBuffer(data.length * 4);
+            var buffer = BufferUtils.createFloatBuffer(data.length);
             buffer.put(0, data);
             setData(buffer);
         }
 
         public void setData(byte[] data) {
-            ByteBuffer buffer = BufferUtils.createByteBuffer(data.length);
+            var buffer = getTemporaryBuffer(data.length);
             buffer.put(0, data);
             setData(buffer);
         }
@@ -190,7 +209,7 @@ public final class GPUBuffer implements Resource {
             }
         }
 
-        private static final AtomicReference<ByteBuffer> temporaryBuffer = new AtomicReference<>(null);
+        private static final Map<Long, AtomicReference<ByteBuffer>> temporaryBuffers = new HashMap<>();
     }
 
     public BufferAccess bind() {
