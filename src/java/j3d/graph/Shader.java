@@ -6,6 +6,8 @@ import util.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.lwjgl.opengl.GL43.*;
 
@@ -90,7 +92,15 @@ public class Shader implements Resource {
         glCompileShader(shaderID);
 
         if (glGetShaderi(shaderID, GL_COMPILE_STATUS) == 0) {
-            throw new RuntimeException("Error compiling Shader code: " + glGetShaderInfoLog(shaderID, 2048));
+            String[] prettyPrint = shaderCode.split("\n");
+            throw new RuntimeException(
+                "Error compiling Shader code: \n"
+                    + glGetShaderInfoLog(shaderID, 2048)
+                    + "\n\n(Full code):\n\n"
+                    + IntStream.range(0, prettyPrint.length)
+                        .mapToObj(i -> (i + 1) + ":   \t" + prettyPrint[i])
+                        .collect(Collectors.joining("\n"))
+            );
         }
 
         glAttachShader(programID, shaderID);

@@ -2,7 +2,6 @@ package app.world.worldgen;
 
 import app.block.Block;
 import app.block.BlockRegistry;
-import app.noise.ComputeNoise;
 import app.world.World;
 import app.world.chunk.Chunk;
 import app.world.util.ChunkOffset;
@@ -28,7 +27,6 @@ public class GPUWorldGenerator implements WorldGenerator {
         private final Shader shader;
         private final GPUBuffer ssbo;
         private final IntBuffer ssboOutputBuffer;
-        private final GPUBuffer permArray;
         private final ReentrantLock lock = new ReentrantLock();
 
         {
@@ -49,14 +47,6 @@ public class GPUWorldGenerator implements WorldGenerator {
                     World.BLOCKS_PER_CHUNK * 4,
                     ImmutableStorageAccessFlags.Read | ImmutableStorageAccessFlags.SubData
                 );
-            }
-
-            permArray = new GPUBuffer(
-                BufferType.UniformBuffer,
-                BufferUsage.StaticCopy
-            );
-            try (var access = permArray.bind()) {
-                access.setData(ComputeNoise.permArrayBufferData);
             }
         }
     }
@@ -107,16 +97,13 @@ public class GPUWorldGenerator implements WorldGenerator {
         var shader = context.shader;
         var ssbo = context.ssbo;
         var ssboOutputBuffer = context.ssboOutputBuffer;
-        var permArray = context.permArray;
 
         lock.lock();
         shader.bind();
-        try (var ignored = permArray.bindToShader(1)) {
-            try (var ignored1 = ssbo.bindToShader(0)) {
-                shader.uniforms().setUniform("chunkOffset", chunk.getChunkOffset());
-                glDispatchCompute(World.CHUNK_SIZE, World.CHUNK_HEIGHT, World.CHUNK_SIZE);
-                glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            }
+        try (var ignored1 = ssbo.bindToShader(0)) {
+            shader.uniforms().setUniform("chunkOffset", chunk.getChunkOffset());
+            glDispatchCompute(World.CHUNK_SIZE, World.CHUNK_HEIGHT, World.CHUNK_SIZE);
+            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
         try (var access = ssbo.bind()) {
             access.copyDataTo(ssboOutputBuffer, 0);
@@ -126,6 +113,5 @@ public class GPUWorldGenerator implements WorldGenerator {
         }
         shader.unbind();
         lock.unlock();
-//        super.addTerrainLayer(chunk);
     }
 }

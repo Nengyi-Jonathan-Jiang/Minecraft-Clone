@@ -27,7 +27,8 @@ vec4 lerp(vec4 a, vec4 b, float t) {
 
 const bool whiteWorld = false;
 const vec4 fogColor = vec4(.7, .93, 1., 1.);
-const float fogStrength = 0.02;
+const float fogDistance = 80.;
+const float fogSpread = 40.;
 
 void main()
 {
@@ -46,5 +47,5 @@ void main()
     }
 
     // Apply fog
-    fragColor = lerp(fragColor, fogColor, 1. - clamped_cubic_interpolation((64. - length(outRealWorldPos)) / 40.));
+    fragColor = lerp(fragColor, fogColor, 1. - clamped_cubic_interpolation((fogDistance - length(outRealWorldPos)) / fogSpread));
 }

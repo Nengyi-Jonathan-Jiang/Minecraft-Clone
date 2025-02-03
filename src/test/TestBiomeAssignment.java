@@ -7,18 +7,18 @@ import org.joml.Matrix4f;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class TestSimplexNoise {
+public class TestBiomeAssignment {
 
     public static void main(String[] args) {
 
-        new OpenGLEngine("Simplex Noise Test", (window) -> new IAppLogic() {
+        new OpenGLEngine("Biome Test", (window) -> new IAppLogic() {
             final Shader shader;
             final Mesh mesh;
 
             {
                 shader = Shader.createBasicShader(
                     "shaders/misc/test_simplex_noise.vert",
-                    "shaders/misc/test_simplex_noise.frag"
+                    "shaders/misc/test_biome_assignment.frag"
                 );
 
                 mesh = new Mesh(

@@ -6,11 +6,12 @@ out vec4 fragColor;
 #include "shaders/lib/simplex_noise.glsl"
 
 void main() {
-    float color = (
-        simplex_noise(outUV.xy * 2.) // * (8.0 / 15.0)
-//        + simplex_noise(outUV.xy * 10.) * (4.0 / 15.0)
-//        + simplex_noise(outUV.xy * 20.) * (2.0 / 15.0)
-//        + simplex_noise(outUV.xy * 40.) * (1.0 / 15.0)
-    ) * 0.5 + 0.5;
-    fragColor = vec4(vec3(mod(color, 1.0)), 1.0);
+    float scale = 0.2;
+    int octaves = 8;
+    float color = 0.0;
+    for(int i = 0; i < octaves; i++) {
+        color += simplex_noise(outUV.xy * pow(2.0, float(i)) / scale) * pow(2.0, -float(i));
+    }
+    color = color * (pow(2.0, octaves) / (pow(2.0, octaves) - 1.0)) * 0.25 + 0.5;
+    fragColor = vec4(vec3(color), 1.0);
 }
